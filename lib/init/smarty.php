@@ -82,7 +82,7 @@ class Tiki_Security_Policy extends Smarty_Security
 		$functions = (isset($functions) ? $functions : array());
 		$modifiers = (isset($modifiers) ? $modifiers : array());
 
-		$this->php_modifiers = array_merge(array( 'nl2br','escape', 'count', 'addslashes', 'ucfirst', 'ucwords', 'urlencode', 'md5', 'implode', 'explode', 'is_array', 'htmlentities', 'var_dump', 'strip_tags', 'json_encode', 'stristr', 'trim', 'array_reverse', 'tra'), $modifiers);
+		$this->php_modifiers = array_merge(array( 'nl2br','escape', 'count', 'addslashes', 'ucfirst', 'ucwords', 'urlencode', 'md5', 'implode', 'explode', 'is_array', 'htmlentities', 'var_dump', 'strip_tags', 'json_encode', 'stristr', 'trim', 'array_reverse', 'tra', 'strpos'), $modifiers);
 		$this->php_functions = array_merge(array('isset', 'empty', 'count', 'sizeof', 'in_array', 'is_array', 'time', 'nl2br', 'tra', 'strlen', 'strstr', 'strtolower', 'basename', 'ereg', 'array_key_exists', 'preg_match', 'preg_match_all', 'json_encode', 'stristr', 'is_numeric', 'array', 'zone_is_empty', 'min', 'max' ), $functions);
 		$this->secure_dir = array_merge($this->secure_dir, $dirs);
 	}
@@ -468,39 +468,42 @@ class Smarty_Tiki extends Smarty
 
 		$this->setTemplateDir([]);
 
-		// Theme templates
-		$themelib = TikiLib::lib('theme');
-		if (! in_array($prefs['theme'], ['custom_url'])) {
-			$theme_path = $themelib->get_theme_path($prefs['theme'], $prefs['theme_option'], '', 'templates'); // path to the theme options
-			$this->addTemplateDir(TIKI_PATH . "/$theme_path/");
-			//if theme_admin is empty, use main theme and site_layout instead of site_layout_admin
-			if ($section != "admin" || empty($prefs['theme_admin'])){
-				$this->addTemplateDir(TIKI_PATH . "/$theme_path/".'layouts/' . $prefs['site_layout'].'/');
-			} else {
-				$this->addTemplateDir(TIKI_PATH . "/$theme_path/" . 'layouts/' . $prefs['site_layout_admin'] . '/');
-			}
-			$this->addTemplateDir(TIKI_PATH . "/$theme_path/".'layouts/');
+		// when called from release.php TikiLib isn't initialised so we can ignore the themes and addons
+		if (class_exists('TikiLib')) {
+			// Theme templates
+			$themelib = TikiLib::lib('theme');
+			if (!in_array($prefs['theme'], ['custom_url'])) {
+				$theme_path = $themelib->get_theme_path($prefs['theme'], $prefs['theme_option'], '', 'templates'); // path to the theme options
+				$this->addTemplateDir(TIKI_PATH . "/$theme_path/");
+				//if theme_admin is empty, use main theme and site_layout instead of site_layout_admin
+				if ($section != "admin" || empty($prefs['theme_admin'])) {
+					$this->addTemplateDir(TIKI_PATH . "/$theme_path/" . 'layouts/' . $prefs['site_layout'] . '/');
+				} else {
+					$this->addTemplateDir(TIKI_PATH . "/$theme_path/" . 'layouts/' . $prefs['site_layout_admin'] . '/');
+				}
+				$this->addTemplateDir(TIKI_PATH . "/$theme_path/" . 'layouts/');
 
-			$main_theme_path = $themelib->get_theme_path($prefs['theme'], '', '', 'templates'); // path to the main theme
-			$this->addTemplateDir(TIKI_PATH . "/$main_theme_path/");
-			//if theme_admin is empty, use main theme and site_layout instead of site_layout_admin
-			if ($section != "admin" || empty($prefs['theme_admin'])){
-				$this->addTemplateDir(TIKI_PATH . "/$main_theme_path/".'layouts/'.$prefs['site_layout'].'/');
-			} else {
-				$this->addTemplateDir(TIKI_PATH . "/$main_theme_path/" . 'layouts/' . $prefs['site_layout_admin'] . '/');
+				$main_theme_path = $themelib->get_theme_path($prefs['theme'], '', '', 'templates'); // path to the main theme
+				$this->addTemplateDir(TIKI_PATH . "/$main_theme_path/");
+				//if theme_admin is empty, use main theme and site_layout instead of site_layout_admin
+				if ($section != "admin" || empty($prefs['theme_admin'])) {
+					$this->addTemplateDir(TIKI_PATH . "/$main_theme_path/" . 'layouts/' . $prefs['site_layout'] . '/');
+				} else {
+					$this->addTemplateDir(TIKI_PATH . "/$main_theme_path/" . 'layouts/' . $prefs['site_layout_admin'] . '/');
+				}
 			}
-		}
-		// Tikidomain main template folder
-		if ( ! empty($tikidomainslash) ) {
-			$this->addTemplateDir(TIKI_PATH . "/themes/{$tikidomainslash}templates/"); // This dir is for all the themes in the tikidomain
-			$this->addTemplatedir($this->main_template_dir.'/'.$tikidomainslash); // legacy tpls just in case, for example: /templates/mydomain.ltd/
-		}
-		
-		$this->addTemplateDir(TIKI_PATH . "/themes/templates/"); //This dir stores templates for all the themes
+			// Tikidomain main template folder
+			if (!empty($tikidomainslash)) {
+				$this->addTemplateDir(TIKI_PATH . "/themes/{$tikidomainslash}templates/"); // This dir is for all the themes in the tikidomain
+				$this->addTemplatedir($this->main_template_dir . '/' . $tikidomainslash); // legacy tpls just in case, for example: /templates/mydomain.ltd/
+			}
 
-		//Addon templates
-		foreach (TikiAddons::getPaths() as $path) {
-			$this->addTemplateDir($path . '/templates/');
+			$this->addTemplateDir(TIKI_PATH . "/themes/templates/"); //This dir stores templates for all the themes
+
+			//Addon templates
+			foreach (TikiAddons::getPaths() as $path) {
+				$this->addTemplateDir($path . '/templates/');
+			}
 		}
 		
 		//Layout templates

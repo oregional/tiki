@@ -2023,10 +2023,6 @@ class UsersLib extends TikiLib
 		$query = 'update `users_users` set `default_group`=? where `login`=? and `default_group`=?';
 		$this->query($query, array('Registered', $user, $group));
 
-		if ($prefs['user_trackersync_groups'] == 'y') {
-			$this->uncategorize_user_tracker_item($user, $group);
-		}
-
 		if ($prefs['feature_community_send_mail_leave'] == 'y') {
 			$api = new TikiAddons_Api_Group;
 			if ($api->isOrganicGroup($group)) {
@@ -2063,12 +2059,6 @@ class UsersLib extends TikiLib
 	function remove_user_from_all_groups($user)
 	{
 		global $prefs;
-		if ($prefs['user_trackersync_groups'] == 'y') {
-			$groups = $this->get_user_groups($user);
-			foreach ($groups as $group) {
-				$this->uncategorize_user_tracker_item($user, $group);
-			}
-		}
 		$userid = $this->get_user_id($user);
 		$query = 'delete from `users_usergroups` where `userId` = ?';
 		$result = $this->query($query, array($userid));
@@ -3119,7 +3109,7 @@ class UsersLib extends TikiLib
 			array(
 				'name' => 'tiki_p_admin_cms',
 				'description' => tra('Can admin the articles'),
-				'level' => 'editors',
+				'level' => 'admin',
 				'type' => 'articles',
 				'admin' => true,
 				'prefs' => array('feature_articles'),
@@ -3425,7 +3415,7 @@ class UsersLib extends TikiLib
 			array(
 				'name' => 'tiki_p_admin_categories',
 				'description' => tra('Can admin categories'),
-				'level' => 'editors',
+				'level' => 'admin',
 				'type' => 'category',
 				'admin' => true,
 				'prefs' => array('feature_categories'),
@@ -3827,7 +3817,7 @@ class UsersLib extends TikiLib
 			array(
 				'name' => 'tiki_p_admin_file_galleries',
 				'description' => tra('Can admin file galleries'),
-				'level' => 'editors',
+				'level' => 'admin',
 				'type' => 'file galleries',
 				'admin' => true,
 				'prefs' => array('feature_file_galleries'),
@@ -3908,7 +3898,7 @@ class UsersLib extends TikiLib
 			array(
 				'name' => 'tiki_p_admin_forum',
 				'description' => tra('Can admin forums'),
-				'level' => 'editors',
+				'level' => 'admin',
 				'type' => 'forums',
 				'admin' => true,
 				'prefs' => array('feature_forums'),
@@ -4682,7 +4672,7 @@ class UsersLib extends TikiLib
 			array(
 				'name' => 'tiki_p_admin_trackers',
 				'description' => tra('Can admin trackers'),
-				'level' => 'editors',
+				'level' => 'admin',
 				'type' => 'trackers',
 				'admin' => true,
 				'prefs' => array('feature_trackers'),
@@ -5078,7 +5068,7 @@ class UsersLib extends TikiLib
 			array(
 				'name' => 'tiki_p_admin_group_webmail',
 				'description' => tra('Can admin group webmail accounts'),
-				'level' => 'registered',
+				'level' => 'admin',
 				'type' => 'webmail',
 				'admin' => false,
 				'prefs' => array('feature_webmail', 'feature_contacts'),
@@ -5141,7 +5131,7 @@ class UsersLib extends TikiLib
 			array(
 				'name' => 'tiki_p_admin_wiki',
 				'description' => tra('Can admin the wiki'),
-				'level' => 'editors',
+				'level' => 'admin',
 				'type' => 'wiki',
 				'admin' => true,
 				'prefs' => array('feature_wiki'),
@@ -6045,9 +6035,6 @@ class UsersLib extends TikiLib
 			$query = "insert ignore into `users_usergroups`(`userId`,`groupName`, `created`) values(?,?,?)";
 			$result = $this->query($query, array($userid, $group, $tikilib->now), -1, -1, false);
 			$group_ret = true;
-			if ($prefs['user_trackersync_groups'] == 'y') {
-				$this->categorize_user_tracker_item($user, $group);
-			}
 		}
 		$this->update_group_expiries();
 
@@ -6249,6 +6236,8 @@ class UsersLib extends TikiLib
 		global $prefs;
 		$cachelib = TikiLib::lib('cache');
 		$tikilib = TikiLib::lib('tiki');
+
+		$user = trim($user);
 
 		if ($this->user_exists($user)
 				|| empty($user)
@@ -6469,8 +6458,10 @@ class UsersLib extends TikiLib
 
 		if ($userId === $this->getOne($query, array($secret, $userId))) {
 			return $userId;
+		} else {
+			TikiLib::lib('logs')->add_log('login', 'get_user_by_cookie failed', $userId);
+			return false;
 		}
-		return false;
 	}
 
 	function get_user_by_email($email)

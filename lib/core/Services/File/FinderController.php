@@ -167,9 +167,9 @@ class Services_File_FinderController
 		$elFinder = new tikiElFinder($opts);
 		$connector = new elFinderConnector($elFinder);
 
+		$filegallib = TikiLib::lib('filegal');
 		if ($input->cmd->text() === 'tikiFileFromHash') {	// intercept tiki only commands
 			$fileId = $elFinder->realpath($input->hash->text());
-			$filegallib = TikiLib::lib('filegal');
 			if (strpos($fileId, 'f_') !== false) {
 				$info = $filegallib->get_file(str_replace('f_', '', $fileId));
 			} else {
@@ -185,6 +185,37 @@ class Services_File_FinderController
 			$info['wiki_syntax'] = $filegallib->getWikiSyntax($info['galleryId'], $info, $params);
 			$info['data'] = '';	// binary data makes JSON fall over
 			return $info;
+		} else if ($input->cmd->text() === 'file') {
+
+			// intercept download command and use tiki-download_file so the mime type and extension is correct
+			$fileId = $elFinder->realpath($input->target->text());
+			if (strpos($fileId, 'f_') !== false) {
+				global $base_url;
+
+				$fileId = str_replace('f_', '', $fileId);
+				$display = '';
+
+				$url = $base_url . 'tiki-download_file.php?fileId=' . $fileId;
+
+				if (! $input->download->int()) {	// images can be displayed
+
+					$info = $filegallib->get_file($fileId);
+
+					if (strpos($info['filetype'], 'image/') !== false) {
+
+						$url .= '&display';
+
+					} else if ($prefs['fgal_viewerjs_feature'] === 'y' &&
+							($info['filetype'] === 'application/pdf' or
+									strpos($info['filetype'], 'application/vnd.oasis.opendocument.') !== false)) {
+
+						$url = \ZendOpenId\OpenId::absoluteUrl($prefs['fgal_viewerjs_uri']) . '#' . $url;
+					}
+				}
+
+				TikiLib::lib('access')->redirect($url);
+				return array();
+			}
 		}
 
 		// elfinder needs "raw" $_GET or $_POST
