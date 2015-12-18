@@ -1786,19 +1786,6 @@ class TrackerLib extends TikiLib
 			)
 		);
 
-		if ($prefs['feature_score'] == 'y') {
-			if ($final_event == 'tiki.trackeritem.create') {
-				$tikilib->score_event($user, 'trackeritem_create', $currentItemId);
-			} elseif ($final_event == 'tiki.trackeritem.update') {
-				$tikilib->score_event($user, 'trackeritem_edit', $currentItemId);
-			}
-			foreach ($fil as $key=>$value) {
-				if (empty($old_values[$key]) && !empty($fil[$key])) {
-					$tikilib->score_event($user, 'tracker_field_entered', "$key:$currentItemId");
-				}
-			}
-		}
-
 		$transaction->commit();
 
 		return $currentItemId;
@@ -2662,7 +2649,8 @@ class TrackerLib extends TikiLib
 				$res['name'] = tra($res['name']);
 			}
 			if ($res['type'] == 'p' && $res['options_array'][0] == 'language') {
-				$smarty->assign('languages', $this->list_languages());
+				$langLib = TikiLib::lib('language');
+				$smarty->assign('languages', $langLib->list_languages());
 			}
 			$ret[] = $res;
 		}

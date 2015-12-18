@@ -363,10 +363,6 @@ class FileGalLib extends TikiLib
 
 		$galleriesTable->update(array('lastModif' => $this->now), array('galleryId' => $galleryId));
 
-		if ($prefs['feature_score'] == 'y') {
-		    $this->score_event($user, 'fgallery_new_file');
-		}
-
 		if ($prefs['feature_actionlog'] == 'y') {
 			$logslib = TikiLib::lib('logs');
 			$logslib->add_action('Uploaded', $galleryId, 'file gallery', "fileId=$fileId&amp;add=$size");
@@ -850,10 +846,6 @@ class FileGalLib extends TikiLib
 
 			$galleryId = $galleriesTable->insert($fgal_info);
 
-			if ($prefs['feature_score'] == 'y') {
-				global $user;
-			    $this->score_event($user, 'fgallery_new');
-			}
 			$finalEvent = 'tiki.filegallery.create';
 		}
 
@@ -2001,7 +1993,7 @@ class FileGalLib extends TikiLib
 		if (!empty($prefs['fgal_quota'])) {
 			$use = $this->getUsedSize();
 			if ($use + $size > $prefs['fgal_quota']*1024*1024) {
-				$error = tra('The upload has not been done.') . ' ' . tra('Reason: The global quota has been reached');
+				$error = tra('The upload was not completed.') . ' ' . tra('Reason: The global quota has been reached');
 				$diff = $use + $size - $prefs['fgal_quota']*1024*1024;
 			}
 		}
@@ -2010,7 +2002,7 @@ class FileGalLib extends TikiLib
 			//echo '<pre>';print_r($list);echo '</pre>';
 			foreach ($list as $fgal) {
 				if (!empty($fgal['quota']) && $fgal['size'] + $size > $fgal['quota']*1024*1024) {
-					$error = tra('The upload has not been done.') . ' ' . sprintf(tra('Reason: The quota has been reached in "%s"'), $fgal['name']);
+					$error = tra('The upload was not completed.') . ' ' . sprintf(tra('Reason: The quota has been reached in "%s"'), $fgal['name']);
 					$smarty->assign('mail_fgal', $fgal);
 					$diff = $fgal['size'] + $size - $fgal['quota']*1024*1024;
 					break;
@@ -2557,14 +2549,23 @@ class FileGalLib extends TikiLib
 			$files->update(array('lastDownload' => $this->now), array('fileId' => (int) $id));
 		}
 
-		if ($prefs['feature_score'] == 'y') {
-			if ( ! $this->score_event($user, 'fgallery_download', $id) )
+		if ($prefs['feature_score'] == 'y' && $prefs['fgal_prevent_negative_score'] == 'y') {
+			$score = TikiLib::lib('score')->get_user_score($user);
+			if ($score < 0) {
 				return false;
-
-			$owner = $files->fetchOne('user', array('fileId' => (int) $id));
-			if ( ! $this->score_event($owner, 'fgallery_is_downloaded', "$user:$id") )
-				return false;
+			}
 		}
+
+		$owner = $files->fetchOne('user', array('fileId' => (int) $id));
+
+		TikiLib::events()->trigger('tiki.file.download',
+			array(
+				'type' => 'file',
+				'object' => $id,
+				'user' => $user,
+				'owner' => $owner,
+			)
+		);
 
 		return true;
 	}
@@ -2997,19 +2998,23 @@ class FileGalLib extends TikiLib
 				if ($prefs['auth_token_access'] == 'y') {
 					$query = 'select email, sum((maxhits - hits)) as visit, sum(maxhits) as maxhits  from tiki_auth_tokens where `parameters`=? group by email';
 					$share_result = $this->fetchAll($query, array('{"fileId":"'.$res['id'].'"}'));
-					$res['share']['data'] = $share_result;
-					$tmp = array();
-					if (is_array($res['share']['data'])) {
-						foreach ($res['share']['data'] as $data) {
-							$tmp[] = $data['email'];
+					if ($share_result) {
+						$res['share']['data'] = $share_result;
+						$tmp = array();
+						if (is_array($res['share']['data'])) {
+							foreach ($res['share']['data'] as $data) {
+								$tmp[] = $data['email'];
+							}
 						}
+						$string_share = implode(', ', $tmp);
+						$res['share']['string'] = substr($string_share, 0, 40);
+						if (strlen($string_share) > 40) {
+							$res['share']['string'] .= '...';
+						}
+						$res['share']['nb'] = count($share_result);
+					} else {
+						$res['share'] = null;
 					}
-					$string_share = implode(', ', $tmp);
-					$res['share']['string'] = substr($string_share, 0, 40);
-					if (strlen($string_share) >40) {
-						$res['share']['string'] .= '...';
-					}
-					$res['share']['nb'] = count($share_result);
 				}
 			} else {	// a gallery
 
@@ -3224,7 +3229,7 @@ class FileGalLib extends TikiLib
 
 			if ( isset( $_POST['daconfirm'] ) && ! empty( $backlinks ) ) {
 				$smarty->assign_by_ref('backlinks', $backlinks);
-				$smarty->assign('file_backlinks_title', 'WARNING: The file is used in:');//get_strings tra('WARNING: The file is used in:')
+				$smarty->assign('file_backlinks_title', 'Warning: The file is used in:');//get_strings tra('Warning: The file is used in:')
 				$smarty->assign('confirm_detail', $smarty->fetch('file_backlinks.tpl')); ///FIXME
 			}
 
@@ -3351,7 +3356,7 @@ class FileGalLib extends TikiLib
 							$this->print_msg(tra('Batch file processed') . " $name", true);
 							continue;
 						} else {
-							$errors[] = tra('No permission to upload zipped file packages');
+							$errors[] = tra('You don\'t have permission to upload zipped file packages');
 							continue;
 						}
 					}
@@ -3435,7 +3440,7 @@ class FileGalLib extends TikiLib
 					}
 
 					if (!$size) {
-						$errors[] = tra('Warning: Empty file:') . '  ' . $name . '. ' . tra('Please re-upload your file');
+						$errors[] = tra('Warning: Empty file:') . '  ' . $name . '. ' . tra('Please re-upload the file');
 					}
 
 					if (empty($params['name'][$key])) $params['name'][$key] = $name;
@@ -3473,7 +3478,7 @@ class FileGalLib extends TikiLib
 							);
 						}
 						if (!$fileId) {
-							$errors[] = tra('Upload was not successful. Duplicate file content') . ': ' . $name;
+							$errors[] = tra('The upload was not successful due to duplicate file content') . ': ' . $name;
 							if (false !== $savedir) {
 								@unlink($savedir . $fhash);
 							}
@@ -3710,7 +3715,7 @@ class FileGalLib extends TikiLib
 		if (! is_uploaded_file($file['tmp_name'])) {
 			$msg = array('error' => tra('Upload was not successful') . ': ' . $this->uploaded_file_error($file['error']));
 		} elseif (! $file['size']) {
-			$msg = tra('Warning: Empty file:') . '  ' . htmlentities($file['name']) . '. ' . tra('Please re-upload your file');
+			$msg = tra('Warning: Empty file:') . '  ' . htmlentities($file['name']) . '. ' . tra('Please re-upload the file');
 		} elseif (empty($file['name']) || !preg_match('/^upfile(\d+)$/', $fileKey, $regs) || !($fileInfo = $this->get_file_info($regs[1]))) {
 			$msg = tra('Could not upload the file') . ': ' . htmlentities($file['name']);
 		} elseif (! $this->is_filename_valid($file['name'])) {
@@ -3719,7 +3724,7 @@ class FileGalLib extends TikiLib
 			$msg = tra('Could not find the file requested');
 		} elseif (!empty($fileInfo['lockedby']) && $fileInfo['lockedby'] != $user && $tiki_p_admin_file_galleries != 'y') {
 			// if locked, user must be the locker
-			$msg = sprintf(tra('The file is locked by %s'), $fileInfo['lockedby']);
+			$msg = sprintf(tra('The file has been locked by %s'), $fileInfo['lockedby']);
 		} elseif (!($tiki_p_edit_gallery_file == 'y' || (!empty($user) && ($user == $fileInfo['user'] || $user == $fileInfo['lockedby'])))) {
 			// must be the owner or the locker or have the perms
 			$smarty->assign('errortype', 401);

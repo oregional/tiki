@@ -726,7 +726,7 @@ if ($prefs['article_custom_attributes'] == 'y') {
 }
 $smarty->assign_by_ref('types', $types);
 
-if ($prefs['feature_cms_templates'] == 'y' && $tiki_p_use_content_templates == 'y') {
+if ($prefs['feature_cms_templates'] == 'y') {
 	$templates = TikiLib::lib('template')->list_templates('cms', 0, -1, 'name_asc', '');
 }
 
@@ -734,7 +734,8 @@ $smarty->assign_by_ref('templates', $templates['data']);
 
 if ($prefs['feature_multilingual'] == 'y') {
 	$languages = array();
-	$languages = $tikilib->list_languages();
+	$langLib = TikiLib::lib('language');
+	$languages = $langLib->list_languages();
 	$smarty->assign_by_ref('languages', $languages);
 	// get translations
 	if ($articleId) {

@@ -9,14 +9,14 @@ function prefs_header_list()
 {
 	return array(
 		'header_shadow_start' => array(
-			'name' => tra('Header shadow start'),
+			'name' => tra('HHeader shadow div start'),
             'description' => tra(''),
 			'type' => 'textarea',
 			'size' => '2',
 			'default' => '',
 		),
 		'header_shadow_end' => array(
-			'name' => tra('Header shadow end'),
+			'name' => tra('Header shadow div end'),
             'description' => tra(''),
 			'type' => 'textarea',
 			'size' => '2',
@@ -24,7 +24,7 @@ function prefs_header_list()
 		),
 		'header_custom_css' => array(
 			'name' => tra('Custom CSS'),
-			'description' => tra('Includes a custom block of CSS inline in all pages.'),
+			'description' => tra('Includes a custom block of CSS in the <html> <head> section of all pages.'),
 			'type' => 'textarea',
 			'size' => 5,
 			'default' => '',
@@ -39,5 +39,13 @@ function prefs_header_list()
 			'hint' => tra('Do not include the <script> and </script> tags.'),
 			'filter' => 'none',
 		),
-	);	
+		'header_custom_less' => array(
+			'name' => tra('Custom LESS'),
+			'description' => tra('Compiles a new version of the currently selected theme and option using definitions declared here.'),
+			'type' => 'textarea',
+			'size' => 5,
+			'default' => '',
+			'filter' => 'none',
+		),
+	);
 }

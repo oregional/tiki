@@ -1200,8 +1200,22 @@ function wikiplugin_img( $data, $params )
 				$imgtarget = ' target="_blank"';
 			}
 		}
-		// rel
-		!empty($imgdata['rel']) ? $linkrel = ' rel="'.$imgdata['rel'].'"' : $linkrel = '';
+		// rel or data-box
+		if (!empty($imgdata['rel'])) {
+			$box = ['box', 'type=', 'slideshow', 'zoom'];
+			foreach ($box as $btype) {
+				if (strpos($imgdata['rel'], $btype) !== false) {
+					$attr = 'data-box';
+					break;
+				}
+			}
+			if (!isset($attr)) {
+				$attr = 'rel';
+			}
+			$linkrel = ' ' . $attr . '="'.$imgdata['rel'].'"';
+		} else {
+			$linkrel = '';
+		}
 		// title
 		!empty($imgtitle) ? $linktitle = $imgtitle : $linktitle = '';
 
@@ -1233,29 +1247,6 @@ function wikiplugin_img( $data, $params )
 						    }
 							";
 			TikiLib::lib('header')->add_jq_onready($mouseevent);
-		} else {
-			$mousefocus = "$('.internal').popover({ 
-						  html : true,
-						  placement :wheretoplace,
-						  trigger: 'click',
-						  title: function(){
-								return '<span class=close>&times;</span>';
-							}
-						  }).on('shown.bs.popover', function(e){
-							var popover = $(this);
-							$(this).parent().find('div.popover .close').on('click', function(e){
-								popover.popover('hide');
-							});
-							});
-							function wheretoplace(pop, dom_el) {
-							      var width = window.innerWidth;
-							      if (width<500) return 'bottom';
-							      var left_pos = $(dom_el).offset().left;
-							      if (width - left_pos > 400) return 'right';
-							      return 'left';
-							}
-							";
-			TikiLib::lib('header')->add_jq_onready($mousefocus);
 		}
 		
 	}
@@ -1305,7 +1296,7 @@ function wikiplugin_img( $data, $params )
 					if (!empty($imgdata['fileId']) && $imgdata['button'] != 'download') {
 						$link_button = $browse_full_image . '&display';
 					} elseif (!empty($imgdata['attId']) && $imgdata['thumb'] == 'download') {
-						$link = $browse_full_image . '&download=y';
+						$link_button = $browse_full_image . '&download=y';
 					} else {
 						$link_button = $browse_full_image;
 					}
@@ -1315,7 +1306,21 @@ function wikiplugin_img( $data, $params )
 				$link_button = $link;
 			}
 			//Set button rel
-			!empty($imgdata['rel']) ? $linkrel_button = ' rel="'.$imgdata['rel'].'"' : $linkrel_button = '';
+			if (!empty($imgdata['rel'])) {
+				$box = ['box', 'type=', 'slideshow', 'zoom'];
+				foreach ($box as $btype) {
+					if (strpos($imgdata['rel'], $btype) !== false) {
+						$attr = 'data-box';
+						break;
+					}
+				}
+				if (!isset($attr)) {
+					$attr = 'rel';
+				}
+				$linkrel_button = ' ' . $attr . '="'.$imgdata['rel'].'"';
+			} else {
+				$linkrel_button = '';
+			}
 			//Set button target
 			if (empty($imgtarget) && (empty($imgdata['thumb']) || !empty($javaset))) {
 				if (($imgdata['button'] == 'popup') || ($imgdata['button'] == 'browsepopup')) {
@@ -1460,8 +1465,8 @@ function wikiplugin_img( $data, $params )
 				. '</a>';
 		}
 	}
-
-	return '~np~' . $repl. "\r" . '~/np~';
+	$repl = str_replace('&', '&amp;', $repl);
+	return '~np~' . $repl . "\r" . '~/np~';
 }
 
 function getMetadataArray($imageObj, $dbinfo = false)

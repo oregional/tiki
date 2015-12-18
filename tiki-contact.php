@@ -10,8 +10,7 @@
 
 require_once ('tiki-setup.php');
 
-include_once ('lib/messu/messulib.php');
-include_once ('lib/userprefs/scrambleEmail.php');
+$messulib = TikiLib::lib('message');
 
 // This feature needs both 'feature_contact' and 'feature_messages' to work
 $access->check_feature(array('feature_contact', 'feature_messages'));
@@ -84,7 +83,7 @@ if (isset($_REQUEST['send'])) {
 $email = $userlib->get_user_email($prefs['contact_user']);
 if ($email == '') $email = $userlib->get_admin_email();
 $smarty->assign('email0', $email);
-$email = scrambleEmail($email, $tikilib->get_user_preference('admin', "email is public"));
+$email = TikiMail::scrambleEmail($email, $tikilib->get_user_preference('admin', "email is public"));
 $smarty->assign('email', $email);
 
 $smarty->assign('priority', $priority);

@@ -23,7 +23,7 @@ class FilesBatchuploadCommand extends Command
 			->addArgument(
 				'galleryId',
 				InputArgument::OPTIONAL,
-				'Destination gallery for uploads'
+				'Destination gallery for uploads (optional, uses file gallery root if not supplied)'
 			)
 			->addOption(
 				'confirm',
@@ -42,6 +42,12 @@ class FilesBatchuploadCommand extends Command
 				's',
 				InputOption::VALUE_NONE,
 				'Move the file into a gallery matching the subdirectory name'
+			)
+			->addOption(
+				'subdirIntegerToSubgalId',
+				'i',
+				InputOption::VALUE_NONE,
+				'Move the file into a gallery matching the subdirectory as galleryId'
 			)
 			->addOption(
 				'createSubgals',
@@ -73,6 +79,12 @@ class FilesBatchuploadCommand extends Command
 				InputOption::VALUE_REQUIRED,
 				'Octal file mode to set on the uploaded files (e.g. 0755)'
 			)
+			->addOption(
+				'filesPath',
+				'p',
+				InputOption::VALUE_REQUIRED,
+				'Path to files to upload'
+			)
 		;
 	}	
 
@@ -99,7 +111,9 @@ class FilesBatchuploadCommand extends Command
 
 		$confirm = $input->getOption('confirm');
 
-		$files = $filegalbatchlib->batchUploadFileList();
+		$filesPath = $input->getOption('filesPath');
+		$files = $filegalbatchlib->batchUploadFileList($filesPath);
+
 		if (! $files) {
 			if ($output->getVerbosity() > OutputInterface::VERBOSITY_NORMAL) {
 				$output->writeln('<comment>No files to upload</comment>');
@@ -109,9 +123,15 @@ class FilesBatchuploadCommand extends Command
 
 		$subdirToSubgal = $input->getOption('subdirToSubgal');
 		if ($subdirToSubgal) {
-			$createSubgals = $input->getOption('createSubgals');
+			$subdirIntegerToSubgalId = $input->getOption('subdirIntegerToSubgalId');
+			if (! $subdirIntegerToSubgalId) {
+				$createSubgals = $input->getOption('createSubgals');
+			} else {
+				$createSubgals = false;
+			}
 		} else {
 			$createSubgals = false;
+			$subdirIntegerToSubgalId = false;
 		}
 
 		if ($confirm) {
@@ -126,11 +146,13 @@ class FilesBatchuploadCommand extends Command
 			$feedback = $filegalbatchlib->processBatchUpload($files, $galleryId, [
 					'subToDesc' => $input->getOption('subToDesc'),
 					'subdirToSubgal' => $subdirToSubgal,
+					'subdirIntegerToSubgalId' => $subdirIntegerToSubgalId,
 					'createSubgals' => $createSubgals,
 					'deleteAfter' => $input->getOption('deleteAfter'),
 					'fileUser' => $input->getOption('fileUser'),
 					'fileGroup' => $input->getOption('fileGroup'),
 					'fileMode' => $input->getOption('fileMode'),
+					'filesPath' => $filesPath,
 			]);
 
 			foreach ($feedback as $message) {
@@ -158,7 +180,7 @@ class FilesBatchuploadCommand extends Command
 			}
 
 			foreach($files as $file) {
-				$fname = substr($file['file'], strlen($prefs['fgal_batch_dir']) + 1);
+				$fname = substr($file['file'], strlen($prefs['fgal_batch_dir']));
 				if (! $file['writable']) {
 					$fname = "<error>$fname</error>";
 				}

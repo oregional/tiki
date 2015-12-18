@@ -9,8 +9,7 @@
 // $Id$
 
 require_once ('tiki-setup.php');
-include_once ('lib/messu/messulib.php');
-include_once ('lib/userprefs/scrambleEmail.php');
+$messulib = TikiLib::lib('message');
 
 $trklib = TikiLib::lib('trk');
 
@@ -38,8 +37,13 @@ if (isset($_REQUEST['userId'])) {
 $smarty->assign('userwatch', $userwatch);
 
 if ($prefs['feature_score'] == 'y' and isset($user) and $user != $userwatch) {
-	$tikilib->score_event($user, 'profile_see');
-	$tikilib->score_event($userwatch, 'profile_is_seen');
+	TikiLib::events()->trigger('tiki.user.view',
+		array(
+			'type' => 'user',
+			'object' => $userwatch,
+			'user' => $user,
+		)
+	);
 }
 
 $lib = TikiLib::lib('unifiedsearch');
@@ -48,7 +52,9 @@ $query = $lib->buildQuery([
 	'object_id' => $userwatch,
 ]);
 $user_info = $query->search($lib->getIndex());
+
 //pass the first user, since there should only be one result. the index, by default returns a list
+$user_info[0]['score'] = TikiLib::lib('score')->get_user_score($userwatch);
 $smarty->assign("userinfo", $user_info[0]);
 
 //user_tracker_infos is a pref that allows you to list certain tracker fields in the user profile, if set.

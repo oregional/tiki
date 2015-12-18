@@ -185,6 +185,32 @@ class RelationLib extends TikiDb_Bridge
 	}
 
 	/**
+	 * @param $relation_prefix
+	 * @param $src_type
+	 * @param $src_object
+	 * @param $target_type
+	 * @param $target_object
+	 * @return array
+	 */
+	function get_relations_by_prefix( $relation_prefix, $src_type, $src_object, $target_type, $target_object )
+	{
+		$ids = array();
+		if ( $relation_prefix ) {
+			$ids = $this->table->fetchAll(
+				"*",
+				array(
+					'relation' => $this->table->like($relation_prefix.".%"),
+					'source_type' => $src_type,
+					'source_itemId' => $src_object,
+					'target_type' => $target_type,
+					'target_itemId' => $target_object,
+				)
+			);
+		}
+		return $ids;
+	}
+
+	/**
 	 * @param $relation
 	 * @param $type
 	 * @param $object

@@ -78,27 +78,27 @@ class Tracker_Field_Wiki extends Tracker_Field_Text
 					),
 					'width' => array(
 						'name' => tr('Width'),
-						'description' => tr('Size of the text area in characters.'),
+						'description' => tr('Size of the text area, in characters.'),
 						'filter' => 'int',
 					),
 					'height' => array(
 						'name' => tr('Height'),
-						'description' => tr('Size of the text area in lines.'),
+						'description' => tr('Size of the text area, in lines.'),
 						'filter' => 'int',
 					),
 					'max' => array(
 						'name' => tr('Character Limit'),
-						'description' => tr('Maximum amount of characters to be stored.'),
+						'description' => tr('Maximum number of characters to be stored.'),
 						'filter' => 'int',
 					),
 					'wordmax' => array(
 						'name' => tr('Word Count'),
-						'description' => tr('Limit the length of the text in words.'),
+						'description' => tr('Limit the length of the text, in number of words.'),
 						'filter' => 'int',
 					),
 					'wysiwyg' => array(
 						'name' => tr('Use WYSIWYG'),
-						'description' => tr('Use a rich text editor instead of a plain text box.'),
+						'description' => tr('Use a rich text editor instead of inputting plain text.'),
 						'default' => 'n',
 						'filter' => 'alpha',
 						'options' => array(
@@ -260,24 +260,23 @@ class Tracker_Field_Wiki extends Tracker_Field_Text
 
 	function getDocumentPart(Search_Type_Factory_Interface $typeFactory)
 	{
+		$data = array();
 		$value = $this->getValue();
 		$baseKey = $this->getBaseKey();
 
-		$info = TikiLib::lib('tiki')->get_page_info($value, true, true);
-
-		if (! $info) {
-			return false;
-		}
-
 		if (!empty($value)) {
 
-			$data = array(
-				$baseKey => $typeFactory->identifier($value),
-				"{$baseKey}_text" => $typeFactory->wikitext($info['data']),
-			);
+			$info = TikiLib::lib('tiki')->get_page_info($value, true, true);
+			if ($info) {
+				$data = array(
+					$baseKey => $typeFactory->identifier($value),
+					"{$baseKey}_text" => $typeFactory->wikitext($info['data']),
+				);
+			}
 
-			return $data;
 		}
+
+		return $data;
 	}
 
 	function getProvidedFields()

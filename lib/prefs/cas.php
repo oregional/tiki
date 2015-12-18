@@ -9,7 +9,7 @@ function prefs_cas_list()
 {
 	return array(
 		'cas_create_user_tiki' => array(
-			'name' => tra('Create user if not in Tiki'),
+			'name' => tra('Create user if not already a registered user'),
             'description' => tra(''),
 			'type' => 'flag',
 			'perspective' => false,
@@ -37,7 +37,7 @@ function prefs_cas_list()
 			'default' => 'n',
 			),
 		'cas_show_alternate_login' => array(
-			'name' => tra('Show Alternate Login Method in Header'),
+			'name' => tra('Show alternate log-in method in header'),
             'description' => tra(''),
 			'type' => 'flag',
 			'perspective' => false,

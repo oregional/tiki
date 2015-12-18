@@ -35,21 +35,7 @@
 			{if $prefs.feature_intertiki_import_preferences eq 'y'}{tr}Since this Tiki site is in slave mode and imports preferences, the master user preferences will be automatically reimported at each login{/tr}{/if}
 		{/remarksbox}
 	{/if}
-	<div id="ajax-feedback" style="display:none"></div>
-	{if isset($ajaxfeedback) && $ajaxfeedback eq 'y'}
-		<div id="posted-ajax-feedback">
-			{include file="utilities/alert.tpl"}
-		</div>
-	{/if}
-	{if $tikifeedback}
-		{remarksbox type="feedback" title="{tr}Feedback{/tr}"}
-			{section name=n loop=$tikifeedback}
-				{tr}{$tikifeedback[n].mes|escape}{/tr}
-				<br>
-			{/section}
-		{/remarksbox}
-	{/if}
-
+	{include file='utilities/feedback.tpl'}
 	{if !empty($added) or !empty($discarded) or !empty($discardlist)}
 		{remarksbox type="feedback" title="{tr}Batch Upload Results{/tr}"}
 			{tr}Updated users{/tr} {$added}
@@ -73,10 +59,10 @@
 				</div>
 			{/if}
 
-			{if $errors}
+			{if $batcherrors}
 				<br>
-				{section name=ix loop=$errors}
-					{$errors[ix]}<br>
+				{section name=ix loop=$batcherrors}
+					{$batcherrors[ix]}<br>
 				{/section}
 			{/if}
 		{/remarksbox}
@@ -726,11 +712,60 @@
 				{remarksbox type="tip" title="{tr}Tip{/tr}"}{tr}You can export users of a group by clicking on that group at <a href="tiki-admingroups.php">admin->groups</a>{/tr}{/remarksbox}
 			{/if}
 		{/tab}
+
+		{tab name="{tr}Temporary Users{/tr}"}
+			<h2>Invite new temporary user(s)</h2>
+			{if $prefs['auth_token_access'] != 'y'}
+				{remarksbox type="warning" title="Token Access Feature Dependency"}
+					{tr}The token access feature is needed for Temporary Users to login.{/tr}
+					<a href="tiki-admin.php?page=security">{tr}Turn it on here.{/tr}</a>
+				{/remarksbox}
+			{/if}
+			{remarksbox type="info" title="Temporary Users"}
+				<p>{tr}Temporary users cannot login the usual way but instead do so via an autologin URL that is associated with a token.{/tr} {tr}An email will be sent out to invited users containing this URL. You will receive a copy of the email yourself.{/tr}</>
+				<p>{tr}These temporary users will be deleted (but can be set to be preserved in Admin Tokens) once the validity period is over. Normally, these users should have read-only access. Nevertheless, if you are allowing these users to submit information, e.g. fill in a tracker form, make sure to ask for their information again in those forms.{/tr}</p>
+				<p>{tr}Please do not assign temporary users to Groups that can access any security sensitive information, since access to these accounts is relatively easy to obtain, for example by intercepting or otherwise getting access to these emails.{/tr}</p>
+			{/remarksbox}
+			{remarksbox type="info" title="Revoking Access"}
+				{tr}To revoke access before validity expires or to review who has access, please see:{/tr} <a href="tiki-admin_tokens.php">{tr}Admin Tokens{/tr}</a>
+			{/remarksbox}
+			<form class="form-horizontal confirm-form" name="checkform" id="checkform" method="post" action="{service controller=user action=invite_tempuser}">
+				<div class="form-group">
+					<label class="col-sm-4 col-md-4 control-label" for="tempuser_emails">{tr}Emails (comma separated){/tr}</label>
+					<div class="col-sm-8 col-md-8">
+						<input type="text" class="form-control" name="tempuser_emails" id="tempuser_emails" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-4 col-md-4 control-label" for="tempuser_groups">{tr}Groups (comma separated){/tr}</label>
+					<div class="col-sm-8 col-md-8">
+						<input type="text" class="form-control" name="tempuser_groups" id="tempuser_groups" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-4 col-md-4 control-label" for="tempuser_expiry">{tr}Valid for days (use -1 for forever){/tr}</label>
+					<div class="col-sm-8 col-md-8">
+						<input type="text" class="form-control" name="tempuser_expiry" id="tempuser_expiry" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-4 col-md-4 control-label" for="tempuser_prefix">{tr}Username prefix{/tr}</label>
+					<div class="col-sm-8 col-md-8">
+						<input type="text" class="form-control" name="tempuser_prefix" id="tempuser_prefix" placeholder="_token"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-4 col-md-4 control-label" for="tempuser_path">{tr}Autologin (non-SEFURL) path{/tr}</label>
+					<div class="col-sm-8 col-md-8">
+						<input type="text" class="form-control" name="tempuser_path" id="tempuser_path" placeholder="tiki-index.php"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-10 col-sm-offset-4 col-md-10 col-md-offset-4">
+						<input type="submit" name="invite_tempuser" class="btn btn-primary" value="{tr}Invite{/tr}" />
+					</div>
+				</div>
+			</form>
+		{/tab}
 	{/if}
 {/tabset}
-{jq}
-	$('form.confirm-form').submit(function() {
-		confirmForm(this);
-		return false;
-	});
-{/jq}

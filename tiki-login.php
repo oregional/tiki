@@ -329,7 +329,7 @@ if ($isvalid) {
 					}
 				}
 				// Go to the group page instead of the referer url if we are in one of those cases :
-				//   - pref 'Go to group homepage only if login from default homepage' (limitedGoGroupHome) is disabled,
+				//   - pref 'Go to the group homepage only if logging in from the default homepage' (limitedGoGroupHome) is disabled,
 				//   - referer url (e.g. http://example.com/tiki/tiki-index.php?page=Homepage ) is the homepage (tikiIndex),
 				//   - referer url complete path ( e.g. /tiki/tiki-index.php?page=Homepage ) is the homepage,
 				//   - referer url relative path ( e.g. tiki-index.php?page=Homepage ) is the homepage
@@ -467,8 +467,14 @@ if ($isvalid) {
 	exit;
 }
 
-if ( isset($user) and $prefs['feature_score'] == 'y' ) {
-	$tikilib->score_event($user, 'login');
+if ( isset($user) ) {
+	TikiLib::events()->trigger('tiki.user.login',
+		array(
+			'type' => 'user',
+			'object' => $user,
+			'user' => $user,
+		)
+	);
 }
 // RFC 2616 defines that the 'Location' HTTP headerconsists of an absolute URI
 if ( !preg_match('/^https?\:/i', $url) ) {

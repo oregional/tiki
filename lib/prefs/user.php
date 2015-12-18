@@ -39,7 +39,7 @@ function prefs_user_list($partial = false)
 			'default' => 'n',
 		),	
 		'user_flip_modules' => array(
-			'name' => tra('Users can shade modules'),
+			'name' => tra('Users can open and close the modules'),
 			'help' => 'Users+Shade+Modules',
 			'type' => 'list',
 			'description' => tra('Allows users to hide/show modules.'),
@@ -53,8 +53,10 @@ function prefs_user_list($partial = false)
 		'user_store_file_gallery_picture' => array(
 			'name' => tra('Store full-size copy of profile picture in file gallery'),
 			'help' => 'User+Preferences',
+			'keywords' => 'avatar',
 			'type' => 'flag',
 			'default' => 'n',
+			'dependencies' => ['user_picture_gallery_id',],
 		),
 		'user_small_avatar_size' => array(
 			'name' => tra('Size of the small avatar stored for users.'),
@@ -73,15 +75,18 @@ function prefs_user_list($partial = false)
 			'name' => tra('File gallery in which to store full-size copy of profile picture'),
 			'description' => tra('Enter the gallery id here. Please create a dedicated gallery that is admin-only for security, or make sure gallery permissions are set so that only admins can edit.'),
 			'help' => 'User+Preferences',
+			'keywords' => 'avatar',
 			'type' => 'text',
 			'filter' => 'digits',
 			'size' => '3',
 			'default' => 0,
 			'profile_reference' => 'file_gallery',
+			'dependencies' => ['feature_file_galleries',],
 		),
 		'user_default_picture_id' => array(
 			'name' => tra('File ID of default profile picture'),
 			'deacription' => tra('File ID of image to use in file gallery as the profile picture if user has no profile picture in file galleries'),
+			'keywords' => 'avatar',
 			'help' => 'User+Preferences',
 			'type' => 'text',
 			'filter' => 'digits',
@@ -290,6 +295,13 @@ function prefs_user_list($partial = false)
 			'hint' => tr('See [http://gravatar.com/|Gravatar].'),
 			'type' => 'flag',
 			'default' => 'n',
+		),
+		'user_multilike_config' => array(
+			'name' => tr('Configuration for multilike'),
+			'description' => tr('Separate configurations by a blank line. E.g. relation_prefix=tiki.multilike values=1,3,5 labels=Good,Great,Excellent)'),
+			'type' => 'textarea',
+			'size' => 5,
+			'default' => ''
 		),
 	);
 }

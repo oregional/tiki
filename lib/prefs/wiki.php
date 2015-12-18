@@ -344,7 +344,7 @@ function prefs_wiki_list($partial = false)
 			),
 		),
 		'wiki_watch_editor' => array(
-			'name' => tra('Enable watch events when I am the editor'),
+			'name' => tra('Enable watch events when you are the editor'),
 			'type' => 'flag',
 			'default' => 'n',
 			'dependencies' => array(
@@ -581,7 +581,7 @@ function prefs_wiki_list($partial = false)
 			'default' => '250',
 		),
 		'wiki_3d_feed_animation_interval' => array(
-			'name' => tra('Feed animation interval (milisecs)'),
+			'name' => tra('Feed animation interval (miliseconds)'),
 			'type' => 'text',
 			'size' => '3',
 			'filter' => 'digits',

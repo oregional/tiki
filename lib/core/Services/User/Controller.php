@@ -196,6 +196,7 @@ class Services_User_Controller
 				}
 
 				if ($prefs['feature_score'] == 'y') {
+					$info['score'] =  TikiLib::lib('score')->get_user_score($other_user);
 					if ($prefs['feature_community_mouseover_score'] == 'y' &&
 							!empty($info['score']) && $other_user !== 'admin' && $other_user !== 'system' && $other_user !== 'Anonymous') {
 						$result['starHtml'] = $tikilib->get_star($info['score']);
@@ -221,8 +222,7 @@ class Services_User_Controller
 				if ($prefs['feature_community_mouseover_email'] == 'y') {
 					$email_isPublic = $tikilib->get_user_preference($other_user, 'email is public');
 					if ($email_isPublic != 'n') {
-						include_once ('lib/userprefs/scrambleEmail.php');
-						$result['email'] = scrambleEmail($info['email'], $email_isPublic);
+						$result['email'] = TikiMail::scrambleEmail($info['email'], $email_isPublic);
 					//} elseif ($friend) {
 					//	$result['email'] = $info['email']; // should friends see each other's emails whatever the settings? I doubt it (jb)
 					}
@@ -526,7 +526,7 @@ class Services_User_Controller
 			$items = $input->asArray('checked');
 			if (count($items) > 0) {
 				if (count($items) === 1) {
-					$msg = tra('Are you sure you want to delete the following user and related user page and ban the user IP?');
+					$msg = tra('Are you sure you want to delete the following user and related userpage and ban the user\'s IP?');
 				} else {
 					$msg = tra('Are you sure you want to delete the following users and their user pages and ban their IPs?');
 				}
@@ -922,7 +922,7 @@ class Services_User_Controller
 					throw new Services_Exception(tra('Invalid bcc email address.'));
 				}
 				$mail->setBcc($bcc);
-				$bccmsg = tr('and blind copied to %0', $bcc);
+				$bccmsg = tr('and blind copied (bcc) to %0', $bcc);
 			}
 			$foo = parse_url($_SERVER['REQUEST_URI']);
 			$machine = $tikilib->httpPrefix(true) . dirname($foo['path']);
@@ -938,7 +938,7 @@ class Services_User_Controller
 				$mail->setSubject($pageinfo['description']);
 				$text = $smarty->fetch('wiki:' . $wikiTpl);
 				if (empty($text)) {
-					throw new Services_Exception(tra('The template page has no text or it cannot be extracted.'));
+					throw new Services_Exception(tra('The template page has no text or the text cannot be extracted.'));
 				}
 				$mail->setHtml($text);
 				if (!$mail->send($this->lib->get_user_email($mail_user))) {
@@ -984,9 +984,7 @@ class Services_User_Controller
 
 	function action_send_message($input) {
 		global $smarty, $user;
-		include_once ('lib/messu/messulib.php');
 		$userlib = TikiLib::lib('user');
-
 		//ensures a user was selected to send a message to.
 		if (empty($input->userwatch->text())) {
 			throw new Services_Exception(tra('No user was selected.'));
@@ -1005,7 +1003,7 @@ class Services_User_Controller
 				die;
 			}
 			//if message is successfully sent
-			if ($messulib->post_message($input->userwatch->text(), $user, $input->to->text(), '', $input->subject->text(), $input->body->text(), $priority, '', isset($input->replytome) ? 'y' : '', isset($input->bccme) ? 'y' : '')) {
+			if (TikiLib::lib('message')->post_message($input->userwatch->text(), $user, $input->to->text(), '', $input->subject->text(), $input->body->text(), $priority, '', isset($input->replytome) ? 'y' : '', isset($input->bccme) ? 'y' : '')) {
 				$message = tra('Your Message was successfully sent to') . ' ' . $userlib->clean_user($input->userwatch->text());
 				$type = "feedback";
 				$heading = "Success!";
@@ -1034,6 +1032,55 @@ class Services_User_Controller
 		}
 	}
 
+	function action_invite_tempuser($input)
+	{
+		Services_Exception_Denied::checkGlobal('admin_users');
+		$emails = $input->tempuser_emails->string();
+		$groups = $input->tempuser_groups->string();
+		$expiry = $input->tempuser_expiry->int();
+		$prefix = $input->tempuser_prefix->string();
+		$path = $input->tempuser_path->string();
+
+		if (empty($prefix)) {
+			$prefix = '_token';
+		}
+		if (empty($path)) {
+			$path = 'tiki-index.php';
+		}
+
+		$groups = explode(',', $groups);
+		$emails = explode(',', $emails);
+		$groups = array_map('trim', $groups);
+		$emails = array_map('trim', $emails);
+		if ($expiry > 0) {
+			$expiry = $expiry * 3600;
+		} else if ($expiry != -1) {
+			throw new Services_Exception(tra('Please specify validity period'));
+		}
+
+		foreach($groups as $grp) {
+			if (!TikiLib::lib('user')->group_exists($grp)) {
+				throw new Services_Exception(tra('The group %0 does not exist', $grp));
+			}
+		}
+
+		TikiLib::lib('user')->invite_tempuser($emails, $groups, $expiry, $prefix, $path);
+
+		return array(
+			'modal' => '1',
+			'FORWARD' => array(
+				'controller' => 'utilities',
+				'action' => 'modal_alert',
+				'ajaxtype' => 'feedback',
+				'ajaxheading' => tra('Success'),
+				'ajaxmsg' => 'Your invite has been sent.',
+				'ajaxdismissible' => 'n',
+			)
+		);
+
+	}
+
+
 	private function removeUsers(array $users, $page = false)
 	{
 		global $user;
@@ -1044,7 +1091,7 @@ class Services_User_Controller
 					$logslib = TikiLib::lib('logs');
 					$logslib->add_log('adminusers', sprintf(tra('Deleted account %s'), $deleteuser), $user);
 				} else {
-					throw new Services_Exception_NotFound(tr('An error occurred, user %0 could not be deleted',
+					throw new Services_Exception_NotFound(tr('An error occurred. User %0 could not be deleted',
 						$deleteuser));
 				}
 				if ($page) {
@@ -1054,7 +1101,7 @@ class Services_User_Controller
 					$tikilib = TikiLib::lib('tiki');
 					$res = $tikilib->remove_all_versions($page);
 					if ($res !== true) {
-						throw new Services_Exception_NotFound(tr('An error occurred, user %0 could not be deleted',
+						throw new Services_Exception_NotFound(tr('An error occurred. User %0 could not be deleted',
 							$deleteuser));
 					}
 				}

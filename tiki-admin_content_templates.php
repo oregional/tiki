@@ -16,7 +16,6 @@ $templateslib = TikiLib::lib('template');
 
 $auto_query_args = array('templateId');
 
-$access->check_permission('tiki_p_edit_content_templates');
 //get_strings tra('Content Templates')
 
 if (!isset($_REQUEST["templateId"])) {
@@ -65,9 +64,6 @@ if ($_REQUEST["templateId"]) {
 	} else {
 		$info["section_cms"] = 'n';
 	}
-	$cat_type = 'template';
-	$cat_objid = $_REQUEST['templateId'];
-	include_once ("categorize_list.php");
 } else {
 	$info = array();
 	$info["name"] = '';
@@ -81,6 +77,9 @@ if ($_REQUEST["templateId"]) {
 	$info["section_newsletters"] = 'n';
 	$info["section_event"] = 'n';
 }
+$cat_type = 'template';
+$cat_objid = $_REQUEST['templateId'];
+include_once ("categorize_list.php");
 
 $smarty->assign_by_ref('info', $info);
 if (isset($_REQUEST["remove"])) {
@@ -93,6 +92,9 @@ if (isset($_REQUEST["removesection"])) {
 }
 $smarty->assign('preview', 'n');
 if (isset($_REQUEST["preview"])) {
+
+	TikiLib::lib('access')->check_permission('edit_content_templates', 'Edit template', 'template', $_REQUEST['templateId']);
+
 	$smarty->assign('preview', 'y');
 	if (isset($_REQUEST["section_html"]) && $_REQUEST["section_html"] == 'on') {
 		$info["section_html"] = 'y';
@@ -260,6 +262,15 @@ if (isset($_REQUEST['mode_normal']) && $_REQUEST['mode_normal']=='y') {
 	$info['content'] = $editlib->parseToWysiwyg($_REQUEST["content"]);
 	$smarty->assign('parsed', $parsed);
 }
+
+// check edit/create perms
+if ($_REQUEST['templateId']) {
+	$perms = Perms::get(array('type' => 'template', 'object' => $_REQUEST['templateId']));
+	$canEdit = $perms->edit_content_templates;
+} else {
+	$canEdit = $tiki_p_admin_content_templates === 'y';	// create
+}
+$smarty->assign('canEdit', $canEdit);
 
 $smarty->assign_by_ref('channels', $channels["data"]);
 ask_ticket('admin-content-templates');

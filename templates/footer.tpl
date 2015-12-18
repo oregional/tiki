@@ -3,6 +3,11 @@
 <div id="bootstrap-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">
+			{* Add header with title to avoid HTML validation errors for aria-labelledby missing a title while hidden.
+			Gets replaced when modal becomes visible.*}
+			<div class="modal-header">
+				<h4 class="modal-title" id="myModalLabel">{tr}Please confirm{/tr}</h4>
+			</div>
 		</div>
 	</div>
 </div>
@@ -39,7 +44,7 @@
 		{if ($prefs.error_reporting_adminonly eq 'y' and $tiki_p_admin eq 'y') or $prefs.error_reporting_adminonly eq 'n'}
 		{button _ajax="n" _id="show-errors-button" _onclick="flip('errors');return false;" _text="{tr}Show php error messages{/tr}"}
 		<div id="errors" class="alert alert-warning" style="display:{if (isset($smarty.session.tiki_cookie_jar.show_errors) and $smarty.session.tiki_cookie_jar.show_errors eq 'y') or $prefs.javascript_enabled ne 'y'}block{else}none{/if};">
-			&nbsp;{listfilter selectors='#errors>div'}
+			&nbsp;{listfilter selectors='#errors>div.rbox-data'}
 			{foreach item=err from=$phpErrors}
 				{$err}
 			{/foreach}

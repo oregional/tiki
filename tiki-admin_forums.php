@@ -39,7 +39,8 @@ if (isset($_REQUEST['lock']) && isset($_REQUEST['forumId'])) {
 }
 if ($prefs['feature_multilingual'] === 'y') {
 	$languages = array();
-	$languages = $tikilib->list_languages();
+	$langLib = TikiLib::lib('language');
+	$languages = $langLib->list_languages();
 	$smarty->assign_by_ref('languages', $languages);
 } else {
 	$_REQUEST["forumLanguage"] = '';
@@ -389,7 +390,7 @@ $smarty->assign(
 		'average_desc' => tra('Score (desc)'),
 		'replies_desc' => tra('Replies (desc)'),
 		'hits_desc' => tra('Reads (desc)'),
-		'lastPost_desc' => tra('Last post (desc)'),
+		'lastPost_desc' => tra('Latest post (desc)'),
 		'title_desc' => tra('Title (desc)'),
 		'title_asc' => tra('Title (asc)')
 	)
@@ -413,7 +414,7 @@ $smarty->assign(
 		'' => tra('Default'),
 		'commentStyle_plain' => tra('Plain'),
 		'commentStyle_threaded' => tra('Threaded'),
-		'commentStyle_headers' => tra('Headers Only')
+		'commentStyle_headers' => tra('Headers only')
 	)
 );
 

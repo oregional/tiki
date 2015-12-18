@@ -1177,20 +1177,9 @@
 			"type": "package",
 			"package": {
 				"name": "jquery/plugins/tablesorter",
-				"version": "2.23.5",
+				"version": "2.25.0",
 				"dist": {
-					"url": "https://github.com/Mottie/tablesorter/archive/v2.23.5.zip",
-					"type": "zip"
-				}
-			}
-		},
-		{
-			"type": "package",
-			"package": {
-				"name": "jquery/plugins/tablesorter",
-				"version": "2.24.6",
-				"dist": {
-					"url": "https://github.com/Mottie/tablesorter/archive/v2.24.6.zip",
+					"url": "https://github.com/Mottie/tablesorter/archive/v2.25.0.zip",
 					"type": "zip"
 				}
 			}
@@ -1203,6 +1192,17 @@
 				"dist": {
 					"url": "http://www.goat1000.com/jquery.tagcanvas.js?2.8.js",
 					"type": "file"
+				}
+			}
+		},
+		{
+			"type": "package",
+			"package": {
+				"name": "jquery/plugins/timeago",
+				"version": "1.4.3",
+				"dist": {
+					"url": "https://github.com/rmm5t/jquery-timeago/archive/v1.4.3.zip",
+					"type": "zip"
 				}
 			}
 		},
@@ -1404,7 +1404,7 @@
 		   		"name": "Sam152/Javascript-Equal-Height-Responsive-Rows",
 				"version": "1.0.0",
 				"dist": {
-					"url": "https://github.com/Sam152/Javascript-Equal-Height-Responsive-Rows/archive/master.zip",
+					"url": "https://github.com/Sam152/Javascript-Equal-Height-Responsive-Rows/archive/1.0.0.zip",
 					"type": "zip"
 				}
 			}
@@ -1465,6 +1465,7 @@
 		"jquery/plugins/superfish": "*",
 		"jquery/plugins/tablesorter": "*",
 		"jquery/plugins/tagcanvas": ">=2.8",
+		"jquery/plugins/timeago": ">=1.4.3",
 		"jquery/plugins/treetable": "*",
 		"jquery/plugins/sparkline": "2.1.1",
 		"jquery/plugins/zoom": "*",
@@ -1480,6 +1481,7 @@
 		"Sam152/Javascript-Equal-Height-Responsive-Rows" : "1.0.0",
 		"simile_timeline/simile_timeline": "2.3.0",
 		"smarty/smarty": ">=3.1.14",
+		"sorich87/bootstrap-tour": ">0.10.2",
 		"svg-edit/svg-edit": ">=2.6",
 		"symfony/console": ">=2.4.1",
 		"symfony/dependency-injection": ">=2.4.3",

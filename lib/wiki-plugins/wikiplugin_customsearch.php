@@ -157,6 +157,19 @@ function wikiplugin_customsearch_info()
 				'filter' => 'digits',
 				'default' => 1,
 			),
+			'customsearchjs' => array(
+				'required' => false,
+				'name' => tra('Use custom search JavaScript file'),
+				'description' => tra('Mainly keeps the search state on the URL hash, but also adds some helper functions like easier sorting and page size.'),
+				'since' => '14.1',
+				'options' => array(
+					array('text' => tra(''), 'value' => ''),
+					array('text' => tra('No'), 'value' => '0'),
+					array('text' => tra('Yes'), 'value' => '1'),
+				),
+				'filter' => 'digits',
+				'default' => 0,
+			),
 		),
 	);
 }
@@ -371,9 +384,11 @@ $('#customsearch_$id').submit(function() {
 });
 
 window.customsearch_$id = customsearch;
+$(document).trigger('formSearchReady');
 ";
 
 	$parser = new WikiParser_PluginArgumentParser;
+	$dr = 0;
 	foreach ($matches as $match) {
 		$name = $match->getName();
 		$arguments = $parser->parse($match->getArguments());
@@ -430,12 +445,23 @@ window.customsearch_$id = customsearch;
 			}
 			$match->replaceWith($html);
 		}
+		if ($name == 'daterange') {
+			$dr++;
+		}
 	}
 
 	$callbackScript = null;
 	if (!empty($params['callbackscript']) && TikiLib::lib('tiki')->page_exists($params['callbackscript'])) {
 		$callbackscript_tpl = "wiki:" . $params['callbackscript'];
 		$callbackScript = TikiLib::lib('smarty')->fetch($callbackscript_tpl);
+	}
+	//get iconset icon if daterange is one of the fields
+	if ($dr) {
+		$smarty = TikiLib::lib('smarty');
+		$smarty->loadPlugin('smarty_function_js_insert_icon');
+		$iconinsert = smarty_function_js_insert_icon(['type' => 'jscalendar', 'return' => 'y'], $smarty);
+	} else {
+		$iconinsert = '';
 	}
 
 	global $page;
@@ -474,9 +500,13 @@ customsearch.offset = $offset;
 customsearch.maxRecords = $maxRecords;
 customsearch.store_query ='';
 customsearch.init();
-";
+$iconinsert";
 
 	TikiLib::lib('header')->add_jq_onready($script);
+
+	if ($params['customsearchjs']) {
+		TikiLib::lib('header')->add_jsfile('lib/jquery_tiki/customsearch.js');
+	}
 
 	$out = '<div id="customsearch_' . $id . '_form"><form id="customsearch_' . $id . '">' . $matches->getText() . '</form></div>';
 
@@ -812,7 +842,7 @@ $('#$fieldid').trigger('change');
 		}
 		$element->appendChild($option);
 	}
-	return $document->saveHTML();
+	return '~np~' . $document->saveHTML() . '~/np~';
 }
 
 function cs_design_daterange($id, $fieldname, $fieldid, $arguments, $default, &$script)

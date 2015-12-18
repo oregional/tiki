@@ -715,6 +715,11 @@ class UsersLib extends TikiLib
 			// start off easy
 			// if the user is in Tiki and password is verified in LDAP, log in
 			if ($userLdap && $userTikiPresent) {
+				if ($userLdapPresent) {
+					# Sync again user attributes from LDAP (such as the RealName, mail and country) with user data in Tiki to prevent un-sync'ing them in a later stage
+					$this->init_ldap($user, $pass);
+					$this->ldap_sync_user_data($user, $this->ldap->get_user_attributes());
+				}
 				return array($this->_ldap_sync_and_update_lastlogin($user, $pass), $user, $result);
 			} elseif (!$userTikiPresent && !$userLdapPresent) {
 			// if the user wasn't found in either system, just fail
@@ -752,6 +757,8 @@ class UsersLib extends TikiLib
 				// see if we are allowed to create a new account
 				if ($ldap_create_tiki) {
 					$ldap_user_attr = $this->ldap->get_user_attributes();
+					// Get user attributes such as the real name, email and country from the data received by the ldap auth
+					$this->ldap_sync_user_data($user, $ldap_user_attr);
 					// Use what was configured in ldap admin config, otherwise assume the attribute name is "mail" as is usual
 					$email = $ldap_user_attr[empty($prefs['auth_ldap_emailattr'])?'mail':$prefs['auth_ldap_emailattr']];
 					$result = $this->add_user($user, $pass, $email);
@@ -2246,6 +2253,7 @@ class UsersLib extends TikiLib
 
 	function change_login($from,$to)
 	{
+		global $user;
 		$cachelib = TikiLib::lib('cache');
 
 		if ( $from == 'admin' ) return false;
@@ -2668,12 +2676,12 @@ class UsersLib extends TikiLib
 		$url = filter_out_sefurl($url);
 		$extra = '';
 		if ($prefs['feature_community_mouseover'] == 'y' && ($this->get_user_preference($auser, 'show_mouseover_user_info', 'y') == 'y' || $prefs['feature_friends'] == 'y')) {
-			$rel = TikiLib::lib('service')->getUrl(array(
+			$data = TikiLib::lib('service')->getUrl(array(
 				'controller' => 'user',
 				'action' => 'info',
 				'username' => $auser,
 			));
-			$extra .= ' rel="' . htmlspecialchars($rel, ENT_QUOTES) . '"';
+			$extra .= ' data-ajaxtips="' . htmlspecialchars($data, ENT_QUOTES) . '"';
 			$class .= ' ajaxtips';
 
 			if ($auser === $user) {
@@ -2682,9 +2690,11 @@ class UsersLib extends TikiLib
 				$title = tra('User Information');
 			}
 		} else if ($prefs['user_show_realnames'] == 'y') {
-			$title = $realn;
+			$class .= ' tips';
+			$title = tr('User') . ':' . $realn;
 		} else {
-			$title = $auser;
+			$class .= ' tips';
+			$title = tr('User') . ':' . $auser;
 		}
 
 		if (empty($prefs['urlOnUsername'])) {
@@ -6231,7 +6241,7 @@ class UsersLib extends TikiLib
 	 * @param pass: password (may be an empty string)
 	 * @param email: email
 	 */
-	function add_user($user, $pass, $email, $provpass = '', $pass_first_login = false, $valid = NULL, $openid_url = NULL, $waiting=NULL)
+	function add_user($user, $pass, $email, $provpass = '', $pass_first_login = false, $valid = NULL, $openid_url = NULL, $waiting=NULL, $groups = array())
 	{
 		global $prefs;
 		$cachelib = TikiLib::lib('cache');
@@ -6290,7 +6300,17 @@ class UsersLib extends TikiLib
 			)
 		);
 
-		$this->assign_user_to_group($user, 'Registered');
+		if (empty($groups)) {
+			$this->assign_user_to_group($user, 'Registered');
+		} else {
+			if (is_array($groups)) {
+				foreach ($groups as $grp) {
+					$this->assign_user_to_group($user, $grp);
+				}
+			} else {
+				$this->assign_user_to_group($user, 'Registered');
+			}
+		}
 
 		if ( $prefs['eponymousGroups'] == 'y' ) {
 			// Create a group just for this user, for permissions
@@ -7083,8 +7103,7 @@ class UsersLib extends TikiLib
 					return false;
 				}
 
-				global $messulib; include_once('lib/messu/messulib.php');
-				$messulib->post_message(
+				TikiLib::lib('message')->post_message(
 					$prefs['contact_user'],
 					$prefs['contact_user'],
 					$prefs['contact_user'],
@@ -7824,7 +7843,72 @@ class UsersLib extends TikiLib
 		global $user_cookie_site;
 		$_SESSION[$user_cookie_site] = $uname;
 		$this->update_expired_groups();
+		$this->update_lastlogin($uname);
 		return true;
+	}
+
+	/**
+	 * This is a function to invite users to temporarily access the site via a token
+	 * @param array $emails Emails to send the invite to
+	 * @param array $groups Groups that the temporary user should have (Registered is not included unless explicitly added)
+	 * @param int $timeout How long the invitation is valid for, in seconds.
+	 * @param string $prefix Username of the created users will be the token ID prefixed with this
+	 * @param string $path Users will have to autologin using this path on the site using the token
+	 * @throws Exception
+	 */
+	function invite_tempuser($emails, $groups, $timeout, $prefix = '_token', $path = 'tiki-index.php') {
+		global $smarty, $user, $prefs;
+		include_once ('lib/webmail/tikimaillib.php');
+
+		$mail = new TikiMail();
+		foreach ($emails as $email) {
+			if (!validate_email($email)) {
+				throw new Exception(tra('Invalid email address %1.', $email));
+			}
+		}
+		$foo = parse_url($_SERVER['REQUEST_URI']);
+		$machine = $this->httpPrefix(true) . dirname($foo['path']);
+		$machine = preg_replace('!/$!', '', $machine); // just in case
+		$smarty->assign_by_ref('mail_machine', $machine);
+		$smarty->assign('mail_sender', $user);
+		$smarty->assign('expiry', $user);
+		$mail->setBcc($this->get_user_email($user));
+		$smarty->assign('token_expiry', $this->get_long_datetime($this->now + $timeout));
+		require_once 'lib/auth/tokens.php';
+
+		foreach ($emails as $email) {
+			$tokenlib = AuthTokens::build( $prefs );
+			$token_url = $tokenlib->includeToken( $machine . "/$path", $groups, $email, $timeout, -1, true, $prefix);
+			include_once('tiki-sefurl.php');
+			$token_url = filter_out_sefurl($token_url);
+			$smarty->assign('token_url', $token_url);
+			$mail->setUser($user);
+			$mail->setSubject($smarty->fetch('mail/invite_tempuser_subject.tpl'));
+			$mail->setHtml($smarty->fetch('mail/invite_tempuser.tpl'));
+
+			if (!$mail->send($email)) {
+				$errormsg = tra('Unable to send mail');
+				if (Perms::get()->admin) {
+					$mailerrors = print_r($mail->errors, true);
+					$errormsg .= $mailerrors;
+				}
+				throw new Exception($errormsg);
+			}
+			$smarty->assign_by_ref('user', $user);
+		}
+	}
+
+	/**
+	 * @param $uname The username of the temporary user to remove (or disable depending on the pref)
+	 *
+	 */
+	function remove_temporary_user($uname) {
+		global $prefs;
+		if ($prefs['auth_token_preserve_tempusers'] == 'y') {
+			$this->remove_user_from_all_groups($uname);
+		} else {
+			$this->remove_user($uname);
+		}
 	}
 }
 

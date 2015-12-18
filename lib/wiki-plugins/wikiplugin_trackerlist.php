@@ -1975,7 +1975,8 @@ function wikiplugin_trackerlist($data, $params)
 					isset($tscolselect) ? $tscolselect : null,
 					$GLOBALS['requestUri'],
 					$items['cant'],
-					isset($tsmathoptions) ? $tsmathoptions : null
+					isset($tstotals) ? $tstotals : null,
+					isset($tstotaloptions) ? $tstotaloptions : null
 				);
 				//loads the jquery tablesorter code
 				if (is_array($ts->settings)) {
@@ -2152,12 +2153,19 @@ function wikiplugin_trackerlist($data, $params)
 				$smarty->assign('trackerlistmapview', false);
 			}
 
-			if ($prefs['feature_score'] == 'y' && isset($items['data'])) {
+			if (isset($items['data'])) {
 				foreach ($items['data'] as $score_item) {
-				  $item_info = $trklib->get_tracker_item($score_item['itemId']);
-				  $currentItemId = $score_item['itemId'];
-				  $tikilib->score_event($user, 'trackeritem_read', $currentItemId);
-				  $tikilib->score_event($item_info['createdBy'], 'trackeritem_is_read', "$user:$currentItemId");
+					$item_info = $trklib->get_tracker_item($score_item['itemId']);
+					$currentItemId = $score_item['itemId'];
+
+					TikiLib::events()->trigger('tiki.trackeritem.view',
+						array(
+							'type' => 'trackeritem',
+							'object' => $currentItemId,
+							'owner' => $item_info['createdBy'],
+							'user' => $GLOBALS['user'],
+						)
+					);
 				}
 			}
 

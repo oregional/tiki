@@ -1,9 +1,14 @@
 {* $Id$ *}
 
 <div class="t_navbar btn-group form-group">
-	{button href="tiki-admingroups.php" class="btn btn-default" _text="{tr}Admin Groups{/tr}"}
-	{button href="tiki-adminusers.php" class="btn btn-default" _text="{tr}Admin Users{/tr}"}
-	{permission_link mode=button label="{tr}Manage permissions{/tr}"}
+	<a role="link" class="btn btn-link" href="tiki-admingroups.php" title="{tr}Admin groups{/tr}">
+		{icon name="group"} {tr}Admin Groups{/tr}
+	</a>
+	<a role="link" class="btn btn-link" href="tiki-adminusers.php" title="{tr}Admin users{/tr}">
+		{icon name="user"} {tr}Admin Users{/tr}
+	</a>
+
+	{permission_link mode=link label="{tr}Manage permissions{/tr}" icon_name="key" addclass="btn btn-link"}
 </div>
 
 {remarksbox type="tip" title="{tr}Tip{/tr}"}
@@ -57,10 +62,6 @@
 			</div>
 			{preference name=feature_purifier}
 			{preference name=feature_htmlpurifier_output}
-			{preference name=menus_item_names_raw_teaser}
-			<div class="adminoptionboxchild" id="menus_item_names_raw_teaser_childcontainer">
-				{preference name=menus_item_names_raw}
-			</div>
 
 			{preference name=session_protected}
 			{preference name=login_http_basic}
@@ -77,7 +78,7 @@
 				{if isset($no_mcrypt)}
 					{remarksbox type="warning" title="{tr}Mcrypt is not loaded{/tr}"}
 					{tr}User Encryption requires the PHP extension Mcrypt for encryption.
-						You should activate Mcrypt before activating User Encryption{/tr}</a>.
+						You should activate Mcrypt before activating User Encryption{/tr}.
 					{/remarksbox}
 				{else}
 					Requires the Mcrypt PHP extension for encryption. <u>You have Mcrypt installed</u>.<br>
@@ -104,7 +105,7 @@
 				{tr}You can additionally protect from spam enabling the "<a href="http://doc.tiki.org/Forum+Admin#Forum_moderation" target="_blank">moderation queue on forums</a>", or through <strong>banning</strong> multiple ip's from the "<a href="tiki-admin_actionlog.php" target="_blank">Action log</a>", from "<a href="tiki-adminusers.php" target="_blank">Users registration</a>", or from the "<a href="tiki-list_comments.php" target="_blank">Comments moderation queue</a>" itself{/tr}.
 			{/remarksbox}
 			<fieldset>
-				<legend>{tr}Captcha{/tr}</legend>
+				<legend>{tr}CAPTCHA{/tr}</legend>
 				{preference name=feature_antibot}
 				<div class="adminoptionboxchild" id="feature_antibot_childcontainer">
 					{preference name=captcha_wordLen}
@@ -115,6 +116,7 @@
 						{preference name=recaptcha_pubkey}
 						{preference name=recaptcha_privkey}
 						{preference name=recaptcha_theme}
+						{preference name=recaptcha_version}
 					</div>
 					{preference name=captcha_questions_active}
 					<div class="adminoptionboxchild" id="captcha_questions_active_childcontainer">
@@ -165,13 +167,14 @@
 		{tab name="{tr}Tokens{/tr}"}
 			<h2>{tr}Tokens{/tr}</h2>
 			{remarksbox type="tip" title="{tr}Tip{/tr}"}
-				{tr}To manage tokens go to <a href="tiki-admin_tokens.php">Admin Tokens</a> page{/tr}
+				{tr}To manage tokens go to <a href="tiki-admin_tokens.php">Admin Tokens</a> page. Tokens are also used for the Temporary Users feature (see <a href="tiki-adminusers.php">Admin Users</a>).{/tr}
 			{/remarksbox}
 			{preference name=auth_token_access}
 			{preference name=auth_token_access_maxtimeout}
 			{preference name=auth_token_access_maxhits}
 			{preference name=auth_token_tellafriend}
 			{preference name=auth_token_share}
+			{preference name=auth_token_preserve_tempusers}
 		{/tab}
 
 		{tab name="{tr}OpenPGP{/tr}"}

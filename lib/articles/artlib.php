@@ -116,6 +116,14 @@ class ArtLib extends TikiLib
 			$multilinguallib = TikiLib::lib('multilingual');
 			$multilinguallib->detachTranslation('article', $articleId);
 
+			TikiLib::events()->trigger('tiki.article.delete',
+				array(
+					'type' => 'article',
+					'object' => $articleId,
+					'user' => $user,
+				)
+			);
+
 			// TODO refactor
 			$nots = $tikilib->get_event_watches('article_deleted', '*');
 			if (!empty($article_data['topicId']))
@@ -445,9 +453,13 @@ class ArtLib extends TikiLib
 			$articleId = $article_table->insert($info);
 
 			global $prefs;
-			if ($prefs['feature_score'] == 'y') {
-				$this->score_event($user, 'article_new');
-			}
+			TikiLib::events()->trigger('tiki.article.create',
+				array(
+					'type' => 'article',
+					'object' => $articleId,
+					'user' => $user,
+				)
+			);
 			$event = 'article_submitted';
 			$nots = $tikilib->get_event_watches('article_submitted', '*');
 			$nots2 = $tikilib->get_event_watches('topic_article_created', $topicId);
@@ -909,7 +921,7 @@ class ArtLib extends TikiLib
 		global $user, $prefs, $tikilib;
 		$fhandle = fopen($fileName, 'r');
 		if (($fds = fgetcsv($fhandle, 4096, $csvDelimiter)) === false || empty($fds[0])) {
-			$msgs[] = tra('The file is not a CSV file or has not a correct syntax');
+			$msgs[] = tra('The file has incorrect syntax or is not a CSV file');
 			return false;
 		}
 		for ($i = 0, $icount_fds = count($fds); $i < $icount_fds; $i++) {
@@ -1484,9 +1496,15 @@ class ArtLib extends TikiLib
 			}
 		}
 
-		if ($prefs['feature_score'] == 'y') {
-			$this->score_event($user, 'article_read', $articleId);
-			$this->score_event($res['author'], 'article_is_read', $articleId . '_' . $user);
+		if ($res['author'] != $user) {
+			TikiLib::events()->trigger('tiki.article.view',
+				array(
+					'type' => 'article',
+					'object' => $articleId,
+					'user' => $user,
+					'author' => $res['author'],
+				)
+			);
 		}
 
 		return $res;

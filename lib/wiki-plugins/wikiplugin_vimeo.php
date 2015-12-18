@@ -34,7 +34,7 @@ function wikiplugin_vimeo_info()
 				'name' => tra('Width'),
 				'description' => tra('Width in pixels'),
 				'since' => '6.1',
-				'filter' => 'digits',
+				'filter' => 'text',
 				'default' => 425,
 			),
 			'height' => array(
@@ -42,7 +42,7 @@ function wikiplugin_vimeo_info()
 				'name' => tra('Height'),
 				'description' => tra('Height in pixels'),
 				'since' => '6.1',
-				'filter' => 'digits',
+				'filter' => 'text',
 				'default' => 350,
 			),
 			'quality' => array(
@@ -134,7 +134,7 @@ function vimeo_iframe($data, $params) {
 	} else {
 		$height = '350';
 	}	
-	if (!empty($params['height'])) {
+	if (!empty($params['width'])) {
 		$width = $params['width'];
 	} else {
 		$width = '425';

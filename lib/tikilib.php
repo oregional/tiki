@@ -47,7 +47,7 @@ class TikiLib extends TikiDb_Bridge
 	/** Gets a library reference
 	 *
 	 * @param $name
-	 * @return \ActivityLib|\AreasLib|array|\AutoSaveLib|\BannerLib|\BigBlueButtonLib|\CalendarLib|\Captcha|\CartLib|\CreditsLib|\CryptLib|\DCSLib|\EditLib|\ErrorReportLib|\FaqLib|\FlaggedRevisionLib|\FileGalLib|\FileGalBatchLib|\GeoLib|\GoalEventLib|\GoalLib|\GoalRewardLib|\groupAlertLib|\HeaderLib|\IconsetLib|\KalturaLib|\LoginLib|\LogsLib|\MailinLib|\MimeLib|mixed|\ModLib|\MonitorLib|\MonitorMailLib|\OAuthLib|object|\PageContentLib|\ParserLib|\PaymentLib|\PerspectiveLib|\PollLib|\PollLibShared|\PreferencesLib|\QueueLib|\QuizLib|\RatingConfigLib|\ReferencesLib|\RegistrationLib|\RSSLib|\ScormLib|\SearchStatsLib|\SheetLib|\Smarty_Tiki|\SocialLib|\StatsLib|\StoredSearchLib|\ThemeControlLib|\ThemeGenLib|\ThemeLib|\Tiki_Connect_Client|\Tiki\Wiki\SlugManager|\Tiki_Connect_Server|\TikiAccessLib|\TikiLib|\Tracker\Tabular\Manager|\TrackerLib|\UnifiedSearchLib|\UserMailinLib|\UserModulesLib|\Validators|\VimeoLib|\WikiLingoTikiEvents|\WizardLib|\WYSIWYGLib|\ZoteroLib
+	 * @return \ActivityLib|\AdminLib|\AreasLib|\ArtLib|\AttributeLib|\AutoSaveLib|\BannerLib|\BigBlueButtonLib|\BlogLib|\CacheLib|\CalendarLib|\Captcha|\CartLib|\CategLib|\Comments|\ContactLib|\ContributionLib|\CreditsLib|\CryptLib|\cssLib|\DCSLib|\EditLib|\ErrorReportLib|\FaqLib|\FederatedSearchLib|\FileGalBatchLib|\FileGalLib|\FlaggedRevisionLib|\FreetagLib|\GeoLib|\GoalEventLib|\GoalLib|\GoalRewardLib|\GroupAlertLib|\HeaderLib|\HistLib|\IconsetLib|\ImageGalsLib|\KalturaLib|\KalturaLib|\Language|\LanguageTranslations|\LdapLib|\LoginLib|\LogsLib|\LogsQueryLib|\MailinLib|\Memcachelib|\MenuLib|\Messu|\MimeLib|\ModLib|\MonitorLib|\MonitorMailLib|\MultilingualLib|\NotificationLib|\OAuthLib|\ObjectLib|\PageContentLib|\ParserLib|\PaymentLib|\PerspectiveLib|\PollLib|\PreferencesLib|\QuantifyLib|\QueueLib|\QuizLib|\RatingConfigLib|\RatingLib|\ReferencesLib|\RegistrationLib|\RelationLib|\RSSLib|\ScoreLib|\ScormLib|\SearchStatsLib|\SemanticLib|\ServiceLib|\SheetLib|\Smarty_Tiki|\SocialLib|\StatsLib|\StoredSearchLib|\StructLib|\TemplatesLib|\ThemeControlLib|\ThemeGenLib|\ThemeLib|\Tiki_Connect_Client|\Tiki_Connect_Server|\Tiki_Event_Manager|\Tiki_Profile_SymbolLoader|\Tiki\Object\Selector|\Tiki\Recommendation\BatchProcessor|\Tiki\Wiki\SlugManager|\TikiAccessLib|\TikiCalendarLib|\TikiDate|\TodoLib|\Tracker\Tabular\Manager|\TrackerLib|\UnifiedSearchLib|\UserMailinLib|\UserModulesLib|\UserPrefsLib|\UsersLib|\Validators|\VimeoLib|\WikiLib|\WikiLingoTikiEvents|\WizardLib|\WYSIWYGLib|\ZoteroLib
 	 * @throws Exception
 	 */
 	public static function lib($name)
@@ -77,7 +77,7 @@ class TikiLib extends TikiDb_Bridge
 		}
 
 		unlink('temp/cache/container.php'); // Remove the container cache to help transition
-		throw new Exception(tr("%0 library not found. It may be a typo or caused by a recent update.", $name));
+		throw new Exception(tr("%0 library not found. This may be due to a typo or caused by a recent update.", $name));
 	}
 
 	/**
@@ -191,6 +191,9 @@ class TikiLib extends TikiDb_Bridge
 				$config["proxy_user"] = $prefs['proxy_user'];
 				$config["proxy_pass"] = $prefs['proxy_pass'];
 			}
+		}
+		if (strpos($url, 'https://') === 0) {
+			$config['sslverifypeer'] = false;	// zf2 only
 		}
 
 		$client = new Zend\Http\Client(null, $config);
@@ -1286,111 +1289,6 @@ class TikiLib extends TikiDb_Bridge
 		return $this->table('tiki_score')->fetchFullRow(array('event' => $event));
 	}
 
-	/*
-	 * Checks if an event should be scored and grants points to proper user
-	 * $multiplier is for rating events, in which the score will
-	 * be multiplied by other user's rating. Not yet used
-	 *
-	 * shared
-	 */
-	/**
-	 * @param $user
-	 * @param $event_type
-	 * @param string $id
-	 * @param bool $multiplier
-	 * @return bool
-	 */
-	function score_event($user, $event_type, $id = '', $multiplier=false)
-	{
-		global $prefs;
-		$trklib = TikiLib::lib('trk');
-		$scorelib = TikiLib::lib('score');
-
-		if ($user == 'admin' || !$user) {
-			return true;
-		}
-
-		$event = $scorelib->get_event($event_type);
-		if (!$event || !$event['score']) {
-			return true;
-		}
-		$score = $event['score'];
-		if ($multiplier) {
-			$score *= $multiplier;
-		}
-		if ($id || $event['expiration']) {
-			$expire = $event['expiration'];
-			$event_id = $event_type . '_' . $id;
-
-			$usersScore = $this->table('tiki_users_score');
-
-			$conditions = array(
-				'user' => $user,
-				'event_id' => $event_id,
-			);
-
-			if ($expire) {
-				$conditions['expire'] = $usersScore->greaterThan($this->now);
-			}
-
-			if ($usersScore->fetchCount($conditions)) {
-				return true;
-			}
-
-			$usersScore->delete(array('user' => $user, 'event_id' => $event_id));
-			$usersScore->insert(
-				array(
-					'user' => $user,
-					'event_id' => $event_id,
-					'expire' => time() + ($expire * 60),
-				)
-			);
-		}
-		$allevent = $scorelib->get_all_events();
-		$feach_array = array($user);
-		$query = "SELECT event_id  FROM `tiki_users_score` WHERE `user`=?";
-		if (isset($prefs['feature_score_expday']) && $prefs['feature_score_expday'] != 0) {
-			$query .= " AND `tstamp` >= NOW() - INTERVAL ? DAY"; $feach_array[1] =$prefs['feature_score_expday'];
-		}
-		$sco_result = $this->fetchAll($query, $feach_array);
-		if ($sco_result) {
-			$score = 0;
-			foreach ($allevent as $val) {
-				foreach ($sco_result as $value ) {
-					if ( strstr($value['event_id'], $val['event'])) {
-						if (isset($val['validObjectIds']) && $val['validObjectIds'] !=0) {
-						  $matches = array();
-						  $val_ids = explode(',', $val['validObjectIds']);
-						  preg_match("/(\d+)/", $value['event_id'], $matches);
-							if (strstr($val['event'], "trackeritem") && !empty($matches)) {
-							  $matches[0] = $trklib->get_tracker_for_item($matches[0]);
-							}
-							$result = array_intersect($matches, $val_ids);
-							if (!empty($result)) {
-							  $score += $val['score'];
-							}
-						} else {
-							$score += $val['score'];
-						}
-					}
-				}
-			}
-			// Perform check to make sure score does not go below 0 with negative scores
-			if ( $prefs['fgal_prevent_negative_score'] == 'y' && strpos($event_type, 'fgallery') === 0 ) {
-				$result = $this->query("select `userId` from `users_users` where `score` + ? >= 0 and `login` = ?", array($score, $user));
-				if ( ! $row = $result->fetchRow($result))
-					return false;
-			}
-		}
-
-		$event['id'] = $id; // just for debug
-
-		$table = $this->table('users_users');
-		$table->update(array('score' => $score), array('login' => $user));
-
-		return true;
-	}
-
 	// List users by best scoring
 	// shared
 	/**
@@ -1400,16 +1298,40 @@ class TikiLib extends TikiDb_Bridge
 	 */
 	function rank_users($limit = 10, $start = 0)
 	{
+		global $prefs;
+		$score_expiry_days = $prefs['feature_score_expday'];
+
 		if (!$start) {
 			$start = "0";
 		}
 
-		$users = $this->table('users_users');
+		if (empty($score_expiry_days)) {
+			// score does not expire
+			$query = "select `recipientObjectId` as `login`,
+				`pointsBalance` as `score`
+				from `tiki_object_scores` tos
+				where `recipientObjectType`='user'
+				and tos.`id` = (select max(id) from `tiki_object_scores` where `recipientObjectId` = tos.`recipientObjectId` and `recipientObjectType`='user' group by `recipientObjectId`)
+				group by `recipientObjectId` order by `score` desc
+				limit ? offset ?";
 
-		$result = $users->fetchAll(
-			array('userId', 'login', 'score'),
-			array('login' => $users->not('admin')), $limit, $start, array('score' => 'desc')
-		);
+			$result = $this->fetchAll($query, array($limit, $start));
+		} else {
+			// score expires
+			$query = "select `recipientObjectId` as `login`,
+				`pointsBalance` - ifnull((select `pointsBalance` from `tiki_object_scores`
+					where `recipientObjectId`=tos.`recipientObjectId`
+					and `recipientObjectType`='user'
+					and `date` < UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL ? DAY))
+					order by id desc limit 1), 0) as `score`
+				from `tiki_object_scores` tos
+				where `recipientObjectType`='user'
+				and tos.`id` = (select max(id) from `tiki_object_scores` where `recipientObjectId` = tos.`recipientObjectId` and `recipientObjectType`='user' group by `recipientObjectId`)
+				group by `recipientObjectId` order by `score` desc
+				limit ? offset ?";
+
+				$result = $this->fetchAll($query, array($score_expiry_days, $limit, $start));
+		}
 
 		foreach ( $result as & $res ) {
 			$res['position'] = ++$start;
@@ -3873,7 +3795,7 @@ class TikiLib extends TikiDb_Bridge
 		if ( ! is_string($my_user) || $my_user == '' ) return false;
 
 		global $user_preferences;
-		if (!array_key_exists($my_user, $user_preferences)) {
+		if (!is_array($user_preferences) || !array_key_exists($my_user, $user_preferences)) {
 			$user_preferences[$my_user] = array();
 		}
 		$global_ref =& $user_preferences[$my_user];
@@ -4228,10 +4150,6 @@ class TikiLib extends TikiDb_Bridge
 		$toInvalidate = $this->table('tiki_links')->fetchColumn('fromPage', array('toPage' => $name));
 		foreach ( $toInvalidate as $res ) {
 			$this->invalidate_cache($res);
-		}
-
-		if ($prefs['feature_score'] == 'y') {
-			$this->score_event($user, 'wiki_new');
 		}
 
 		TikiLib::events()->trigger(
@@ -4729,11 +4647,6 @@ class TikiLib extends TikiDb_Bridge
 				$diff = diff2($old["data"], $edit_data, "unidiff");
 				sendWikiEmailNotification('wiki_page_changed', $pageName, $edit_user, $edit_comment, $old_version, $edit_data, $machine, $diff, $edit_minor, $hash['contributions'], 0, 0, $lang);
 			}
-
-			if ($prefs['feature_score'] == 'y') {
-				$this->score_event($user, 'wiki_edit');
-			}
-
 		}
 
 		$tx = $this->begin();
@@ -5194,82 +5107,6 @@ class TikiLib extends TikiDb_Bridge
 	}
 
 	/**
-	 * @param bool $path
-	 * @param null $short
-	 * @param bool $all
-	 * @return array|mixed
-	 */
-	static function list_languages($path = false, $short=null, $all=false)
-	{
-		global $prefs;
-
-		$args = func_get_args();
-		$key = 'disk_languages' . implode(',', $args) . $prefs['language'];
-		$cachelib = TikiLib::lib('cache');
-
-		if (! $languages = $cachelib->getSerialized($key)) {
-			$languages = self::list_disk_languages($path);
-			$languages = self::format_language_list($languages, $short, $all);
-
-			$cachelib->cacheItem($key, serialize($languages));
-		}
-
-		return $languages;
-	}
-
-	/**
-	 * @param $path
-	 * @return array
-	 */
-	private static function list_disk_languages($path)
-	{
-		$languages = array();
-
-		if (!$path)
-			$path = "lang";
-
-		if (!is_dir($path))
-			return array();
-
-		$h = opendir($path);
-
-		while ($file = readdir($h)) {
-			if (strpos($file, '.') === false && $file != 'CVS' && $file != 'index.php' && is_dir("$path/$file") && file_exists("$path/$file/language.php")) {
-				$languages[] = $file;
-			}
-		}
-
-		closedir($h);
-
-		return $languages;
-	}
-
-	/**
-	 * @return array
-	 */
-	static function get_language_map()
-	{
-		$languages = self::list_languages();
-
-		$map = array();
-		foreach ($languages as $lang) {
-			$map[$lang['value']] = $lang['name'];
-		}
-
-		return $map;
-	}
-
-	/**
-	 * @param $language
-	 * @return bool
-	 */
-	function is_valid_language( $language )
-	{
-		return preg_match("/^[a-zA-Z-_]*$/", $language)
-			&& file_exists('lang/' . $language . '/language.php');
-	}
-
-	/**
 	 * @return  array of css files in the style dir
 	 */
 	function list_styles()
@@ -5419,79 +5256,6 @@ class TikiLib extends TikiDb_Bridge
 		}
 
 		return $path;
-	}
-
-	// Comparison function used to sort languages by their name in the
-	// current locale.
-	/**
-	 * @param $a
-	 * @param $b
-	 * @return int
-	 */
-	static function formatted_language_compare($a, $b)
-	{
-		return strcasecmp($a['name'], $b['name']);
-	}
-	// Returns a list of languages formatted as a twodimensionel array
-	// with 'value' being the language code and 'name' being the name of
-	// the language.
-	// if $short is 'y' returns only the localized language names array
-	/**
-	 * @param $languages
-	 * @param null $short
-	 * @param bool $all
-	 * @return array
-	 */
-	static function format_language_list($languages, $short=null, $all=false)
-	{
-		// The list of available languages so far with both English and
-		// translated names.
-		global $langmapping, $prefs;
-		include("lang/langmapping.php");
-		$formatted = array();
-
-		// run through all the language codes:
-		if (isset($short) && $short == "y") {
-			foreach ($languages as $lc) {
-				if ( $prefs['restrict_language'] === 'n' || empty($prefs['available_languages'] ) || (!$all and in_array($lc, $prefs['available_languages']))) {
-					if (isset($langmapping[$lc]))
-						$formatted[] = array('value' => $lc, 'name' => $langmapping[$lc][0]);
-					else
-						$formatted[] = array('value' => $lc, 'name' => $lc);
-				}
-				usort($formatted, array('TikiLib', 'formatted_language_compare'));
-			}
-			return $formatted;
-		}
-		foreach ($languages as $lc) {
-			if ( $prefs['restrict_language'] === 'n' || empty($prefs['available_languages']) || (!$all and in_array($lc, $prefs['available_languages'])) or $all) {
-				if (isset($langmapping[$lc])) {
-					// known language
-					if ($langmapping[$lc][0] == $langmapping[$lc][1]) {
-						// Skip repeated text, 'English (English, en)' looks silly.
-						$formatted[] = array(
-								'value' => $lc,
-								'name' => $langmapping[$lc][0] . " ($lc)"
-								);
-					} else {
-						$formatted[] = array(
-								'value' => $lc,
-								'name' => $langmapping[$lc][1] . " (" . $langmapping[$lc][0] . ', ' . $lc . ")"
-								);
-					}
-				} else {
-					// unknown language
-					$formatted[] = array(
-							'value' => $lc,
-							'name' => tra("Unknown language"). " ($lc)"
-							);
-				}
-			}
-		}
-
-		// Sort the languages by their name in the current locale
-		usort($formatted, array('TikiLib', 'formatted_language_compare'));
-		return $formatted;
 	}
 
 	/**
@@ -5950,14 +5714,14 @@ class TikiLib extends TikiDb_Bridge
 	/**
 	 * @param $data
 	 * @param string $outputType
-	 * @param string $is_html
+	 * @param boolean $is_html
 	 * @param string $highlight
 	 * @param int $length
 	 * @param string $start
 	 * @param string $end
 	 * @return string
 	 */
-	function get_snippet($data, $outputType = '', $is_html='n', $highlight='', $length=240, $start='', $end='')
+	function get_snippet($data, $outputType = '', $is_html = false, $highlight='', $length=240, $start='', $end='')
 	{
 		global $prefs;
 		if ($prefs['search_parsed_snippet'] == 'y') {

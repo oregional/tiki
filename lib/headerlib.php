@@ -996,7 +996,7 @@ class HeaderLib
 
 	private function collect_css_files()
 	{
-		global $tikipath, $tikidomain, $style_base;
+		global $tikipath;
 
 		$files = array(
 			'default' => array(),
@@ -1019,11 +1019,6 @@ class HeaderLib
 
 		foreach ($this->cssfiles as $x=>$cssf) {
 			foreach ($cssf as $cf) {
-				if (!empty($tikidomain) && is_file("styles/$tikidomain/$style_base/$cf")) {
-					$cf = "styles/$tikidomain/$style_base/$cf";
-				} elseif (is_file("styles/$style_base/$cf")) {
-					$cf = "styles/$style_base/$cf";
-				}
 				$cfprint = str_replace('.css', '', $cf) . '-print.css';
 				if (!file_exists($tikipath . $cfprint)) {
 					$pushFile('default', $cf);
@@ -1044,6 +1039,76 @@ class HeaderLib
 
 		return array_merge($files['default'], $files['screen']);
 	}
+
+	/**
+	 * Compile a new css file in temp/public using the provided theme and the custom LESS string
+	 *
+	 * @param string $custom_less        The LESS syntax string
+	 * @param string $themename          Theme to base the compile on
+	 * @param string $themeoptionname    Theme option name (for future use)
+	 * @param bool $use_cache            (for future use and testing)
+	 * @return array                     Array of CSS file paths out (can be theme and option if there's an error)
+	 */
+	function compile_custom_less($custom_less, $themename, $themeoptionname = '', $use_cache = true) {
+
+		global $tikidomainslash, $tikiroot;
+
+		$hash = md5($custom_less . $themename . $themeoptionname);
+		$target = "temp/public/$tikidomainslash";
+		$css_file = $target . "custom_less_$hash.css";
+		$css_files = array($css_file);
+
+		if ( ! file_exists($css_file) || ! $use_cache) {
+
+			$themeLib = TikiLib::lib('theme');
+
+			$theme_less_file = $themeLib->get_theme_path($themename, '', $themename . '.less');
+			$themeoption_less_file = $themeLib->get_theme_path($themename, $themeoptionname, $themeoptionname . '.less');
+
+			if ($theme_less_file === $themeoption_less_file) {
+				$themeoption_less_file = '';	// some theme options are CSS only
+			}
+
+			$options = array(
+				'compress' => true,
+				'cache_dir' => realpath($target),
+			);
+
+			$parser = new Less_Parser($options);
+
+			try {
+				// less.php does all the work of course
+				$parser->parseFile($theme_less_file, '../../' . $tikiroot);	// appears to need the relative path from temp/public where the CSS will be cached
+				if ($themeoption_less_file) {
+					$parser->parseFile($themeoption_less_file, '../../' . $tikiroot);
+				}
+				$parser->parse($custom_less);
+				$css = $parser->getCss();
+
+				file_put_contents($css_file, $css);
+				chmod($css_file, 0644);
+
+				$css_files = array($css_file);
+
+			} catch (Exception $e) {
+				if (is_writeable($css_file)) {
+					unlink($css_file);
+				}
+
+				TikiLib::lib('errorreport')->report(tra('Custom LESS compilation failed with error:') . $e->getMessage());
+				$css_files = array(
+					$themeLib->get_theme_path($themename, '', $themename . '.css'),
+					$themeLib->get_theme_path($themename, $themeoptionname, ($themeoptionname ?: $themename) . '.css'),
+				);
+
+			}
+
+		}
+
+		return $css_files;
+	}
+
+
 
 	private function process_themegen_files($files)
 	{
