@@ -29,6 +29,9 @@
 				</th>
 				<th>{tr}Sections{/tr}</th>
 				<th>{tr}Categories{/tr}</th>
+				{if $prefs.lock_content_templates eq 'y'}
+					<th></th>
+				{/if}
 				<th></th>
 			</tr>
 			{cycle values="odd,even" print=false advance=false}
@@ -64,6 +67,11 @@
 							</a>
 						{/foreach}
 					</td>
+					{if $prefs.lock_content_templates eq 'y'}
+						<td class="action">
+							{lock type='template' object=$channels[user].templateId}
+						</td>
+					{/if}
 					<td class="action">
 						{if $channels[user].edit or $channels[user].remove}
 							{capture name=template_actions}
@@ -201,10 +209,18 @@
 				</div>
 				<div class="form-group">
 					<label class="col-sm-3 control-label" for="is_html">{tr}HTML{/tr}</label>
-					<div class="col-sm-9 checkbox-inline">
+					<div class="col-sm-9">
 						<input type="checkbox" name="section_wiki_html" id="is_html" class="form=control" {if $info.section_wiki_html eq 'y'}checked="checked"{/if}>
 					</div>
 				</div>
+				{if $prefs.lock_content_templates eq 'y'}
+					<div class="form-group">
+						<label class="col-sm-3 control-label">{tr}Lock{/tr}</label>
+						<div class="col-sm-9">
+							{lock type='template' object=$templateId}
+						</div>
+					</div>
+				{/if}
 				<div class="form-group type-cond for-page">
 					<label class="col-sm-3 control-label" for="page_name">{tr}Page Name{/tr}</label>
 					<div class="col-sm-9">

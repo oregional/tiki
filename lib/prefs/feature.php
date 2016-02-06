@@ -26,7 +26,7 @@ function prefs_feature_list($partial = false)
 
 	return array(
 		'feature_blog_mandatory_category' => array(
-			'name' =>  tra('Blog:').' '.tra('Force and limit categorization to within subtree of'),
+			'name' =>  tra('Blog:').' '.tra('Limit categorization to within the subtree of'),
 			'description' => tra('If you get an error message indicating a mandatory category is required when editing a blog post, this is the option to blame. Set it to None.'),
 			'type' => 'list',
 			'options' => $catree,
@@ -405,15 +405,6 @@ function prefs_feature_list($partial = false)
 			'view' => 'tiki-shoutbox.php',
 			'module' => 'shoutbox',
 		),
-		'feature_maps' => array(
-			'name' => tra('MapServer'),
-			'description' => tra('Navigable, interactive maps with user-selectable layers'),
-			'help' => 'MapServer',
-			'warning' => tra('Requires MapServer'),
-			'type' => 'flag',
-			'default' => 'n',
-			'tags' => array('experimental'),
-		),
 		'feature_live_support' => array(
 			'name' => tra('Live support system'),
 			'description' => tra('One-on-one chatting with customer'),
@@ -540,8 +531,8 @@ function prefs_feature_list($partial = false)
 			'default' => 'n',
 		),
 		'feature_fullscreen' => array(
-			'name' => tra('Full Screen'),
-			'description' => tra('Allow users to activate fullscreen mode.'),
+			'name' => tra('Full screen'),
+			'description' => tra('Allow users to activate full-screen mode.'),
 			'help' => 'Fullscreen',
 			'type' => 'flag',
 			'default' => 'n',
@@ -605,13 +596,6 @@ function prefs_feature_list($partial = false)
 			'type' => 'flag',
 			'default' => 'y',
 		),
-		'feature_morcego' => array(
-			'name' => tra('Morcego 3D browser'),
-			'description' => tra('Visualize relationships between wiki pages, in a 3D applet'),
-			'help' => 'Wiki+3D',
-			'type' => 'flag',
-			'default' => 'n',
-		),
 		'feature_webmail' => array(
 			'name' => tra('Webmail'),
 			'description' => tra('Webmail'),
@@ -659,7 +643,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_sheet' => array(
 			'name' => tra('Spreadsheet'),
-			'description' => tra('Datasheets with calculations and charts'),
+			'description' => tra('Spreadsheets with calculations and charts'),
 			'help' => 'Spreadsheet',
 			'type' => 'flag',
 			'keywords' => 'sheet calculation calculations stats stat graph graphs',
@@ -933,8 +917,8 @@ function prefs_feature_list($partial = false)
 			'default' => 'n',
 		),
 		'feature_debug_console' => array(
-			'name' => tra('Debugger Console'),
-			'description' => tra('Debugger Console'),
+			'name' => tra('Debugger console'),
+			'description' => tra('Debugger console'),
 			'help' => 'Debugger+Console',
 			'type' => 'flag',
 			'perspective' => false,
@@ -949,7 +933,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_version_checks' => array(
 			'name' => tra('Check for updates automatically'),
-			'description' => tra('Tiki will check for updates when you access the main Administration page'),
+			'description' => tra('Tiki will check for updates when the main Administration page is accessed'),
 			'type' => 'flag',
 			'perspective' => false,
 			'default' => 'y',
@@ -1006,7 +990,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_translation_incomplete_notice' => array(
 			'name' => tra('Incomplete translation notice'),
-			'description' => tra('When a page is translated to a new language, a notice will be automatically inserted into the page to indicate that the translation is not yet complete.'),
+			'description' => tra('When a page is translated to a new language, a notice will automatically be inserted into the page to indicate that the translation is not yet complete.'),
 			'type' => 'flag',
 			'default' => 'y',
 		),
@@ -1059,8 +1043,8 @@ function prefs_feature_list($partial = false)
 			'tags' => array('basic'),
 		),
 		'feature_draw' => array(
-			'name' => tra('Draw (SVG-edit)'),
-			'description' => tra('Draw gives you the ability to edit SVG images all around Tiki'),
+			'name' => tra('Draw (SVG Edit)'),
+			'description' => tra('Draw enables creating and editing SVG images in all wiki text areas'),
 			'help' => 'Draw',
 			'type' => 'flag',
 			'default' => 'n',
@@ -1069,8 +1053,8 @@ function prefs_feature_list($partial = false)
 			),
 		),
 		'feature_draw_hide_buttons' => array(
-			'name' => tra('Draw (SVG-edit) Hide Buttons'),
-			'description' => tra('Hide buttons found in Tiki Draw, HTML id, comma-delimited.  Example: "tool_select,tool_fhpath,tools_line_show,tools_rect_show,tools_ellipse_show,tool_path,tools_shapelib_show,tool_text,tool_image,tool_zoom,tool_eyedropper"'),
+			'name' => tra('Draw (SVG Edit) hide buttons'),
+			'description' => tra('Hide buttons in Draw, HTML id, comma-separated. Example: "tool_select,tool_fhpath,tools_line_show,tools_rect_show,tools_ellipse_show,tool_path,tools_shapelib_show,tool_text,tool_image,tool_zoom,tool_eyedropper"'),
 			'help' => 'Draw',
 			'dependencies' => array(
 				'feature_draw',
@@ -1081,7 +1065,7 @@ function prefs_feature_list($partial = false)
 			'default' => '',
 		),
 		'feature_draw_separate_base_image' => array(
-			'name' => tra('Separate Base Image'),
+			'name' => tra('Separate base image'),
 			'description' => tra('Leaves the initially edited image as a separate file and stores the drawing separately'),
 			'help' => 'Draw',
 			'dependencies' => array(
@@ -1093,7 +1077,7 @@ function prefs_feature_list($partial = false)
 			'default' => 'n',
 		),
 		'feature_draw_in_userfiles' => array(
-			'name' => tra('Draw in User File Gallery'),
+			'name' => tra('Draw in user file gallery'),
 			'description' => tra("Users' drawings are stored in their user files gallery"),
 			'help' => 'Draw',
 			'dependencies' => array(
@@ -1109,7 +1093,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_docs' => array(
 			'name' => tra('Docs (WebODF)'),
-			'description' => tra('Docs gives you the ability to view/edit Open Document Format'),
+			'description' => tra('Docs enables viewing and editing Open Document Format files'),
 			'help' => 'Docs',
 			'type' => 'flag',
 			'default' => 'n',
@@ -1141,7 +1125,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_wiki_ext_rel_nofollow' => array(
 			'name' => tra('Add "rel=nofollow" on external links'),
-			'description' => tra("nofollow is used to instruct some search engines that links should not influence search engines. It can reduce search engine spam and prevent 'spamdexing'"),
+			'description' => tra("nofollow is used to instruct some search engines that the link should not influence the ranking of the link's target in the search engine's index"),
 			'type' => 'flag',
 			'keywords' => 'no follow spam',
 			'default' => 'y',
@@ -1432,7 +1416,7 @@ function prefs_feature_list($partial = false)
 		'feature_search_fulltext' => array(
 			'name' => tra('MySQL full-text search'),
 			'description' => tra("Also known as 'Basic Search'. This search uses the MySQL full-text search feature. The indexation is continuously updated."),
-			'warning' => tra("InnoDB doesn't support Full-Text Search until 5.6, so if this is your case, use Unified Search."),
+			'warning' => tra("InnoDB doesn't support Full-Text Search earlier than version 5.6, so in this case use Unified Search."),
 			'type' => 'flag',
 			'help' => 'Search',
 			'default' => 'n',
@@ -1721,7 +1705,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_editcss' => array(
 			'name' => tra('Edit CSS'),
-			'description' => tra('Edit css files directly from the browser.'),
+			'description' => tra('Edit CSS files directly in the browser.'),
 			'type' => 'flag',
 			'help' => 'Edit+CSS',
 			'perspective' => false,
@@ -1779,7 +1763,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_sitelogo' => array(
 			'name' => tra('Site Logo and Title'),
-            'description' => tra('use a Site Logo and Title'),
+            'description' => tra('display a site logo image and/or title'),
 			'type' => 'flag',
 			'warning' => tra('This setting is expected to be moved from here to the admin-modules page .'),
 			'default' => 'y',
@@ -1791,7 +1775,7 @@ function prefs_feature_list($partial = false)
 			'type' => 'list',
 			'help' => 'Users+Flip+Columns',
 			'hint' => tra('Controls visibility of the left column of modules'),
-			'keywords' => tra('side bar'),
+			'keywords' => tra('sidebar'),
 			'options' => array(
 				'y' => tra('Only if one or more modules are assigned'),
 				'fixed' => tra('Always'),
@@ -1807,7 +1791,7 @@ function prefs_feature_list($partial = false)
 			'type' => 'list',
 			'help' => 'Users+Flip+Columns',
 			'hint' => tra('Controls visibility of the right column of modules'),
-			'keywords' => tra('side bar'),
+			'keywords' => tra('sidebar'),
 			'options' => array(
 				'y' => tra('Only if one or more modules are assigned'),
 				'fixed' => tra('Always'),
@@ -1868,7 +1852,7 @@ function prefs_feature_list($partial = false)
 			'default' => '',
 		),
 		'feature_site_report' => array(
-			'name' => tra('Webmaster Report'),
+			'name' => tra('Webmaster report'),
             'description' => tra(''),
 			'type' => 'flag',
 			'default' => 'n',
@@ -1940,7 +1924,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_jquery_ui_theme' => array(
 			'name' => tra('jQuery UI theme'),
-            'description' => tra('jQuery UI theme. Used in spreadsheet, for example.'),
+            'description' => tra('jQuery UI theme. Used in some modal popups and in the TikiSheet feature, etc.'),
 			'help' => 'JQuery#UI',
 			'type' => 'list',
 			'options' => array(
@@ -2110,7 +2094,7 @@ function prefs_feature_list($partial = false)
 			'view' => 'tiki-list_comments.php',
 		),
 		'feature_wiki_pictures' => array(
-			'name' => tra('Pictures'),
+			'name' => tra('Images'),
             'description' => tra('Allow users to upload images to a page.'),
 			'type' => 'flag',
 			'help' => 'Wiki-Syntax+Images',
@@ -2119,7 +2103,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_wiki_export' => array(
 			'name' => tra('Export'),
-            'description' => tra('permit exporting the Wiki'),
+            'description' => tra('permit exporting wiki pages'),
 			'type' => 'flag',
 			'default' => 'n',
 		),
@@ -2344,7 +2328,7 @@ function prefs_feature_list($partial = false)
 			'default' => 'n',
 		),
 		'feature_wiki_mandatory_category' => array(
-			'name' =>  tra('Wiki:').' '.tra('Force and limit categorization to within subtree of'),
+			'name' =>  tra('Wiki:').' '.tra('Limit categorization to within the subtree of'),
 			'description' => tra('If an error message indicates a mandatory category is required when editing a wiki page, set this option to "None".'),
 			'type' => 'list',
 			'options' => $catree,
@@ -2355,7 +2339,7 @@ function prefs_feature_list($partial = false)
 			'default' => -1,
 		),
 		'feature_image_gallery_mandatory_category' => array(
-			'name' =>  tra('Image Gallery:').' '.tra('Force and limit categorization to within subtree of'),
+			'name' =>  tra('Image Gallery:').' '.tra('Limit categorization to within the subtree of'),
 			'description' => tra('If an error message indicates a mandatory category is required when editing an image (in an image gallery), set this option to "None".'),
 			'type' => 'list',
 			'options' => $catree,
@@ -2384,6 +2368,7 @@ function prefs_feature_list($partial = false)
 			'type' => 'flag',
 			'hint' => tra('Confirm that the Admin account has a valid email address or you will not be able to log in'),
 			'default' => 'n',
+			'warning' => tr('Deprecated: This feature is unmaintained and may not be reliable'),
 		),
 		'feature_show_stay_in_ssl_mode' => array(
 			'name' => tra('Users can choose to stay in SSL mode after an HTTPS login'),
@@ -2427,7 +2412,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_autolinks' => array(
 			'name' => tra('AutoLinks'),
-            'description' => tra('Tiki will automatically convert http:// and email addresses into links.'),
+            'description' => tra('Web (http://) and email addresses will automatically be converted to links.'),
 			'type' => 'flag',
 			'help' => 'AutoLinks',
 			'default' => 'y',
@@ -2441,7 +2426,7 @@ function prefs_feature_list($partial = false)
 			'view' => 'tiki-admin_hotwords.php',
 		),
 		'feature_hotwords_nw' => array(
-			'name' => tra('Open Hotwords in new window'),
+			'name' => tra('Open hotwords in new window'),
             'description' => tra(''),
 			'type' => 'flag',
 			'dependencies' => array(
@@ -2482,7 +2467,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_community_gender' => array(
 			'name' => tra('Users can choose to show their gender'),
-            'description' => tra('display a user\'s gender if they permit it'),
+            'description' => tra("Display a user's gender if they permit it"),
 			'type' => 'flag',
 			'help' => 'User+Preferences',
 			'dependencies' => array(
@@ -2492,7 +2477,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_community_mouseover' => array(
 			'name' => tra("Allow showing user's information on mouseover"),
-			'description' => tra('Site feature to allow showing user\'s information on mouseover'),
+			'description' => tra("Site feature to allow showing user's information on mouseover"),
 			'type' => 'flag',
 			'help' => 'User+Preferences',
 			'hint' => tra("Requires user's information to be public"),
@@ -2500,7 +2485,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_community_mouseover_name' => array(
 			'name' => tra('Real name'),
-            'description' => tra('show the user\'s real name'),
+            'description' => tra("Show the user's real name"),
 			'type' => 'flag',
 			'default' => 'y',
 		),
@@ -2511,7 +2496,7 @@ function prefs_feature_list($partial = false)
 			'default' => 'y',
 		),
 		'feature_community_mouseover_picture' => array(
-			'name' => tra('Picture (avatar)'),
+			'name' => tra('Profile picture (avatar)'),
             'description' => tra(''),
 			'type' => 'flag',
 			'default' => 'y',
@@ -2592,7 +2577,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_webdav' => array(
 			'name' => tra('WebDAV access to Tiki'),
-			'description' => tra('Allow to access File Galleries with WebDAV'),
+			'description' => tra('Allow file gallery access with WebDAV'),
 			'hint' => tra('use tiki-webdav.php as the URI of the WebDAV repository'),
 			'help' => 'WebDAV',
 			'type' => 'flag',
@@ -2848,7 +2833,7 @@ function prefs_feature_list($partial = false)
 			'tags' => array('advanced'),
 		),
 		'feature_equal_height_rows_js' => array(
-			'name' => tra('Enable Equal Height Rows JS Pugin'),
+			'name' => tra('Enable JavaScript Plugin for Equal-Height Rows'),
 			'description' => tra('This allows responsive rows to be set so that each contained element has the same height '),
 			'type' => 'flag',
 			'default' => 'n',

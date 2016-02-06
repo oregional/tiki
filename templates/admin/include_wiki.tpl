@@ -27,7 +27,7 @@
 {/if}
 
 {remarksbox type="tip" title="{tr}Tip{/tr}"}
-	{tr}Use the 'Quick Edit' module to easily create or edit wiki pages.{/tr} {tr}Select <a class="alert-link" href="tiki-admin_modules.php">Admin &gt; Modules</a> to add this (or other) modules.{/tr}
+	{tr}Use the 'Quick Edit' module to easily create or edit wiki pages.{/tr} <a class="btn btn-default" href="tiki-admin_modules.php">{icon name="module"} {tr}Modules{/tr}</a>
 {/remarksbox}
 
 <form class="form-horizontal" action="tiki-admin.php?page=wiki" method="post">
@@ -35,19 +35,13 @@
 	<div class="heading input_submit_container text-right">
 	</div>
 
-	<div class="row">
-		<div class="form-group col-lg-12 clearfix">
-			<a role="link" class="btn btn-link" href="tiki-listpages.php" title="{tr}List{/tr}">
-				{icon name="admin_wiki"} {tr}List pages{/tr}
-			</a>
-			{if $prefs.feature_wiki_structure eq "y" and $tiki_p_view eq "y"}
-				<a role="link" class="btn btn-link" href="tiki-admin_structures.php" title="{tr}List{/tr}">
-					{icon name="structure"} {tr}List structures{/tr}
-				</a>
-			{/if}
-			<div class="pull-right">
-				<input type="submit" class="btn btn-primary btn-sm" name="wikisetprefs" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
+	<div class="t_navbar margin-bottom-md clearfix">
+		{button _icon_name='admin_wiki' _text="{tr}Pages{/tr}" _class='btn btn-link' _script='tiki-listpages.php' _title="{tr}List wiki pages{/tr}"}
+		{if $prefs.feature_wiki_structure eq "y" and $tiki_p_view eq "y"}
+			{button _icon_name='structure' _text="{tr}Structures{/tr}" _class='btn btn-link' _script='tiki-admin_structures.php' _title="{tr}List structures{/tr}"}
+		{/if}
+		<div class="pull-right">
+			<input type="submit" class="btn btn-primary btn-sm" name="wikisetprefs" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
 		</div>
 	</div>
 
@@ -123,6 +117,9 @@
 				<legend>{tr}Edit{/tr}</legend>
 
 				{preference name=feature_wiki_templates}
+				<div class="adminoptionboxchild" id="feature_wiki_templates_childcontainer">
+					{preference name=lock_content_templates}
+				</div>
 				{preference name=feature_warn_on_edit}
 				{preference name=warn_on_edit_time}
 				{preference name=feature_wiki_undo}
@@ -151,30 +148,6 @@
 
 			{preference name=feature_sandbox}
 			{preference name=feature_references}
-			{preference name=feature_wiki_comments}
-			<div class="adminoptionboxchild" id="feature_wiki_comments_childcontainer">
-				{preference name=wiki_comments_displayed_default}
-				{preference name=wiki_comments_form_displayed_default}
-				{preference name=wiki_comments_per_page}
-				{preference name=wiki_comments_default_ordering}
-				{preference name=wiki_comments_allow_per_page}
-				{preference name=wiki_watch_comments}
-			</div>
-
-			{preference name=feature_wiki_attachments}
-			<div class="adminoptionboxchild" id="feature_wiki_attachments_childcontainer">
-					{preference name=w_displayed_default}
-					{preference name=w_use_db}
-					<div class="adminoptionboxchild">
-						{preference name=w_use_dir}
-					</div>
-					{if !empty($prefs.w_use_dir)}
-						{tr}If you change storage, it is better to move all the files for easy backup...{/tr}
-						{button href="tiki-admin.php?page=wikiatt&all2db=1" _text="{tr}Change all to db{/tr}"}
-						{button href="tiki-admin.php?page=wikiatt&all2file=1" _text="{tr}Change all to file{/tr}"}
-					{/if}
-			</div>
-
 			{preference name=wiki_pagination}
 			<div class="adminoptionboxchild" id="wiki_pagination_childcontainer">
 				{preference name=wiki_page_separator}
@@ -222,21 +195,6 @@
 				{else}
 					{button href="dump/new.tar" _text="{tr}Download last dump{/tr}"}
 				{/if}
-			</div>
-
-			{preference name=feature_wiki_pictures}
-			<div class="adminoptionboxchild" id="feature_wiki_pictures_childcontainer">
-				<div class="col-sm-offset-4 col-sm-8">
-					{permission_link mode=button permType=wiki textFilter=picture showDisabled=y}
-				</div>
-				{preference name=feature_filegals_manager}
-				<div class="col-sm-offset-4 col-sm-8">
-					{button href="tiki-admin.php?page=wiki&amp;rmvunusedpic=1" _text="{tr}Remove unused pictures{/tr}"}
-					{button href="tiki-admin.php?page=wiki&amp;moveWikiUp=1" _text="{tr}Move images from wiki_up to the home file gallery{/tr}"}
-					<span class="help-block">
-						{tr}If you use these buttons please make sure to have a backup of the database and the directory wiki_up{/tr}
-					</span>
-				</div>
 			</div>
 
 			{preference name=feature_wiki_export}
@@ -306,21 +264,6 @@
 			{preference name=feature_wiki_pagealias}
 			{preference name=wiki_pagealias_tokens}
 			{preference name=feature_wiki_rankings}
-
-			{preference name=feature_wiki_structure}
-			<div class="adminoptionboxchild" id="feature_wiki_structure_childcontainer">
-				{preference name=feature_wiki_open_as_structure}
-				{preference name=feature_wiki_make_structure}
-				{preference name=feature_wiki_categorize_structure}
-				{preference name=feature_create_webhelp}
-				{preference name=feature_wiki_structure_drilldownmenu}
-				{preference name=page_n_times_in_a_structure}
-				{preference name=feature_listorphanStructure}
-				{preference name=feature_wiki_no_inherit_perms_structure}
-				{preference name=wiki_structure_bar_position}
-				{preference name=wikiplugin_toc}
-			</div>
-
 			{preference name=feature_wiki_import_html}
 			{preference name=feature_wiki_import_page}
 			{preference name=feature_wiki_use_date}
@@ -332,22 +275,83 @@
 			<div class="adminoptionboxchild" id="feature_wiki_userpage_childcontainer">
 				{preference name=feature_wiki_userpage_prefix}
 			</div>
-
 			{preference name=feature_wiki_usrlock}
 			<div class="adminoptionboxchild col-sm-8 col-sm-offset-4" id="feature_wiki_usrlock_childcontainer">
 				{permission_link mode=button permType=wiki textFilter=lock showDisabled=y}
 			</div>
-
 			{preference name=wiki_creator_admin}
 			{preference name=feature_wiki_print}
 			<div class="adminoptionboxchild" id="feature_wiki_print_childcontainer">
 				{preference name=feature_wiki_multiprint}
 			</div>
 			{preference name=feature_print_indexed}
-
 			{preference name=feature_wiki_mindmap}
-			{preference name=feature_morcego}
 
+			<div class="adminoptionbox clearfix">
+				<fieldset>
+					<legend>{tr}Attachments{/tr}</legend>
+					{preference name=feature_wiki_attachments}
+					<div class="adminoptionboxchild" id="feature_wiki_attachments_childcontainer">
+						{preference name=w_displayed_default}
+						{preference name=w_use_db}
+						<div class="adminoptionboxchild">
+							{preference name=w_use_dir}
+						</div>
+						{if !empty($prefs.w_use_dir)}
+							{tr}If you change storage, it is better to move all the files for easy backup...{/tr}
+							{button href="tiki-admin.php?page=wikiatt&all2db=1" _text="{tr}Change all to db{/tr}"}
+							{button href="tiki-admin.php?page=wikiatt&all2file=1" _text="{tr}Change all to file{/tr}"}
+						{/if}
+					</div>
+					{preference name=feature_wiki_pictures}
+					<div class="adminoptionboxchild" id="feature_wiki_pictures_childcontainer">
+						<div class="col-sm-offset-4 col-sm-8">
+							{permission_link mode=button permType=wiki textFilter=picture showDisabled=y}
+						</div>
+						{preference name=feature_filegals_manager}
+						<div class="col-sm-offset-4 col-sm-8">
+							{button href="tiki-admin.php?page=wiki&amp;rmvunusedpic=1" _text="{tr}Remove unused pictures{/tr}"}
+							{button href="tiki-admin.php?page=wiki&amp;moveWikiUp=1" _text="{tr}Move images from wiki_up to the home file gallery{/tr}"}
+							<span class="help-block">
+								{tr}If you use these buttons please make sure to have a backup of the database and the directory wiki_up{/tr}
+							</span>
+						</div>
+					</div>
+				</fieldset>
+			</div>
+			<div class="adminoptionbox clearfix">
+				<fieldset>
+					<legend>{tr}Comments{/tr}</legend>
+					{preference name=feature_wiki_comments}
+					<div class="adminoptionboxchild" id="feature_wiki_comments_childcontainer">
+						{preference name=wiki_comments_displayed_default}
+						{preference name=wiki_comments_form_displayed_default}
+						{preference name=wiki_comments_per_page}
+						{preference name=wiki_comments_default_ordering}
+						{preference name=wiki_comments_allow_per_page}
+						{preference name=wiki_watch_comments}
+					</div>
+				</fieldset>
+			</div>
+			<div class="adminoptionbox clearfix">
+				<fieldset>
+					<legend>{tr}Structures{/tr}{help url="Structures"}</legend>
+					{preference name=feature_wiki_structure}
+					<div class="adminoptionboxchild" id="feature_wiki_structure_childcontainer">
+						{preference name=feature_wiki_open_as_structure}
+						{preference name=feature_wiki_make_structure}
+						{preference name=feature_wiki_categorize_structure}
+						{preference name=lock_wiki_structures}
+						{preference name=feature_create_webhelp}
+						{preference name=feature_wiki_structure_drilldownmenu}
+						{preference name=page_n_times_in_a_structure}
+						{preference name=feature_listorphanStructure}
+						{preference name=feature_wiki_no_inherit_perms_structure}
+						{preference name=wiki_structure_bar_position}
+						{preference name=wikiplugin_toc}
+					</div>
+				</fieldset>
+			</div>
 			<div class="adminoptionbox clearfix">
 				<fieldset>
 					<legend>{tr}Wiki watch{/tr}{help url="Watch"}</legend>
@@ -452,55 +456,13 @@
 			</div>
 		{/tab}
 
-		{if $prefs.feature_morcego eq 'y'}
-			{tab name="{tr}Wiki 3D Browser Configuration{/tr}"}
-				<h2>{tr}Wiki 3D Browser Configuration{/tr}</h2>
-				<fieldset>
-					<legend>{tr}General{/tr}</legend>
-					{preference name=wiki_feature_3d}
-					{preference name=wiki_3d_autoload}
-					{preference name=wiki_3d_width}
-					{preference name=wiki_3d_height}
-				</fieldset>
-				<fieldset>
-					<legend>{tr}Graph appearance{/tr}</legend>
-					{preference name=wiki_3d_navigation_depth}
-					{preference name=wiki_3d_node_size}
-					{preference name=wiki_3d_text_size}
-					{preference name=wiki_3d_spring_size}
-					{preference name=wiki_3d_existing_page_color}
-					{preference name=wiki_3d_missing_page_color}
-				</fieldset>
-				<fieldset>
-					<legend>{tr}Camera settings{/tr}</legend>
-					{preference name=wiki_3d_adjust_camera}
-					{preference name=wiki_3d_camera_distance}
-					{preference name=wiki_3d_fov}
-					{preference name=wiki_3d_feed_animation_interval}
-				</fieldset>
-				<fieldset>
-					<legend>{tr}Physics engine{/tr}</legend>
-					{preference name=wiki_3d_friction_constant}
-					{preference name=wiki_3d_elastic_constant}
-					{preference name=wiki_3d_eletrostatic_constant}
-					{preference name=wiki_3d_node_mass}
-					{preference name=wiki_3d_node_charge}
-				</fieldset>
-			{/tab}
-		{/if}
-
 		{tab name="{tr}Tools{/tr}"}
 			<h2>{tr}Tools{/tr}</h2>
 			<a href="tiki-search_replace.php">{tr}Mass search and replace{/tr}</a><br>
 			<a href="tiki-report_direct_object_perms.php">{tr}Report wiki pages with direct object permissions{/tr}</a><br>
 		{/tab}
 	{/tabset}
-
-	<div class="row">
-		<div class="form-group col-lg-12 clearfix">
-			<div class="text-center">
-				<input type="submit" class="btn btn-primary btn-sm" name="wikisetprefs" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
-		</div>
+	<div class="t_navbar margin-bottom-md text-center">
+		<input type="submit" class="btn btn-primary btn-sm tips" name="wikisetprefs" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
 	</div>
 </form>

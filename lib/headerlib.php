@@ -117,9 +117,9 @@ class HeaderLib
 	public $forceJsRankLate;
 
 
-	public $jquery_version = '1.11.2';
-	public $jqueryui_version = '1.11.3';
-	public $jquerymobile_version = '1.3.2';
+	public $jquery_version = '2.2.0';
+	public $jqueryui_version = '1.11.4';
+	public $jquerymigrate_version = '1.3.0';
 
 
 	function __construct()
@@ -1028,8 +1028,6 @@ class HeaderLib
 				}
 			}
 		}
-		$files = $this->process_themegen_files($files);
-
 		return $files;
 	}
 
@@ -1077,10 +1075,15 @@ class HeaderLib
 			$parser = new Less_Parser($options);
 
 			try {
+
+				$nesting = count(array_filter(explode(DIRECTORY_SEPARATOR, $tikiroot)));
+				$depth = count(array_filter(explode(DIRECTORY_SEPARATOR, $target)));
+				$offset = $nesting ? str_repeat('../', $depth) : '';
+
 				// less.php does all the work of course
-				$parser->parseFile($theme_less_file, '../../' . $tikiroot);	// appears to need the relative path from temp/public where the CSS will be cached
+				$parser->parseFile($theme_less_file, $offset . $tikiroot);	// appears to need the relative path from temp/public where the CSS will be cached
 				if ($themeoption_less_file) {
-					$parser->parseFile($themeoption_less_file, '../../' . $tikiroot);
+					$parser->parseFile($themeoption_less_file, $offset . $tikiroot);
 				}
 				$parser->parse($custom_less);
 				$css = $parser->getCss();
@@ -1095,7 +1098,7 @@ class HeaderLib
 					unlink($css_file);
 				}
 
-				TikiLib::lib('errorreport')->report(tra('Custom LESS compilation failed with error:') . $e->getMessage());
+				TikiLib::lib('errorreport')->report(tra('Custom Less compilation failed with error:') . $e->getMessage());
 				$css_files = array(
 					$themeLib->get_theme_path($themename, '', $themename . '.css'),
 					$themeLib->get_theme_path($themename, $themeoptionname, ($themeoptionname ?: $themename) . '.css'),
@@ -1106,49 +1109,6 @@ class HeaderLib
 		}
 
 		return $css_files;
-	}
-
-
-
-	private function process_themegen_files($files)
-	{
-		global $prefs, $tikidomainslash, $in_installer;
-
-		if (empty($in_installer) && isset($prefs['themegenerator_feature']) && $prefs['themegenerator_feature'] === 'y' && !empty($prefs['themegenerator_theme'])) {
-			$themegenlib = TikiLib::lib('themegenerator');
-
-			$data = $themegenlib->getCurrentTheme()->getData();
-			$themename = $themegenlib->getCurrentTheme()->getName();
-			if (count($data['files'])) {
-				foreach ($data['files'] as $file => $swaps) {
-					$hash = md5($file);
-					$target = 'temp/public/'.$tikidomainslash;
-					$ofile = $target . "themegen_{$themename}_$hash.css";
-
-					$i = array_search($file, $files['screen']);
-					if ($i !== false) {
-						if (!file_exists($ofile) || !empty($_SESSION['tg_preview'])) {
-							$css = $themegenlib->processCSSFile($file, $swaps);
-							file_put_contents($ofile, $css);
-							chmod($ofile, 0644);
-						}
-						$files['screen'][$i] = $ofile;
-					}
-				}
-			}
-		}
-		return $files;
-	}
-
-	function remove_themegen_files( $all = true )
-	{
-		global $tikidomainslash;
-		$target = 'temp/public/'.$tikidomainslash;
-		if ( $all ) {
-			foreach ( glob($target . 'themegen_*') as $file ) {
-				unlink($file);
-			}
-		}
 	}
 
 	function add_map()

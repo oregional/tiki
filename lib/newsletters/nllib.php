@@ -3,7 +3,7 @@
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
-// $Id$
+// $Id$ 
 
 //this script may only be included - so its better to die if called directly.
 if (strpos($_SERVER["SCRIPT_NAME"], basename(__FILE__)) !== false) {
@@ -575,6 +575,8 @@ class NlLib extends TikiLib
 
 		$emailBody = new \Zend\Mime\Message();
 		$emailBody->setParts(array($htmlPart, $textPart));
+
+		$zmail->setBody($emailBody);
 		//										//
 		//////////////////////////////////////////////////////////////////////////////////
 		$zmail->addTo($email);
@@ -666,6 +668,8 @@ class NlLib extends TikiLib
 
 			$emailBody = new \Zend\Mime\Message();
 			$emailBody->setParts(array($htmlPart, $textPart));
+
+			$zmail->setBody($emailBody);
 			//										//
 			//////////////////////////////////////////////////////////////////////////////////
 			$zmail->addTo($email);
@@ -1295,6 +1299,7 @@ class NlLib extends TikiLib
 			$info['files'] = $this->get_edition_files($editionId);
 
 			include_once 'lib/mail/maillib.php';
+			/* @var Zend\Mail\Message $zmail */
 			$zmail = tiki_get_admin_mail();
 			$emailMimeParts = array();
 
@@ -1348,7 +1353,12 @@ class NlLib extends TikiLib
 		$emailBody = new \Zend\Mime\Message();
 		$emailBody->setParts($emailMimeParts);
 
-		$zmail->clearRecipients();
+		$zmail->setBody($emailBody);
+
+		$zmail->getHeaders()->removeHeader('to');
+		$zmail->getHeaders()->removeHeader('cc');
+		$zmail->getHeaders()->removeHeader('bcc');
+
 		$zmail->addTo($target['email']);
 
 		return $zmail;
@@ -1433,9 +1443,10 @@ class NlLib extends TikiLib
 				if (@ob_get_level() == 0) {
 					@ob_start();
 				}
+				$emailsent = count($sent) + 1;
 				// Browsers needs a certain amount of data, for each flush, to display something
 				print str_repeat(' ', 4096) . "\n";
-				print '<div class="confirmation">' . tra("Sending to") . " '<b>$email</b>': <font color=";
+				print '<div class="confirmation">' . " Total emails sent: " . $emailsent . tra(" after sending to") . " '<b>$email</b>': <font color=";
 			}
 
 			try {
@@ -1503,6 +1514,37 @@ class NlLib extends TikiLib
 			@fclose($logFileHandle);
 		}
 	}
+	
+	// code originally in tiki-send_newsletters.php but made into a lib function so it could 
+	// be reused for the resume option when newsletter throttling is used
+	public function closesendframe($sent, $errors, $logFileName )
+	{
+		$smarty = TikiLib::lib('smarty');
+		$nb_sent = count($sent);
+		$nb_errors = count($errors);
+
+		$msg = '<h4>' . sprintf(tra('Newsletter successfully sent to %s users.'), $nb_sent) . '</h4>';
+		if ( $nb_errors > 0 )
+			$msg .= "\n" . '<font color="red">' . '(' . sprintf(tra('Number of errors: %s.'), $nb_errors) . ')' . '</font><br />';
+
+		// If logfile exists and if it is reachable from the web browser, add a download link
+		if ( !empty($logFileName) && $logFileName[0] != '/' && $logFileName[0] != '.' )
+			$smarty->assign('downloadLink', $logFileName);
+
+		echo str_replace("'", "\\'", $msg);
+		echo $smarty->fetch('send_newsletter_footer.tpl');
+
+		$smarty->assign('sent', $nb_sent);
+		$smarty->assign('emited', 'y');
+		if (count($errors) > 0) {
+			$smarty->assign_by_ref('errors', $errors);
+		}
+		unset($_SESSION["sendingUniqIds"][ $_REQUEST["sendingUniqId"] ]);
+		
+		return;
+		
+	}
+	
 	public function generateTxtVersion($txt, $parsed=null)
 	{
 		global $tikilib;

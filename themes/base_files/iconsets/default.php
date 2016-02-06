@@ -149,6 +149,9 @@ function iconset_default()
 			'admin_socialnetworks' => array(
 				'id' => 'thumbs-up',
 			),
+			'admin_stats' => array(
+				'id' => 'bar-chart',
+			),
 			'admin_textarea' => array(
 				'id' => 'edit',
 			),
@@ -322,6 +325,9 @@ function iconset_default()
 			'help' => array(
 				'id' => 'question-circle',
 			),
+			'history' => array(
+				'id' => 'clock-o',
+			),
 			//history in defaults
 			'horizontal-rule' => array(
 				'id' => 'minus',
@@ -374,6 +380,9 @@ function iconset_default()
 			//map in defaults
 			'menu' => array(
 				'id' => 'bars',
+			),
+			'menu-extra' => array(
+				'id' => 'chevron-down',
 			),
 			'menuitem' => array(
 				'id' => 'angle-right',
@@ -522,9 +531,6 @@ function iconset_default()
 				'id' => 'file-text-o',
 			),
 			//th-list in defaults
-			'themegenerator' => array(
-				'id' => 'paint-brush',
-			),
 			'three-d' => array(
 				'id' => 'cube',
 			),
@@ -557,6 +563,9 @@ function iconset_default()
 				'id' => 'sort-asc',
 			),
 			'video' => array(
+				'id' => 'file-video-o',
+			),
+			'video_file' => array(
 				'id' => 'file-video-o',
 			),
 			'vimeo' => array(

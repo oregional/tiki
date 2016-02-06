@@ -1,3 +1,4 @@
+{* $Id$ *}
 {remarksbox type="tip" title="{tr}Tip{/tr}"}
 	{tr}Text area (that apply throughout many features){/tr}
 {/remarksbox}
@@ -100,6 +101,7 @@
 				{preference name=feature_use_quoteplugin}
 				{preference name=feature_use_three_colon_centertag}
 				{preference name=feature_simplebox_delim}
+				{preference name=mail_template_custom_text}
 				{preference name=wiki_plugindiv_approvable}
 			</fieldset>
 
@@ -139,7 +141,7 @@
 						{tr}None{/tr}
 					{else}
 						<ul>
-						{foreach from=$disabled item=plugin}
+						{foreach from="{$disabled}" item=plugin}
 							<li>{$plugin|lower|escape}</li>
 						{/foreach}
 						</ul>

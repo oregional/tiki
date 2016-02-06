@@ -7,6 +7,9 @@
 
 class Services_Tracker_Controller
 {
+	/**
+	 * @var Services_Tracker_Utilities
+	 */
 	private $utilities;
 
 	function setUp()
@@ -773,7 +776,7 @@ class Services_Tracker_Controller
 	}
 
 	/**
-	 * @param $input
+	 * @param $input JitFilter
 	 * - "trackerId" required
 	 * - "itemId" required
 	 * - "editable" optional. array of field names. e.g. ['title', 'description', 'user']. If not set, all fields
@@ -1475,7 +1478,7 @@ class Services_Tracker_Controller
 				}
 
 				if (0 === count($fields)) {
-					throw new Services_Exception(tr('No valid field selected for export'), 400);
+					$fields = $definition->getFields();
 				}
 
 				$showItemId = $input->showItemId->int();

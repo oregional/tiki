@@ -14,7 +14,7 @@ $theme_option_active = $prefs['theme_option'];
 
 // User theme previously set up in lib/setup/user_prefs.php
 
-//consider Group Theme
+//consider Group theme
 if ($prefs['useGroupTheme'] == 'y') {
 	$userlib = TikiLib::lib('user');
 	$users_group_groupTheme = $userlib->get_user_group_theme();
@@ -35,7 +35,6 @@ if ($prefs['useGroupTheme'] == 'y') {
 if (!empty($prefs['theme_admin']) && ($section === 'admin' || empty($section))) {		// use admin theme if set
 	$theme_active = $prefs['theme_admin'];
 	$theme_option_active = $prefs['theme_option_admin'];								// and its option
-	$prefs['themegenerator_theme'] = '';												// and disable theme generator
 }
 	
 //consider CSS Editor (tiki-edit_css.php) 
@@ -119,14 +118,20 @@ if(!empty($theme_option_active)) {
 		$headerlib->add_cssfile($main_theme_custom_css, 53);
 	}
 }
-$theme_path = $themelib->get_theme_path($theme_active, $theme_option_active);
-$custom_css = "{$theme_path}css/custom.css";
+
+$custom_css = $themelib->get_theme_path($prefs['theme'], $prefs['theme_option'], 'custom.css');
+if (empty($custom_css)) {
+	$custom_css = $themelib->get_theme_path('', '', 'custom.css');
+}
 if (is_readable($custom_css)) {
 	$headerlib->add_cssfile($custom_css, 53);
 }
 
 //8) produce $iconset to be used for generating icons
 $iconset = TikiLib::lib('iconset')->getIconsetForTheme($theme_active, $theme_option_active);
+// and add js support file
+$headerlib->add_js('jqueryTiki.iconset = ' . json_encode($iconset->getJS()));
+$headerlib->add_jsfile('lib/jquery_tiki/iconsets.js');
 
 //9) set global variable and prefs so that they can be accessed elsewhere
 $prefs['theme'] = $theme_active;

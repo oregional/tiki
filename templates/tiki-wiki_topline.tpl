@@ -101,7 +101,7 @@
 				{capture "pageActions"}
 					{if $js == 'n'}<ul class="cssmenu_horiz"><li>{/if}
 					<a class="btn btn-link" data-toggle="dropdown" data-hover="dropdown" href="#">
-						{icon name="more"}
+						{icon name='menu-extra'}
 					</a>
 					<ul class="dropdown-menu dropdown-menu-right">
 						<li class="dropdown-title">
@@ -175,14 +175,6 @@
 									</li>
 								{/if}
 							{/if}
-						{/if}
-						{if $prefs.feature_morcego eq 'y' && $prefs.wiki_feature_3d eq 'y'}
-							<li>
-								<a href="javascript:wiki3d_open('{$page|escape}',{$prefs.wiki_3d_width}, {$prefs.wiki_3d_height})">
-									{icon name="three-d"} {tr}3d browser{/tr}
-									{assign var="hasPageAction" value="1"}
-								</a>
-							</li>
 						{/if}
 						{if $cached_page eq 'y'}
 							<li>

@@ -245,6 +245,16 @@ class ScoreLib extends TikiLib
 			if ($rule->expiration > 0 && !$this->hasWaitedMinTime($args,$rule, $recipientType, $recipient)) {
 				continue;
 			}
+			//if user is anonymous, store a unique identifier in a cookie and set it as the user.
+			if (empty($args['user'])) {
+				$uniqueVal = getCookie('anonUserScoreId');
+				if (empty($uniqueVal)) {
+					$uniqueVal = getenv('HTTP_CLIENT_IP') . time() . rand();
+					$uniqueVal = md5($uniqueVal);
+					setCookieSection('anonUserScoreId', "anon".$uniqueVal);
+				}
+				$args['user'] = $uniqueVal;
+			}
 			$pbalance = $this->getPointsBalance($recipientType,$recipient);
 			$data = [
 				'triggerObjectType' => $args['type'],
@@ -320,7 +330,7 @@ class ScoreLib extends TikiLib
 		return;
 	}
 
-	function table()
+	function table($tableName, $autoIncrement = true)
 	{
 		return TikiDb::get()->table('tiki_object_scores');
 	}

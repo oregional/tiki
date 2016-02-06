@@ -342,10 +342,6 @@ class Comments extends TikiLib
 				continue;
 			}
 
-			//echo '<pre>';
-			//print_r ($aux);
-			//echo '</pre>';
-
 			if (!isset($aux['From'])) {
 				if (isset($aux['Return-path'])) {
 					$aux['From'] = $aux['Return-path'];
@@ -545,7 +541,7 @@ class Comments extends TikiLib
 			}
 
 			// post
-			$threadid = $this->post_new_comment(
+			$threadId = $this->post_new_comment(
 				'forum:' . $forumId,
 				$parentId,
 				$userName,
@@ -578,14 +574,14 @@ class Comments extends TikiLib
 								} else {
 									$part_name = "Unnamed File";
 								}
-								$this->add_thread_attachment($forum_info, $threadid, $errors, $part_name, $part['type'], strlen($part['body']), 1, '', '', $part['body']);
+								$this->add_thread_attachment($forum_info, $threadId, $errors, $part_name, $part['type'], strlen($part['body']), 1, '', '', $part['body']);
 							} elseif ($part['disposition'] == 'inline') {
 								if (!empty($part['parts'])) {
 									foreach ($part['parts'] as $p) {
-										$this->add_thread_attachment($forum_info, $threadid, $errors, '-', $p['type'], strlen($p['body']), 1, '', '', $p['body']);
+										$this->add_thread_attachment($forum_info, $threadId, $errors, '-', $p['type'], strlen($p['body']), 1, '', '', $p['body']);
 									}
 								} else if (!empty($part['body'])) {
-									$this->add_thread_attachment($forum_info, $threadid, $errors, '-', $part['type'], strlen($part['body']), 1, '', '', $part['body']);
+									$this->add_thread_attachment($forum_info, $threadId, $errors, '-', $part['type'], strlen($part['body']), 1, '', '', $part['body']);
 								}
 							}
 						}
@@ -599,7 +595,7 @@ class Comments extends TikiLib
 				include_once('lib/notifications/notificationemaillib.php');
 				sendForumEmailNotification(
 					'forum_post_thread',
-					$threadid,
+					$info['forum_id'],
 					$info,
 					$title,
 					$body,
@@ -607,7 +603,7 @@ class Comments extends TikiLib
 					$title,
 					$message_id,
 					$in_reply_to,
-					$threadid,
+					$threadId,
 					$parentId
 				);
 			}
@@ -770,9 +766,8 @@ class Comments extends TikiLib
 			$info['user'],
 			$info['title'],
 			$message_id, $info['in_reply_to'],
-			isset($info['parentId'])?$info['parentId']: $threadId,
-			isset($info['parentId'])?$info['parentId']: 0,
-			$threadId
+			$threadId,
+			isset($info['parentId'])?$info['parentId']: 0
 		);
 
 		if ($info['email']) {
@@ -1472,7 +1467,7 @@ class Comments extends TikiLib
 	{
 		global $prefs, $user;
 
-		if ($prefs['count_admin_pvs'] == 'y' || $user != 'admin') {
+		if (StatsLib::is_stats_hit()) {
 			$forums = $this->table('tiki_forums');
 			$forums->update(array('hits' => $forums->increment(1)), array('forumId' => (int) $forumId));
 			$this->forum_prune($forumId);
@@ -1488,9 +1483,13 @@ class Comments extends TikiLib
 	{
 		global $prefs, $user;
 
-		if ($prefs['count_admin_pvs'] == 'y' || $user != 'admin') {
+		if (StatsLib::is_stats_hit()) {
+			require_once('lib/search/refresh-functions.php');
+
 			$comments = $this->table('tiki_comments');
 			$comments->update(array('hits' => $comments->increment(1)), array('threadId' => (int) $threadId));
+
+			refresh_index("forum post", $threadId);
 		}
 		return true;
 	}
@@ -3562,10 +3561,9 @@ class Comments extends TikiLib
 							$params['comments_title'],
 							$message_id,
 							$in_reply_to,
-							isset($params['comments_parentId']) ? $params['comments_parentId'] : $threadId,
+							$threadId,
 							isset($params['comments_parentId']) ? $params['comments_parentId'] : 0,
-							isset($params['contributions'])? $params['contributions'] : '',
-							$threadId
+							isset($params['contributions'])? $params['contributions'] : ''
 						);
 						// Set watch if requested
 						if ($prefs['feature_user_watches'] == 'y') {
@@ -3780,6 +3778,9 @@ class Comments extends TikiLib
 	}
 
     /**
+	 * This function is used to collectively index all of the forum threads that are parents
+	 * of the forum thread being updated.
+	 *
      * @param $type
      * @param $threadId
      * @param null $parentId
@@ -3871,6 +3872,21 @@ class Comments extends TikiLib
 			return true;
 		}
 	}
+
+	/**
+	 * @param $threadId
+	 *
+	 * @return array
+	 */
+	function get_lastPost($threadId)
+	{
+		$query = "select * from tiki_comments where parentId=? order by commentDate desc limit 1";
+		$ret = $this->fetchAll($query, array($threadId));
+
+		if(is_array($ret)) {
+			return $ret[0];
+		}
+	}
 }
 
 /**
@@ -3932,4 +3948,3 @@ function r_compare_lastPost($ar1, $ar2)
 		return $ar1['type'] == 's' ? -1 : 1;
 	}
 }
-

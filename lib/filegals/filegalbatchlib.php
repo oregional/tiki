@@ -39,27 +39,32 @@ class FilegalBatchLib extends FileGalLib
 	 *
 	 * @param array $files
 	 * @param int $galleryId
-	 * @param array $options		[bool subToDesc, bool subdirToSubgal, bool subdirIntegerToSubgalId, bool createSubgals, string fileUser, string fileGroup, string fileMode, string filesPath]
+	 * @param array $options		[bool subToDesc, bool subdirToSubgal, bool createSubgals, string fileUser, string fileGroup, string fileMode]
 	 * @return array				feedback messages
 	 */
 
-	function processBatchUpload($files, $galleryId = null, $options = [
-			'subToDesc' => false,
-			'subdirToSubgal' => false,
-			'subdirIntegerToSubgalId' => false,
-			'createSubgals' => false,
-			'deleteAfter' => null,
-			'fileUser' => '',
-			'fileGroup' => '',
-			'fileMode' => '',
-			'filesPath' => '',
-	]) {
+	function processBatchUpload($files, $galleryId = null, $options = []) {
 		include_once ('lib/mime/mimetypes.php');
 		global $mimetypes, $user, $prefs;
 
 		$userlib = TikiLib::lib('user');
 
 		$feedback = [];
+
+		$options = array_merge(
+			[
+				'subToDesc' => false,
+				'subdirToSubgal' => false,
+				'subdirIntegerToSubgalId' => false,
+				'createSubgals' => false,
+				'deleteAfter' => null,
+				'fileUser' => '',
+				'fileGroup' => '',
+				'fileMode' => '',
+				'filesPath' => '',
+			],
+			$options
+		);
 
 		if ($galleryId === null) {
 			$galleryId = $prefs['fgal_root_id'];
@@ -80,9 +85,16 @@ class FilegalBatchLib extends FileGalLib
 			$metadata = $this->extractMetadataJson($file);
 
 			$path_parts = pathinfo($file);
-			$ext = strtolower($path_parts["extension"]);
 
-			$type = $mimetypes["$ext"];
+			$type = 'application/octet-stream';
+			if ($path_parts['extension']) {
+				$ext = strtolower($path_parts['extension']);
+
+				if (isset($mimetypes["$ext"])) {
+					$type = $mimetypes["$ext"];
+				}
+			}
+
 			$filesize = @filesize($file);
 
 			$creator = $user;
@@ -130,13 +142,13 @@ class FilegalBatchLib extends FileGalLib
 					$foundDir = false;
 
 					// if there is only one subdir and it's a number, check if there's a gallery with that id to use
-					if (count($dirs) !== 1) {
+					if (count($dirs) > 1) {
 
 						$feedback[] = '<span class="text-danger">' .
 								tr('Upload was not successful for "%0"', $path_parts['basename']) .
 								'<br>' . tr('Subgallery number to galleryId error: Too many subdirs (%0)</span>', count($dirs));
 
-					} else if (! ctype_digit($dirs[0])) {
+					} else if (count($dirs) === 1 && ! ctype_digit($dirs[0])) {
 
 						$feedback[] = '<span class="text-danger">' .
 								tr('Upload was not successful for "%0"', $path_parts['basename']) .
@@ -151,6 +163,11 @@ class FilegalBatchLib extends FileGalLib
 						}
 						if ($foundDir) {
 							$destinationGalleryId = (int)$dirs[0];
+
+						} else if (count($dirs) === 0) {	// in root
+							$destinationGalleryId = $galleryId;
+							$foundDir = true;
+
 						} else {
 
 							$feedback[] = '<span class="text-danger">' .

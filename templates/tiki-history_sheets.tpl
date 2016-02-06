@@ -42,7 +42,7 @@
 									<div style="text-align: center;">
 										{button _keepall='y' href="tiki-view_sheets.php" sheetId=$sheetId readdate=$history[$sheetIndexes[$smarty.section.date.index]].stamp parse="y" class="view_button" _text="{tr}View{/tr}" _htmlelement="role_main" _title="{tr}View{/tr}"}
 										{button _keepall='y' href="tiki-view_sheets.php" sheetId=$sheetId readdate=$history[$sheetIndexes[$smarty.section.date.index]].stamp parse="clone" class="clone_button" _text="{tr}Clone{/tr}" _htmlelement="role_main" _title="{tr}Clone{/tr}"}
-										{button _keepall='y' href="tiki-view_sheets.php" sheetId=$sheetId readdate=$history[$sheetIndexes[$smarty.section.date.index]].stamp parse="rollback" class="rollback_button" _text="{tr}Rollback{/tr}" _htmlelement="role_main" _title="{tr}Rollback{/tr}"}
+										{button _keepall='y' href="tiki-view_sheets.php" sheetId=$sheetId readdate=$history[$sheetIndexes[$smarty.section.date.index]].stamp parse="rollback" class="rollback_button" _text="{tr}Roll back{/tr}" _htmlelement="role_main" _title="{tr}Roll back{/tr}"}
 									</div>
 								</td>
 							{/section}
@@ -78,7 +78,7 @@
 							<td style="text-align: center;">
 								<a href="tiki-view_sheets.php?sheetId={$sheetId}&readdate={$history[revision_date].stamp}&parse=y" title="{tr}View Spreadsheet{/tr}">{tr}View{/tr}</a> |
 								<a href="tiki-view_sheets.php?sheetId={$sheetId}&readdate={$history[revision_date].stamp}&parse=clone" title="{tr}Clone Spreadsheet{/tr}">{tr}Clone{/tr}</a> |
-								<a href="tiki-view_sheets.php?sheetId={$sheetId}&readdate={$history[revision_date].stamp}&parse=rollback" title="{tr}Roll Back Spreadsheet{/tr}">{tr}Roll-Back{/tr}</a>
+								<a href="tiki-view_sheets.php?sheetId={$sheetId}&readdate={$history[revision_date].stamp}&parse=rollback" title="{tr}Roll back spreadsheet{/tr}">{tr}Roll back{/tr}</a>
 							</td>
 							<td style="vertical-align: middle; text-align: center;">
 								<input type="radio" name="idx_0" class="compareSheet1" value="{$smarty.section.revision_date.index}" onclick="$.sheet.compareSheetClick($('input.compareSheet1'), $('input.compareSheet2'));">

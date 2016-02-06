@@ -723,7 +723,7 @@ class ToolbarInline extends Toolbar
 			$syntax = '--text--';
 			break;
 		case 'nonparsed':
-			$label = tra('Non-parsed (Wiki syntax does not apply)');
+			$label = tra('Non-parsed (wiki syntax does not apply)');
 			$icon = tra('img/icons/noparse.png');
 			$iconname = 'ban';
 			$wysiwyg = null;
@@ -1402,7 +1402,7 @@ class ToolbarFullscreen extends Toolbar
 {
 	function __construct() // {{{
 	{
-		$this->setLabel(tra('Full Screen Edit'))
+		$this->setLabel(tra('Full-screen edit'))
 			->setIconName('fullscreen')
 			->setWysiwygToken('Maximize')
 			->setType('Fullscreen');
@@ -1476,7 +1476,7 @@ class ToolbarHelptool extends Toolbar
 		// multiple ckeditors share the same toolbar commands, so area_id (editor.name) must be added when clicked
 		$params['areaId'] = '';	// this must be last param
 
-		$this->setLabel(tra('Wysiwyg Help'));
+		$this->setLabel(tra('WYSIWYG Help'));
 		$this->setIconName('help');
 		$name = 'tikihelp';
 
@@ -1876,42 +1876,42 @@ class ToolbarSheet extends Toolbar
 					});';
 				break;
 			case 'addrow':
-				$label = tra('Add Row After Selection Or To End If No Selection');
+				$label = tra('Add row after selection or to the end if no selection');
 				$icon = tra('img/icons/sheet_row_add.png');
 				$syntax = 'sheetInstance.controlFactory.addRow();';	// add row after end to workaround bug in jquery.sheet.js 1.0.2
 				break;														// TODO fix properly for 5.1
 			case 'addrowmulti':
-				$label = tra('Add Multiple Rows After Selection Or To End If No Selection');
+				$label = tra('Add multiple rows after selection or to the end if no selection');
 				$icon = tra('img/icons/sheet_row_add_multi.png');
 				$syntax = 'sheetInstance.controlFactory.addRowMulti();';
 				break;
 			case 'addrowbefore':
-				$label = tra('Add Row Before Selection Or To End If No Selection');
+				$label = tra('Add row before selection or to end if no selection');
 				$icon = tra('img/icons/sheet_row_add.png');
 				$syntax = 'sheetInstance.controlFactory.addRow(null, true);';	// add row after end to workaround bug in jquery.sheet.js 1.0.2
 				break;
 			case 'deleterow':
-				$label = tra('Delete Selected Row');
+				$label = tra('Delete selected row');
 				$icon = tra('img/icons/sheet_row_delete.png');
 				$syntax = 'sheetInstance.deleteRow();';
 				break;
 			case 'addcolumn':
-				$label = tra('Add Column After Selection Or To End If No Selection');
+				$label = tra('Add column after selection or to the end if no selection');
 				$icon = tra('img/icons/sheet_col_add.png');
 				$syntax = 'sheetInstance.controlFactory.addColumn();';	// add col before current or at end if none selected
 				break;
 			case 'deletecolumn':
-				$label = tra('Delete Selected Column');
+				$label = tra('Delete selected column');
 				$icon = tra('img/icons/sheet_col_delete.png');
 				$syntax = 'sheetInstance.deleteColumn();';
 				break;
 			case 'addcolumnmulti':
-				$label = tra('Add Multiple Columns After Selection Or To End If No Selection');
+				$label = tra('Add multiple columns after selection or to the end if no selection');
 				$icon = tra('img/icons/sheet_col_add_multi.png');
 				$syntax = 'sheetInstance.controlFactory.addColumnMulti();';
 				break;
 			case 'addcolumnbefore':
-				$label = tra('Add Column Before Selection Or To End If No Selection');
+				$label = tra('Add column before selection or to the end if no selection');
 				$icon = tra('img/icons/sheet_col_add.png');
 				$syntax = 'sheetInstance.controlFactory.addColumn(null, true);';	// add col before current or at end if none selected
 				break;
@@ -1926,12 +1926,12 @@ class ToolbarSheet extends Toolbar
 				$syntax = 'sheetInstance.cellFind();';
 				break;
 			case 'sheetrefresh':
-				$label = tra('Refresh Calculations');
+				$label = tra('Refresh calculations');
 				$iconname = 'refresh';
 				$syntax = 'sheetInstance.calc();';
 				break;
 			case 'sheetclose':
-				$label = tra('Finish Editing');
+				$label = tra('Finish editing');
 				$iconname = 'delete';
 				$syntax = '$.sheet.manageState(sheetInstance.obj.parent(), true);';	// temporary workaround TODO properly
 				break;

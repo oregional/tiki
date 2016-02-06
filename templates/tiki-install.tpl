@@ -553,13 +553,26 @@
 								<legend>{tr}General{/tr} <a href="https://doc.tiki.org/general+admin" target="_blank" title="{tr}Help{/tr}">{icon name="help"}</a></legend>
 								<div style="padding:5px; clear:both">
 									<label for="browsertitle">{tr}Browser title:{/tr}</label>
-									<div style="margin-left:1em"><input class="form-control" type="text" size="40" name="browsertitle" id="browsertitle" onclick="if (this.value=='{tr}My Tiki{/tr}') this.value='';" onfocus="origval=this.value;" onblur="if (this.value=='') this.value=origval;" value="{if $prefs.browsertitle eq ''}{tr}My Tiki{/tr}{else}{$prefs.browsertitle|escape}{/if}">
+									<div style="margin-left:1em"><input class="form-control" type="text" size="40" name="browsertitle" id="browsertitle" onclick="if (this.value=="{tr}My Tiki{/tr}") this.value='';" onfocus="origval=this.value;" onblur="if (this.value=='') this.value=origval;" value="{if $prefs.browsertitle eq ''}{tr}My Tiki{/tr}{else}{$prefs.browsertitle|escape}{/if}">
 										<br><em>{tr}This will appear in the browser title bar.{/tr}</em>
 									</div>
 								</div>
 								<div style="padding:5px; clear:both"><label for="sender_email">{tr}Sender email:{/tr}</label>
 									<div style="margin-left:1em"><input type="text" class="form-control" size="40" name="sender_email" id="sender_email" value="{$prefs.sender_email|escape}">
 										<br><em>{tr}Email sent by your site will use this address.{/tr}</em>
+									</div>
+								</div>
+								<div style="padding:5px; clear:both">
+									<div style="padding:5px; clear:both">
+										<label for="network_proxy">{tr}Network Proxy?{/tr}</label> <a href="#" onclick="$('#use_proxy_childcontainer').toggle();return false;">{tr}Toggle section display{/tr}</a>
+										<div id="use_proxy_childcontainer"{if $prefs.use_proxy neq 'y'} style="display:none;"{/if}>
+											<div style="margin-left:1em"><label for="use_proxy">{tr}Use proxy{/tr}</label> <input type="checkbox" name="use_proxy" id="use_proxy"{if $prefs.use_proxy eq 'y'} checked="checked"{/if}><a href="https://doc.tiki.org/General+Settings" target="_blank" title="{tr}Help{/tr}">{icon name="help"}</a></div>
+											<div style="margin-left:1em"><label for="proxy_host">{tr}Proxy host name{/tr}</label><input type="text" class="form-control" size="40" name="proxy_host" id="proxy_host" value="{$prefs.proxy_host|escape}"></div>
+											<div style="margin-left:1em"><label for="proxy_port">{tr}Port{/tr}</label><input type="text" class="form-control" size="40" name="proxy_port" id="proxy_port" value="{$prefs.proxy_port|escape}"></div>
+											<div style="margin-left:1em"><label for="proxy_user">{tr}Proxy username{/tr}</label><input type="text" class="form-control" size="40" name="proxy_user" id="proxy_user" value="{$prefs.proxy_user|escape}"></div>
+											<div style="margin-left:1em"><label for="proxy_pass">{tr}Proxy password{/tr}</label><input type="text" class="form-control" size="40" name="proxy_pass" id="proxy_pass" value="{$prefs.proxy_pass|escape}"></div>
+											</div>
+										</div>
 									</div>
 								</div>
 							</fieldset>
@@ -571,15 +584,15 @@
 									</a>
 								</legend>
 								{remarksbox type=info title="{tr}Tip{/tr}" close="n"}
-									{tr}It is recommended to choose the "Require secure (https) login" option for better security. A security certificate and dedicated IP address are required to implement a secure login.{/tr}
+									{tr}It is recommended to choose the "Require secure (HTTPS) login" option for better security. A security certificate and dedicated IP address are required to implement a secure login.{/tr}
 								{/remarksbox}
 								<div style="padding:5px; clear:both"><label for="https_login">{tr}HTTPS login:{/tr}</label>
 									<select class="form-control" name="https_login" id="https_login" onchange="hidedisabled('httpsoptions',this.value);">
 										<option value="disabled"{if $prefs.https_login eq 'disabled'} selected="selected"{/if}>{tr}Disabled{/tr}</option>
-										<option value="allowed"{if $prefs.https_login eq 'allowed'} selected="selected"{/if}>{tr}Allow secure (https) login{/tr}</option>
-										<option value="encouraged"{if $prefs.https_login eq 'encouraged' or ($prefs.https_login eq '' and $detected_https eq 'on' )} selected="selected"{/if}>{tr}Encourage secure (https) login{/tr}</option>
+										<option value="allowed"{if $prefs.https_login eq 'allowed'} selected="selected"{/if}>{tr}Allow secure (HTTPS) login{/tr}</option>
+										<option value="encouraged"{if $prefs.https_login eq 'encouraged' or ($prefs.https_login eq '' and $detected_https eq 'on' )} selected="selected"{/if}>{tr}Encourage secure (HTTPS) login{/tr}</option>
 										<option value="force_nocheck"{if $prefs.https_login eq 'force_nocheck'} selected="selected"{/if}>{tr}Consider we are always in HTTPS, but do not check{/tr}</option>
-										<option value="required"{if $prefs.https_login eq 'required'} selected="selected"{/if}>{tr}Require secure (https) login{/tr}</option>
+										<option value="required"{if $prefs.https_login eq 'required'} selected="selected"{/if}>{tr}Require secure (HTTPS) login{/tr}</option>
 									</select>
 								</div>
 								<div id="httpsoptions" style="display:{if $prefs.https_login eq 'disabled' or ( $prefs.https_login eq '' and $detected_https eq '')}none{else}block{/if};">
@@ -745,7 +758,7 @@
 						{if $double_encode_fix_attempted eq 'y'}
 							<p>{tr}You can now access the site normally. Report back any issues that you might find (if any) to the Tiki forums or bug tracker{/tr}</p>
 						{elseif not isset($legacy_collation)}
-							<form method="post" action="#" onsubmit="return confirm('{tr}Are you sure you want to attempt to fix the encoding of your entire database?{/tr}');" style="padding-top: 100px;">
+							<form method="post" action="#" onsubmit="return confirm("{tr}Are you sure you want to attempt to fix the encoding of your entire database?{/tr}");" style="padding-top: 100px;">
 								<fieldset>
 									<legend>{tr}Upgrading and running into encoding issues?{/tr}</legend>
 									<p>{tr}We can try to fix it, but <strong>make sure you have backups, and can restore them</strong>.{/tr}</p>

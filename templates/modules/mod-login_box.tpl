@@ -48,7 +48,8 @@ if (jqueryTiki.no_cookie) {
 					<fieldset>
 						<legend>{tr}Return to Main User{/tr}</legend>
 						<input type="hidden" name="su" value="revert" />
-						<input type="hidden" name="username" value="auto" />
+						<input type="hidden" name="
+						e" value="auto" />
 						<div class="text-center"><button type="submit" class="btn btn-primary" name="actsu">{tr}Switch{/tr}</button></div>
 					</fieldset>
 				</form>
@@ -57,10 +58,10 @@ if (jqueryTiki.no_cookie) {
 					<fieldset>
 						<legend>{tr}Switch User{/tr}</legend>
 						<div class="form-group">
-							<label for="login-switchuser_{$module_logo_instance}">{tr}Username:{/tr}</label>
+							<label for="login-switchuser_{$module_logo_instance}">{tr}Username{/tr} {if $prefs.login_allow_email eq 'y'} {tr}or e-mail address{/tr}{/if}:</label>
 							<input type="hidden" name="su" value="1" class="form-control" />
 							{if $prefs.feature_help eq 'y'}
-								{help url="Switch+User" desc="{tr}Help{/tr}" desc="{tr}Switch User:{/tr}{tr}Enter user name and click 'Switch'.<br>Useful for testing permissions.{/tr}"}
+								{help url="Switch+User" desc="{tr}Help{/tr}" desc="{tr}Switch User:{/tr}{tr}Enter a username and click 'Switch'.<br>Useful for testing permissions.{/tr}"}
 							{/if}
 							<input type="text" name="username" class="form-control" id="login-switchuser_{$module_logo_instance}" {* size="{if empty($module_params.input_size)}15{else}{$module_params.input_size}{/if}" *} />
 						</div>
@@ -73,14 +74,17 @@ if (jqueryTiki.no_cookie) {
 			<span style="white-space: nowrap">{$user|userlink}</span> <a href="tiki-logout.php" title="{tr}Log out{/tr}">{tr}Log out{/tr}</a>
 		{elseif $mode eq "popup"}
 			<div class="siteloginbar_popup dropdown pull-right">
+				{if $module_params.show_user_name eq 'y'}{$user|avatarize}{/if}
 				<a href="tiki-logout.php" class="dropdown-toggle login_link btn btn-link" data-toggle="dropdown">
-					{tr}Log out{/tr}
+					{if $module_params.show_user_name eq 'y'}{$user|username}{else}{$user|avatarize:n:n:n}{/if}
 					<span class="caret"></span>
 				</a>
 				<ul class="clearfix dropdown-menu pull-right">
-					<li>
-						{$user|userlink}
-					</li>
+
+						<li>
+							<a href="tiki-user_information.php">{tr}My Account{/tr}</a>
+						</li>
+
 					<li>
 						<a href="tiki-logout.php" title="{tr}Log out{/tr}">{tr}Log out{/tr}</a>
 					</li>
@@ -124,23 +128,23 @@ if (jqueryTiki.no_cookie) {
 		{/if}
 
 		<form name="loginbox" class="form{if $mode eq "header"} form-inline{/if}" id="loginbox-{$module_logo_instance}" action="{$login_module.login_url|escape}"
-				method="post" {if $prefs.feature_challenge eq 'y'}onsubmit="doChallengeResponse()"{/if}
+				method="post" {if $prefs.feature_challenge eq 'y'}onsubmit="doChallengeResponse(this)"{/if}
 				{if $prefs.desactive_login_autocomplete eq 'y'} autocomplete="off"{/if}
 		>
 		{capture assign="close_tags"}</form>{$close_tags}{/capture}
 
 		{if $prefs.feature_challenge eq 'y'}
-			<script type='text/javascript' src="lib/md5.js"></script>
+			<script type='text/javascript' src="vendor/jquery/md5/js/md5.js"></script>
 			{jq notonready=true}
-				function doChallengeResponse() {
-					hashstr = document.loginbox.user.value +
-								document.loginbox.pass.value +
-								document.loginbox.email.value;
-					str = document.loginbox.user.value +
-							MD5(hashstr) + document.loginbox.challenge.value;
-					document.loginbox.response.value = MD5(str);
-					document.loginbox.pass.value='';
-					document.loginbox.submit();
+				function doChallengeResponse(form) {
+					var $form = $(form), hashstr, str;
+					hashstr= $("input[name=user]", $form).val() +
+								$("input[name=pass]", $form).val() +
+								$("input[name=email]", $form).val();
+					str = $("input[name=user]", $form).val() + md5(hashstr) + $("input[name=challenge]", $form).val();
+					$("input[name=response]", $form).val(md5(str));
+					//$("input[name=pass]", $form).val(""); // (form does not submit without password)
+					$form.submit();
 					return false;
 				}
 			{/jq}
@@ -161,7 +165,7 @@ if (jqueryTiki.no_cookie) {
 		{/if}
 		<div class="user form-group">
 			{if !isset($module_logo_instance)}{assign var=module_logo_instance value=' '}{/if}
-			<label for="login-user_{$module_logo_instance}">{if $prefs.login_is_email eq 'y'}{tr}Email:{/tr}{else}{tr}Username:{/tr}{/if}</label>
+			<label for="login-user_{$module_logo_instance}">{if $prefs.login_is_email eq 'y'}{tr}Email:{/tr}{else}{tr}Username{/tr}{if $prefs.login_allow_email eq 'y'} {tr}or e-mail address{/tr}{/if}:{/if}</label>
 			{if !isset($loginuser) or $loginuser eq ''}
 				<input class="form-control" type="text" name="user" id="login-user_{$module_logo_instance}" {*size="{if empty($module_params.input_size)}15{else}{$module_params.input_size}{/if}"*} {if !empty($error_login)} value="{$error_user|escape}"{elseif !empty($adminuser)} value="{$adminuser|escape}"{/if}/>
 				{jq}if ($('#login-user_{{$module_logo_instance}}:visible').length) {if ($("#login-user_{{$module_logo_instance}}").offset().top < $(window).height()) {$('#login-user_{{$module_logo_instance}}')[0].focus();} }{/jq}
@@ -243,8 +247,8 @@ if (jqueryTiki.no_cookie) {
 		{/if}
 		{if $prefs.feature_switch_ssl_mode eq 'y' && ($prefs.https_login eq 'allowed' || $prefs.https_login eq 'encouraged')}
 			<div>
-				<a class="linkmodule" href="{$base_url_http|escape}{$prefs.login_url|escape}" title="{tr}Click here to login using the default security protocol{/tr}">{tr}Standard{/tr}</a>
-				<a class="linkmodule" href="{$base_url_https|escape}{$prefs.login_url|escape}" title="{tr}Click here to login using a secure protocol{/tr}">{tr}Secure{/tr}</a>
+				<a class="linkmodule" href="{$base_url_http|escape}{$prefs.login_url|escape}" title="{tr}Click here to log in using the default security protocol{/tr}">{tr}Standard{/tr}</a>
+				<a class="linkmodule" href="{$base_url_https|escape}{$prefs.login_url|escape}" title="{tr}Click here to log in using a secure protocol{/tr}">{tr}Secure{/tr}</a>
 			</div>
 		{/if}
 		{if $prefs.feature_show_stay_in_ssl_mode eq 'y' && $show_stay_in_ssl_mode eq 'y'}
@@ -270,6 +274,9 @@ if (jqueryTiki.no_cookie) {
 		{/if}
 		{if $prefs.socialnetworks_facebook_login eq 'y' and $mode neq "header" and empty($user)}
 			<div style="text-align: center"><a href="tiki-socialnetworks.php?request_facebook=true"><img src="http://developers.facebook.com/images/devsite/login-button.png"></a></div>
+		{/if}
+		{if $prefs.socialnetworks_linkedin_login eq 'y' and $mode neq "header" and empty($user)}
+			<div style="text-align: center; margin-top:8px"><a href="tiki-socialnetworks_linkedin.php?connect=y"><img width="154px" src="https://content.linkedin.com/content/dam/developer/global/en_US/site/img/signin-button.png"></a></div>
 		{/if}
 		{$close_tags}
 		{if $prefs.auth_method eq 'openid' and !$user and (!isset($registration) || $registration neq 'y')}

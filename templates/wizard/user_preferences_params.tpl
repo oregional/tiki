@@ -157,7 +157,7 @@
 						</tr>
 					{/if}
 					<tr>
-						<td>{tr}Send me an email for messages with priority equal or greater than:{/tr}</td>
+						<td>{tr}Send me an email for messages with priority equal to or greater than:{/tr}</td>
 						<td>
 							<select name="minPrio">
 								<option value="1" {if $minPrio eq 1}selected="selected"{/if}>1 -{tr}Lowest{/tr}-</option>
@@ -296,7 +296,7 @@
 					<tr>
 						<td>{tr}Reset remark boxes visibility{/tr}</td>
 						<td>
-							{button _text='{tr}Reset{/tr}' _onclick="if (confirm('{tr}This will reset the visibility of all the tips, notices and warning remarks boxes you have closed.{/tr}')) {ldelim}deleteCookie('rbox');{rdelim}return false;"}
+							{button _text="{tr}Reset{/tr}" _onclick="if (confirm('{tr}This will reset the visibility of all the tips, notices and warning remarks boxes you have closed.{/tr}')) {ldelim}deleteCookie('rbox');{rdelim}return false;"}
 						</td>
 					</tr>
 

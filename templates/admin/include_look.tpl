@@ -5,14 +5,9 @@
 		{if $prefs.feature_theme_control eq y}
 			{button _text="{tr}Theme Control{/tr}" href="tiki-theme_control.php" _class="btn-sm tikihelp" }
 		{/if}
-		{if $prefs.themegenerator_feature eq "y" and !empty($prefs.themegenerator_theme)}
-			{button _text="{tr}Theme Generator{/tr}" _name="themegenerator" _class="tgFloatDialog btn-sm" href="#" _onclick="openThemeGenDialog();return false;"}
-		{/if}
 		{if $prefs.feature_editcss eq 'y' and $tiki_p_create_css eq 'y'}
 			{button _text="{tr}Edit CSS{/tr}" _class="btn-sm" href="tiki-edit_css.php"}
 		{/if}
-		{button _text="{tr}CSS Assistant{/tr}" _class="btn-sm tips" _onclick="show_brosho();return false;" _ajax="n" _title="{tr}Brosho jQuery Plugin{/tr}:{tr}Assistance to edit Custom CSS{/tr}" href="#"}
-		{$headerlib->add_jsfile('lib/jquery_tiki/brosho/tiki_brosho.js')}
 		<div class="pull-right">
 			<input type="submit" class="btn btn-primary btn-sm" name="looksetup" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
 		</div>
@@ -52,14 +47,6 @@
 			<div class="adminoptionbox">
 				{if $prefs.feature_jquery_ui eq 'y'}
 					{preference name=feature_jquery_ui_theme}
-				{/if}
-				{if $prefs.themegenerator_feature eq 'y' and $prefs.site_style != $a_style}
-					<div class="form-group">
-						<label class="col-md-4 control-label"></label>
-						<div class="col-md-8">
-							{remarksbox type="note" title="{tr}Note{/tr}"}{tr}Theme not saved yet - click "Apply"{/tr}{/remarksbox}
-						</div>
-					</div>
 				{/if}
 			</div>
 			{preference name=change_theme}
@@ -188,52 +175,12 @@
 					</div>
 					{preference name=feature_jscalendar}
 					{preference name=feature_hidden_links}
-                    {preference name=feature_equal_height_rows_js}
+					{preference name=feature_equal_height_rows_js}
 				</div>
 			</fieldset>
 		{/tab}
 		{tab name="{tr}Customization{/tr}"}
 			<h2>{tr}Customization{/tr}</h2>
-			<fieldset>
-				<legend>{tr}Theme Generator{/tr} <em>({tr}Experimental{/tr})</em></legend>
-				{preference name="themegenerator_feature"}
-				<div class="adminoptionboxchild" id="themegenerator_feature_childcontainer">
-					<div class="adminoptionbox">
-						{preference name="themegenerator_theme"}
-						<div class="adminoptionboxchild pull-right" id="themegenerator_feature_childcontainer">
-							<input type="text" name="tg_edit_theme_name" value="{$tg_edit_theme_name|default:''|escape}"{if !empty($prefs.themegenerator_theme)} style="display:none;"{/if} />
-							<input type="submit" class="btn btn-primary btn-sm" name="tg_new_theme" value="{tr}New{/tr}"{if !empty($prefs.themegenerator_theme)} style="display:none;"{/if} />
-							<input type="submit" class="btn btn-warning btn-sm" name="tg_delete_theme" value="{tr}Delete{/tr}"{if empty($prefs.themegenerator_theme)} style="display:none;"{/if} />
-							{jq}
-								$("select[name=themegenerator_theme]").change(function(){
-								if ($(this)[0].selectedIndex === 0) {
-									$("input[name=tg_edit_theme_name]").keyup(function(e){
-										if (e.keyCode === 13 && $(this).val()) {
-											$("input[name=tg_new_theme]").click();
-										}
-									}).show();
-									$("input[name=tg_new_theme]").show();
-									$("input[name=tg_delete_theme]").hide();
-								}
-								}).change();
-							{/jq}
-						</div>
-					</div>
-					<div class="adminoptionbox">
-						{if $prefs.feature_jquery_ui neq "y" or $prefs.feature_ajax neq "y"}
-							<div id="themegenerator_container">
-								{include file="themegen.tpl"}
-								<div class="input_submit_container clear" style="text-align: center">
-									<input type="submit" class="btn btn-default btn-sm" name="tg_preview" value="{tr}Preview Theme{/tr}">
-								</div>
-							</div>
-							{if $prefs.themegenerator_feature eq 'y'}
-								{jq}initThemeGenDialog();{/jq}
-							{/if}
-						{/if}
-					</div>
-				</div>
-			</fieldset>
 			<fieldset>
 				<legend>{tr}Custom Codes{/tr}</legend>
 				{preference name="header_custom_css" syntax="css"}
@@ -305,11 +252,7 @@
 			{preference name=feature_html_head_base_tag}
 		{/tab}
 	{/tabset}
-	<div class="row">
-		<div class="form-group col-lg-12">
-			<div class="text-center">
-				<input type="submit" class="btn btn-primary btn-sm" name="looksetup" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
-		</div>
+	<div class="t_navbar margin-bottom-md text-center">
+		<input type="submit" class="btn btn-primary btn-sm tips" name="looksetup" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
 	</div>
 </form>

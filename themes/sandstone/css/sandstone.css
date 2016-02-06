@@ -1,3 +1,4 @@
+(node) util.print is deprecated. Use console.log instead.
 @import url("https://fonts.googleapis.com/css?family=Roboto:400,500");
 /*!
  * Bootstrap v3.3.6 (http://getbootstrap.com)
@@ -7608,9 +7609,6 @@ h6 a.tiki_anchor:hover {
 }
 .diffadded .diffchar {
   color: #aad172;
-}
-.morcego_embedded {
-  border: 1px solid;
 }
 .highlight_word_0 {
   color: #93c54b;

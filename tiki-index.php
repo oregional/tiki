@@ -469,11 +469,8 @@ if (!in_array($page, $_SESSION['breadCrumb'])) {
 	array_push($_SESSION['breadCrumb'], $page);
 }
 
-
 // Now increment page hits since we are visiting this page
-if ($prefs['count_admin_pvs'] == 'y' || $user!='admin') {
-	$tikilib->add_hit($page);
-}
+$tikilib->add_hit($page);
 
 // Check if we have to perform an action for this page
 // for example lock/unlock
@@ -526,7 +523,7 @@ if ( isset($_REQUEST['undo']) ) {
 			$info = $tikilib->get_page_info($page);
 			$pageRenderer->setInfos($info);
 		} else {
-			TikiLib::lib('errorreport')->report(tra('Nothing to undo'));
+			TikiLib::lib('errorreport')->report(tra('There is nothing to undo'));
 		}
 	}
 }
@@ -672,12 +669,12 @@ if (!empty($_REQUEST['machine_translate_to_lang'])) {
 TikiLib::events()->trigger(
 	'tiki.wiki.view',
 	array_merge(
+		(is_array($info) ? $info : array()),
 		array(
 			'type' => 'wiki page',
 			'object' => $page,
 			'user' => $GLOBALS['user'],
-		),
-		(is_array($info) ? $info : array())
+		)
 	)
 );
 

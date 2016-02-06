@@ -47,7 +47,7 @@ class TikiLib extends TikiDb_Bridge
 	/** Gets a library reference
 	 *
 	 * @param $name
-	 * @return \ActivityLib|\AdminLib|\AreasLib|\ArtLib|\AttributeLib|\AutoSaveLib|\BannerLib|\BigBlueButtonLib|\BlogLib|\CacheLib|\CalendarLib|\Captcha|\CartLib|\CategLib|\Comments|\ContactLib|\ContributionLib|\CreditsLib|\CryptLib|\cssLib|\DCSLib|\EditLib|\ErrorReportLib|\FaqLib|\FederatedSearchLib|\FileGalBatchLib|\FileGalLib|\FlaggedRevisionLib|\FreetagLib|\GeoLib|\GoalEventLib|\GoalLib|\GoalRewardLib|\GroupAlertLib|\HeaderLib|\HistLib|\IconsetLib|\ImageGalsLib|\KalturaLib|\KalturaLib|\Language|\LanguageTranslations|\LdapLib|\LoginLib|\LogsLib|\LogsQueryLib|\MailinLib|\Memcachelib|\MenuLib|\Messu|\MimeLib|\ModLib|\MonitorLib|\MonitorMailLib|\MultilingualLib|\NotificationLib|\OAuthLib|\ObjectLib|\PageContentLib|\ParserLib|\PaymentLib|\PerspectiveLib|\PollLib|\PreferencesLib|\QuantifyLib|\QueueLib|\QuizLib|\RatingConfigLib|\RatingLib|\ReferencesLib|\RegistrationLib|\RelationLib|\RSSLib|\ScoreLib|\ScormLib|\SearchStatsLib|\SemanticLib|\ServiceLib|\SheetLib|\Smarty_Tiki|\SocialLib|\StatsLib|\StoredSearchLib|\StructLib|\TemplatesLib|\ThemeControlLib|\ThemeGenLib|\ThemeLib|\Tiki_Connect_Client|\Tiki_Connect_Server|\Tiki_Event_Manager|\Tiki_Profile_SymbolLoader|\Tiki\Object\Selector|\Tiki\Recommendation\BatchProcessor|\Tiki\Wiki\SlugManager|\TikiAccessLib|\TikiCalendarLib|\TikiDate|\TodoLib|\Tracker\Tabular\Manager|\TrackerLib|\UnifiedSearchLib|\UserMailinLib|\UserModulesLib|\UserPrefsLib|\UsersLib|\Validators|\VimeoLib|\WikiLib|\WikiLingoTikiEvents|\WizardLib|\WYSIWYGLib|\ZoteroLib
+	 * @return \ActivityLib|\AdminLib|\AreasLib|\ArtLib|\AttributeLib|\AutoSaveLib|\BannerLib|\BigBlueButtonLib|\BlogLib|\CacheLib|\CalendarLib|\Captcha|\CartLib|\CategLib|\Comments|\ContactLib|\ContributionLib|\CreditsLib|\CryptLib|\cssLib|\DCSLib|\EditLib|\ErrorReportLib|\FaqLib|\FederatedSearchLib|\FileGalBatchLib|\FileGalLib|\FlaggedRevisionLib|\FreetagLib|\GeoLib|\GoalEventLib|\GoalLib|\GoalRewardLib|\GroupAlertLib|\HeaderLib|\HistLib|\IconsetLib|\ImageGalsLib|\KalturaLib|\KalturaLib|\Language|\LanguageTranslations|\LdapLib|\LoginLib|\LogsLib|\LogsQueryLib|\MailinLib|\Memcachelib|\MenuLib|\Messu|\MimeLib|\ModLib|\MonitorLib|\MonitorMailLib|\MultilingualLib|\NotificationLib|\OAuthLib|\ObjectLib|\PageContentLib|\ParserLib|\PaymentLib|\PerspectiveLib|\PollLib|\PreferencesLib|\QuantifyLib|\QueueLib|\QuizLib|\RatingConfigLib|\RatingLib|\ReferencesLib|\RegistrationLib|\RelationLib|\RSSLib|\ScoreLib|\ScormLib|\SearchStatsLib|\SemanticLib|\ServiceLib|\SheetLib|\Smarty_Tiki|\SocialLib|\StatsLib|\StoredSearchLib|\StructLib|\TemplatesLib|\ThemeControlLib|\ThemeLib|\Tiki_Connect_Client|\Tiki_Connect_Server|\Tiki_Event_Manager|\Tiki_Profile_SymbolLoader|\Tiki\Object\Selector|\Tiki\Recommendation\BatchProcessor|\Tiki\Wiki\SlugManager|\TikiAccessLib|\TikiCalendarLib|\TikiDate|\TodoLib|\Tracker\Tabular\Manager|\TrackerLib|\UnifiedSearchLib|\UserMailinLib|\UserModulesLib|\UserPrefsLib|\UsersLib|\Validators|\VimeoLib|\WikiLib|\WikiLingoTikiEvents|\WizardLib|\WYSIWYGLib|\ZoteroLib
 	 * @throws Exception
 	 */
 	public static function lib($name)
@@ -1033,9 +1033,6 @@ class TikiLib extends TikiDb_Bridge
 						$res['perm']=($this->user_has_perm_on_object($res['user'], $object, 'blog', 'tiki_p_read_blog') ||
 								$this->user_has_perm_on_object($res['user'], $object, 'comments', 'tiki_p_read_comments'));
 						break;
-					case 'map_changed':
-						$res['perm']=$this->user_has_perm_on_object($res['user'], $object, 'map', 'tiki_p_map_view');
-						break;
 					case 'forum_post_topic':
 						$res['perm']=($this->user_has_perm_on_object($res['user'], $object, 'forum', 'tiki_p_forum_read') ||
 								$this->user_has_perm_on_object($res['user'], $object, 'forum', 'tiki_p_admin_forum'));
@@ -1509,7 +1506,7 @@ class TikiLib extends TikiDb_Bridge
 	function add_wiki_attachment_hit($id)
 	{
 		global $prefs, $user;
-		if ($prefs['count_admin_pvs'] == 'y' || $user != 'admin') {
+		if (StatsLib::is_stats_hit()) {
 			$wikiAttachments = $this->table('tiki_wiki_attachments');
 			$wikiAttachments->update(
 				array('hits' => $wikiAttachments->increment(1)),
@@ -3998,8 +3995,11 @@ class TikiLib extends TikiDb_Bridge
 	 */
 	function add_hit($pageName)
 	{
-		$pages = $this->table('tiki_pages');
-		$pages->update(array('hits' => $pages->increment(1)), array('pageName' => $pageName));
+		global $prefs;
+		if (StatsLib::is_stats_hit()) {
+			$pages = $this->table('tiki_pages');
+			$pages->update(array('hits' => $pages->increment(1)), array('pageName' => $pageName));
+		}
 		return true;
 	}
 
@@ -4786,7 +4786,13 @@ class TikiLib extends TikiDb_Bridge
 
 		$mail->setBcc($recipients);
 
-		$mail->send(array($prefs['sender_email']));
+		if (!empty($prefs['sender_email'])) {
+			$mail->send(array($prefs['sender_email']));
+		} elseif ($admin_email = TikiLib::lib('user')->get_user_email('admin')) {
+			$recipients = array_diff($recipients, array($admin_email));
+			$mail->setBcc($recipients);
+			$mail->send(array($admin_email));
+		}
 	}
 
 	/**
@@ -5587,13 +5593,13 @@ class TikiLib extends TikiDb_Bridge
 	{
 		switch($iError) {
 			case UPLOAD_ERR_OK:
-				return tra('The file was uploaded with success.');
+				return tra('The file was successfully uploaded.');
 			case UPLOAD_ERR_INI_SIZE :
 				return tra('The uploaded file exceeds the upload_max_filesize directive in php.ini.');
 			case UPLOAD_ERR_FORM_SIZE:
 				return tra('The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.');
 			case UPLOAD_ERR_PARTIAL:
-				return tra('The file you are trying upload was only partially uploaded.');
+				return tra('The file was only partially uploaded.');
 			case UPLOAD_ERR_NO_FILE:
 				return tra('No file was uploaded. Was a file selected ?');
 			case UPLOAD_ERR_NO_TMP_DIR:
@@ -6165,7 +6171,7 @@ JS;
 
 	/**
 	 * @param $string
-	 * @return UTF
+	 * @return string UTF-8
 	 */
 	public static function urldecode($string)
 	{
@@ -6174,12 +6180,35 @@ JS;
 
 	/**
 	 * @param $string
-	 * @return UTF
+	 * @return string UTF-8
 	 */
 	public static function rawurldecode($string)
 	{
 	   return TikiInit::to_utf8(rawurldecode($string));
 	}
+
+	/**
+	 * Unparse an array of url parts, e.g. the result of parse_url()
+	 * Thanks to http://php.net/manual/en/function.parse-url.php#106731
+	 *
+	 * @param $parsed_url
+	 * @return string
+	 */
+	public static function unparse_url($parsed_url) {
+	  $scheme   = isset($parsed_url['scheme'])   ? $parsed_url['scheme'] . '://' : '//';
+	  $host     = isset($parsed_url['host'])     ? $parsed_url['host']           : '';
+	  $port     = isset($parsed_url['port'])     ? ':' . $parsed_url['port']     : '';
+	  $user     = isset($parsed_url['user'])     ? $parsed_url['user']           : '';
+	  $pass     = isset($parsed_url['pass'])     ? ':' . $parsed_url['pass']     : '';
+	  $pass     = ($user || $pass)               ? "$pass@"                      : '';
+	  $path     = isset($parsed_url['path'])     ? $parsed_url['path']           : '';
+	  $query    = isset($parsed_url['query'])    ? '?' . $parsed_url['query']    : '';
+	  $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
+
+	  return "$scheme$user$pass$host$port$path$query$fragment";
+	}
+
+
 
 	/**
 	*	Return the request URI.

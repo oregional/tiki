@@ -1,4 +1,4 @@
-{* $Id$ *}
+{* $Id$ *} 
 {$showBoxCheck}
 
 {if $nlId}
@@ -65,6 +65,7 @@
 	{remarksbox type='note' title="{tr}Please Confirm{/tr}"}
 		<b>{tr}This newsletter will be sent to {$subscribers} email addresses.{/tr}</b>
 		<br>
+        {if $prefs.newsletter_throttle eq 'y'}{tr}Sending will be throttled with a batch size of {$prefs.newsletter_batch_size} and a pause period of {$prefs.newsletter_pause_length} seconds.{/tr}<br>{/if}
 		{tr}Reply to:{/tr} {if empty($replyto)}{$prefs.sender_email|escape} ({tr}default{/tr}){else}{$replyto|escape}{/if}
 	{/remarksbox}
 	<p>
@@ -143,6 +144,7 @@
 
 	<div id="sendingArea" style="display:none">
 		<h3>{tr}Sending Newsletter{/tr} ...</h3>
+        <h5> ... {tr}sending to {$subscribers} addresses{/tr}</h5>
 		<div id="confirmed"></div>
 		<iframe id="resultIframe" name="resultIframe" frameborder="0" style="width: 600px; height: 400px"></iframe>
 		{jq}
@@ -213,7 +215,7 @@
 				<div class="form-group form-inline">
 					<label class="control-label col-sm-2">{tr}Apply content template{/tr}</label>
 					<div class="col-sm-10">
-						<select name="templateId" onchange="javascript:document.getElementById('editpageform').submit();" class="form-control">
+						<select name="templateId" onchange="javascript:needToConfirm=false;document.getElementById('editpageform').submit();" class="form-control">
 							<option value="0">{tr}none{/tr}</option>
 							{section name=ix loop=$templates}
 								<option value="{$templates[ix].templateId|escape}" {if $templateId eq $templates[ix].templateId}selected="selected"{/if}>
@@ -221,7 +223,7 @@
 								</option>
 							{/section}
 						</select>
-						{button _text='{tr}Admin templates{/tr}' href='tiki-admin_content_templates.php' _target='blank'}
+						{button _text="{tr}Admin templates{/tr}" href='tiki-admin_content_templates.php' _target='blank'}
 					</div>
 				</div>
 				{/if}

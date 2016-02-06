@@ -38,16 +38,6 @@ class Table_Code_Bind extends Table_Code_Manager
 				'	$(\'div#' . parent::$s['pager']['controls']['id']
 				. '.ts-pager-bottom\').css(\'visibility\', \'hidden\');',
 				'}',
-				'$(\'[data-toggle=popover]\').on(\'shown.bs.popover\', function() {',
-				'	$(\'.confirm-click\').click(function() {',
-				'		confirmClick(this, \'href\');',
-				'		return false;',
-				'	});',
-				'});',
-				'$(\'.confirm-click\').click(function() {',
-				'	confirmClick(this, \'href\');',
-				'	return false;',
-				'});',
 			];
 			$jq[] = $this->iterate(
 				$bind, '.bind(\'pagerComplete\', function(e, c){', $this->nt . '})', $this->nt2, '', '');
@@ -56,6 +46,11 @@ class Table_Code_Bind extends Table_Code_Manager
 		if (parent::$ajax) {
 			$bind = ['$(\'' . parent::$tid . ' tbody tr td\').css(\'opacity\', 0.25);'];
 			$jq[] = $this->iterate($bind, '.bind(\'sortStart\', function(e, c){', $this->nt . '})', $this->nt2, '', '');
+
+			global $prefs;
+			if ($prefs['jquery_timeago'] === 'y') {	// re-attach timeago for ajax calls
+				$jq[] = '.bind("pagerComplete", function(){ $("time.timeago", "' . parent::$tid . '").timeago(); })';
+			}
 		}
 
 		if (count($jq) > 0) {

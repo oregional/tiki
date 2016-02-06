@@ -27,6 +27,7 @@ define('USER_AMBIGOUS', -7);
 define('USER_NOT_VALIDATED', -8);
 define('USER_PREVIOUSLY_VALIDATED', -10);
 define('USER_ALREADY_LOGGED', -11);
+define('EMAIL_AMBIGUOUS', -12);
 
 //added for Auth v1.3 support
 define('AUTH_LOGIN_OK', 0);
@@ -1558,6 +1559,16 @@ class UsersLib extends TikiLib
 
 			switch ($result->numRows()) {
 				case 0:
+					if ($prefs['login_allow_email']) {
+						//if users can login with email
+						$query = 'select * from `users_users` where upper(`email`) = ?';
+						$result = $this->query($query, array(TikiLib::strtoupper($user)));
+						if ($result->numRows() > 1) {
+							return array(EMAIL_AMBIGUOUS, $user);	
+						} elseif ($result->numRows() > 0) {
+							break;
+						}
+					}
 					return array(USER_NOT_FOUND, $user);
 
 				case 1:
@@ -3370,7 +3381,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_change_events',
-				'description' => tra('Can change events in the calendar'),
+				'description' => tra('Can edit events in the calendar'),
 				'level' => 'registered',
 				'type' => 'calendar',
 				'admin' => false,
@@ -3388,7 +3399,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_view_events',
-				'description' => tra('Can view events details'),
+				'description' => tra('Can view event details'),
 				'level' => 'registered',
 				'type' => 'calendar',
 				'admin' => false,
@@ -3442,7 +3453,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_add_object',
-				'description' => tra('Can add objects to the category (needs tiki_p_modify_object_categories)'),
+				'description' => tra('Can add objects to the category (tiki_p_modify_object_categories permission required)'),
 				'level' => 'editors',
 				'type' => 'category',
 				'admin' => false,
@@ -3451,7 +3462,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_remove_object',
-				'description' => tra('Can remove objects from the category (needs tiki_p_modify_object_categories)'),
+				'description' => tra('Can remove objects from the category (tiki_p_modify_object_categories permission required)'),
 				'level' => 'editors',
 				'type' => 'category',
 				'admin' => false,
@@ -3645,7 +3656,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_vote_comments',
-				'description' => tra('Can vote comments'),
+				'description' => tra('Can vote on comments'),
 				'level' => 'registered',
 				'type' => 'comments',
 				'admin' => false,
@@ -3669,6 +3680,15 @@ class UsersLib extends TikiLib
 				'type' => 'content templates',
 				'admin' => false,
 				'prefs' => array('feature_wiki_templates', 'feature_cms_templates'),
+				'scope' => 'object',
+			),
+			array(
+				'name' => 'tiki_p_lock_content_templates',
+				'description' => tra('Can lock content templates'),
+				'level' => 'editors',
+				'type' => 'content templates',
+				'admin' => false,
+				'prefs' => array('feature_wiki_templates', 'feature_cms_templates', 'lock_content_templates'),
 				'scope' => 'object',
 			),
 			array(
@@ -3835,7 +3855,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_assign_perm_file_gallery',
-				'description' => tra('Can assign perms to file gallery'),
+				'description' => tra('Can assign permissions to file galleries'),
 				'level' => 'admin',
 				'type' => 'file galleries',
 				'admin' => false,
@@ -3853,7 +3873,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_batch_upload_files',
-				'description' => tra('Can upload zip files with files'),
+				'description' => tra('Can upload .zip file packages'),
 				'level' => 'editors',
 				'type' => 'file galleries',
 				'admin' => false,
@@ -3916,7 +3936,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_forum_attach',
-				'description' => tra('Can attach to forum posts'),
+				'description' => tra('Can attach files to forum posts'),
 				'level' => 'registered',
 				'type' => 'forums',
 				'admin' => false,
@@ -3934,7 +3954,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_forum_edit_own_posts',
-				'description' => tra('Can edit own forum posts'),
+				'description' => tra("Can edit one's own forum posts"),
 				'level' => 'registered',
 				'type' => 'forums',
 				'admin' => false,
@@ -3979,7 +3999,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_forum_vote',
-				'description' => tra('Can vote comments in forums'),
+				'description' => tra('Can vote on comments in forums'),
 				'level' => 'registered',
 				'type' => 'forums',
 				'admin' => false,
@@ -4114,7 +4134,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_assign_perm_image_gallery',
-				'description' => tra('Can assign perms to image gallery'),
+				'description' => tra('Can assign permissions to image galleries'),
 				'level' => 'admin',
 				'type' => 'image galleries',
 				'admin' => false,
@@ -4132,7 +4152,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_batch_upload_images',
-				'description' => tra('Can upload zip files with images'),
+				'description' => tra('Can upload .zip files of images'),
 				'level' => 'editors',
 				'type' => 'image galleries',
 				'admin' => false,
@@ -4239,53 +4259,8 @@ class UsersLib extends TikiLib
 				'scope' => 'global',
 			),
 			array(
-				'name' => 'tiki_p_map_create',
-				'description' => tra('Can create new mapfile'),
-				'level' => 'admin',
-				'type' => 'maps',
-				'admin' => false,
-				'prefs' => array('feature_maps'),
-				'scope' => 'global',
-			),
-			array(
-				'name' => 'tiki_p_map_delete',
-				'description' => tra('Can delete mapfiles'),
-				'level' => 'admin',
-				'type' => 'maps',
-				'admin' => false,
-				'prefs' => array('feature_maps'),
-				'scope' => 'global',
-			),
-			array(
-				'name' => 'tiki_p_map_edit',
-				'description' => tra('Can edit mapfiles'),
-				'level' => 'editors',
-				'type' => 'maps',
-				'admin' => false,
-				'prefs' => array('feature_maps'),
-				'scope' => 'global',
-			),
-			array(
-				'name' => 'tiki_p_map_view',
-				'description' => tra('Can view mapfiles'),
-				'level' => 'basic',
-				'type' => 'maps',
-				'admin' => false,
-				'prefs' => array('feature_maps'),
-				'scope' => 'global',
-			),
-			array(
-				'name' => 'tiki_p_map_view_mapfiles',
-				'description' => tra('Can view contents of mapfiles'),
-				'level' => 'registered',
-				'type' => 'maps',
-				'admin' => false,
-				'prefs' => array('feature_maps'),
-				'scope' => 'global',
-			),
-			array(
 				'name' => 'tiki_p_broadcast_all',
-				'description' => tra('Can broadcast messages to all user'),
+				'description' => tra('Can broadcast messages to all users'),
 				'level' => 'admin',
 				'type' => 'messages',
 				'admin' => false,
@@ -4321,7 +4296,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_batch_subscribe_email',
-				'description' => tra('Can subscribe many emails at once (requires tiki_p_subscribe email)'),
+				'description' => tra('Can subscribe multiple email addresses at once (requires tiki_p_subscribe email)'),
 				'level' => 'editors',
 				'type' => 'newsletters',
 				'admin' => false,
@@ -4339,7 +4314,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_subscribe_email',
-				'description' => tra('Can subscribe any email to newsletters'),
+				'description' => tra('Can subscribe any email address to newsletters'),
 				'level' => 'editors',
 				'type' => 'newsletters',
 				'admin' => false,
@@ -4474,7 +4449,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_vote_poll',
-				'description' => tra('Can vote polls'),
+				'description' => tra('Can vote in polls'),
 				'level' => 'basic',
 				'type' => 'polls',
 				'admin' => false,
@@ -4528,7 +4503,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_admin_sheet',
-				'description' => tra('Can admin sheet'),
+				'description' => tra('Can admin spreadsheets'),
 				'level' => 'admin',
 				'type' => 'sheet',
 				'admin' => true,
@@ -4537,7 +4512,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_edit_sheet',
-				'description' => tra('Can create and edit sheets'),
+				'description' => tra('Can create and edit spreadsheets'),
 				'level' => 'editors',
 				'type' => 'sheet',
 				'admin' => false,
@@ -4546,7 +4521,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_view_sheet',
-				'description' => tra('Can view sheet'),
+				'description' => tra('Can view spreadsheets'),
 				'level' => 'basic',
 				'type' => 'sheet',
 				'admin' => false,
@@ -4555,7 +4530,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_view_sheet_history',
-				'description' => tra('Can view sheet history'),
+				'description' => tra('Can view spreadsheets history'),
 				'level' => 'admin',
 				'type' => 'sheet',
 				'admin' => false,
@@ -4564,7 +4539,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_admin_shoutbox',
-				'description' => tra('Can admin shoutbox (Edit/remove messages)'),
+				'description' => tra('Can admin the shoutbox (edit/remove messages)'),
 				'level' => 'editors',
 				'type' => 'shoutbox',
 				'admin' => true,
@@ -4573,7 +4548,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_post_shoutbox',
-				'description' => tra('Can post messages in shoutbox'),
+				'description' => tra('Can post messages in the shoutbox'),
 				'level' => 'basic',
 				'type' => 'shoutbox',
 				'admin' => false,
@@ -4582,7 +4557,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_view_shoutbox',
-				'description' => tra('Can view shoutbox'),
+				'description' => tra('Can view the shoutbox'),
 				'level' => 'basic',
 				'type' => 'shoutbox',
 				'admin' => false,
@@ -4591,7 +4566,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_socialnetworks',
-				'description' => tra('user can use social network integration'),
+				'description' => tra('Can use social network integration'),
 				'level' => 'registered',
 				'type' => 'socialnetworks',
 				'admin' => false,
@@ -4600,7 +4575,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_admin_socialnetworks',
-				'description' => tra('user can register this site with social networks'),
+				'description' => tra('Can register this site with social networks'),
 				'level' => 'admin',
 				'type' => 'socialnetworks',
 				'admin' => true,
@@ -4654,7 +4629,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_admin_tikitests',
-				'description' => tra('Can admin the TikiTests'),
+				'description' => tra('Can admin TikiTests'),
 				'level' => 'admin',
 				'type' => 'tikitests',
 				'admin' => false,
@@ -4672,7 +4647,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_play_tikitests',
-				'description' => tra('Can replay the TikiTests'),
+				'description' => tra('Can replay TikiTests'),
 				'level' => 'registered',
 				'type' => 'tikitests',
 				'admin' => false,
@@ -4699,7 +4674,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_tracker_view_attachments',
-				'description' => tra('Can view tracker items attachments and download'),
+				'description' => tra('Can view tracker item attachments and download them'),
 				'level' => 'registered',
 				'type' => 'trackers',
 				'admin' => false,
@@ -4708,7 +4683,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_comment_tracker_items',
-				'description' => tra('Can insert comments for tracker items'),
+				'description' => tra('Can post tracker item comments'),
 				'level' => 'basic',
 				'type' => 'trackers',
 				'admin' => false,
@@ -4717,7 +4692,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_tracker_view_comments',
-				'description' => tra('Can view tracker items comments'),
+				'description' => tra('Can view tracker item comments'),
 				'level' => 'basic',
 				'type' => 'trackers',
 				'admin' => false,
@@ -4726,7 +4701,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_create_tracker_items',
-				'description' => tra('Can create new items for trackers'),
+				'description' => tra('Can create new tracker items'),
 				'level' => 'registered',
 				'type' => 'trackers',
 				'admin' => false,
@@ -4807,7 +4782,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_tracker_vote_ratings',
-				'description' => tra('Can vote a rating for tracker items'),
+				'description' => tra('Can rate tracker items'),
 				'level' => 'registered',
 				'type' => 'trackers',
 				'admin' => false,
@@ -4816,7 +4791,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_tracker_revote_ratings',
-				'description' => tra('Can re-vote a rating for tracker items'),
+				'description' => tra('Can re-rate tracker items'),
 				'level' => 'registered',
 				'type' => 'trackers',
 				'admin' => false,
@@ -4852,7 +4827,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_watch_trackers',
-				'description' => tra('Can watch tracker'),
+				'description' => tra('Can watch a tracker'),
 				'level' => 'registered',
 				'type' => 'trackers',
 				'admin' => false,
@@ -4870,7 +4845,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_tracker_dump',
-				'description' => tra('Can save a .CSV backup of entire trackers'),
+				'description' => tra('Can save a CSV backup of all trackers'),
 				'level' => 'admin',
 				'type' => 'trackers',
 				'admin' => false,
@@ -4888,7 +4863,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_tabular_list',
-				'description' => tr('View list view of a tracker tabular. Tracker item permissions apply.'),
+				'description' => tr('View list view of tracker tabular data. Tracker item permissions apply.'),
 				'level' => 'registered',
 				'type' => 'tabular',
 				'admin' => false,
@@ -5122,7 +5097,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_edit_inline',
-				'description' => tra('Can inline edit pages'),
+				'description' => tra('Can inline-edit pages'),
 				'level' => 'registered',
 				'type' => 'wiki',
 				'admin' => false,
@@ -5149,7 +5124,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_assign_perm_wiki_page',
-				'description' => tra('Can assign perms to wiki pages'),
+				'description' => tra('Can assign permissions to wiki pages'),
 				'level' => 'admin',
 				'type' => 'wiki',
 				'admin' => false,
@@ -5175,15 +5150,6 @@ class UsersLib extends TikiLib
 				'scope' => 'global',
 			),
 			array(
-				'name' => 'tiki_p_edit_structures',
-				'description' => tra('Can create and edit structures'),
-				'level' => 'editors',
-				'type' => 'wiki',
-				'admin' => false,
-				'prefs' => array('feature_wiki_structure'),
-				'scope' => 'object',
-			),
-			array(
 				'name' => 'tiki_p_export_wiki',
 				'description' => tra('Can export wiki pages using the export feature'),
 				'level' => 'admin',
@@ -5203,7 +5169,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_minor',
-				'description' => tra('Can save as minor edit'),
+				'description' => tra('Can save as a minor edit'),
 				'level' => 'registered',
 				'type' => 'wiki',
 				'admin' => false,
@@ -5230,7 +5196,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_rollback',
-				'description' => tra('Can rollback pages'),
+				'description' => tra('Can roll back pages'),
 				'level' => 'editors',
 				'type' => 'wiki',
 				'admin' => false,
@@ -5248,7 +5214,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_use_as_template',
-				'description' => tra('Can use the page as a template for tracker or unified search'),
+				'description' => tra('Can use the page as a template for a tracker or unified search'),
 				'level' => 'basic',
 				'type' => 'wiki',
 				'admin' => false,
@@ -5263,15 +5229,6 @@ class UsersLib extends TikiLib
 				'admin' => false,
 				'prefs' => array('feature_wiki'),
 				'scope' => 'object',
-			),
-			array(
-				'name' => 'tiki_p_watch_structure',
-				'description' => tra('Can watch structure'),
-				'level' => 'registered',
-				'type' => 'wiki',
-				'admin' => false,
-				'prefs' => array('feature_wiki_structure'),
-				'scope' => 'global',
 			),
 			array(
 				'name' => 'tiki_p_wiki_admin_attachments',
@@ -5302,7 +5259,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_wiki_view_attachments',
-				'description' => tra('Can view wiki attachments and download'),
+				'description' => tra('Can view and download wiki page attachments'),
 				'level' => 'registered',
 				'type' => 'wiki',
 				'admin' => false,
@@ -5338,7 +5295,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_wiki_vote_ratings',
-				'description' => tra('Can participate to rating of wiki pages'),
+				'description' => tra('Can participate in rating of wiki pages'),
 				'level' => 'registered',
 				'type' => 'wiki',
 				'admin' => false,
@@ -5409,6 +5366,42 @@ class UsersLib extends TikiLib
 				'scope' => 'object',
 			),
 			array(
+				'name' => 'tiki_p_admin_structures',
+				'description' => tra('Can administer structures'),
+				'level' => 'admin',
+				'type' => 'wiki structure',
+				'admin' => true,
+				'prefs' => array('feature_wiki_structure'),
+				'scope' => 'object',
+			),
+			array(
+				'name' => 'tiki_p_edit_structures',
+				'description' => tra('Can create and edit structures'),
+				'level' => 'editors',
+				'type' => 'wiki structure',
+				'admin' => false,
+				'prefs' => array('feature_wiki_structure'),
+				'scope' => 'object',
+			),
+			array(
+				'name' => 'tiki_p_lock_structures',
+				'description' => tra('Can lock structures'),
+				'level' => 'editors',
+				'type' => 'wiki structure',
+				'admin' => false,
+				'prefs' => array('feature_wiki_structure', 'lock_wiki_structures'),
+				'scope' => 'object',
+			),
+			array(
+				'name' => 'tiki_p_watch_structure',
+				'description' => tra('Can watch structures'),
+				'level' => 'registered',
+				'type' => 'wiki structure',
+				'admin' => false,
+				'prefs' => array('feature_wiki_structure'),
+				'scope' => 'global',
+			),
+			array(
 				'name' => 'tiki_p_admin',
 				'description' => tra('Administrator can manage users, groups and permissions and all features'),
 				'level' => 'admin',
@@ -5437,7 +5430,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_admin_banning',
-				'description' => tra('Can ban users or ips'),
+				'description' => tra('Can ban users or IP addresses'),
 				'level' => 'admin',
 				'type' => 'tiki',
 				'admin' => false,
@@ -5509,7 +5502,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_create_css',
-				'description' => tra('Can create new css suffixed with -user'),
+				'description' => tra('Can create a new CSS file (style sheet) appended with -user'),
 				'level' => 'registered',
 				'type' => 'tiki',
 				'admin' => false,
@@ -5518,7 +5511,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_detach_translation',
-				'description' => tra('Can remove association between two pages in a translation set'),
+				'description' => tra('Can remove the association between two pages in a translation set'),
 				'level' => 'editors',
 				'type' => 'tiki',
 				'admin' => false,
@@ -5546,7 +5539,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_edit_menu',
-				'description' => tra('Can edit menu'),
+				'description' => tra('Can edit menus'),
 				'level' => 'admin',
 				'type' => 'tiki',
 				'admin' => false,
@@ -5555,7 +5548,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_edit_menu_option',
-				'description' => tra('Can edit menu option'),
+				'description' => tra('Can edit menu options'),
 				'level' => 'admin',
 				'type' => 'tiki',
 				'admin' => false,
@@ -5627,7 +5620,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_view_actionlog_owngroups',
-				'description' => tra('Can view action log for users of his own groups'),
+				'description' => tra('Can view the action log for users of his or her groups'),
 				'level' => 'registered',
 				'type' => 'tiki',
 				'admin' => false,
@@ -5745,7 +5738,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_modify_object_categories',
-				'description' => tra('Can change the categories of the object'),
+				'description' => tra('Can change the categories of an object'),
 				'level' => 'editors',
 				'type' => 'tiki',
 				'admin' => false,
@@ -5773,7 +5766,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_workspace_instantiate',
-				'description' => tra('Can create a new workspace for the given template'),
+				'description' => tra('Can create a new workspace for a given template'),
 				'level' => 'admin',
 				'type' => 'workspace',
 				'admin' => false,
@@ -5782,7 +5775,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_goal_admin',
-				'description' => tr('Can manage all aspects of the goal'),
+				'description' => tr('Can manage all aspects of a goal'),
 				'level' => 'admin',
 				'type' => 'goal',
 				'admin' => true,
@@ -5791,7 +5784,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_goal_modify_eligible',
-				'description' => tr('Can manage who is eligible to a goal'),
+				'description' => tr('Can manage who is eligible for a goal'),
 				'level' => 'admin',
 				'type' => 'goal',
 				'admin' => false,
@@ -6247,6 +6240,14 @@ class UsersLib extends TikiLib
 		$cachelib = TikiLib::lib('cache');
 		$tikilib = TikiLib::lib('tiki');
 
+		$autogenerate_uname = false;
+		if ($prefs['login_autogenerate'] == 'y' && $user == '') {
+			// only autogenerate if no username is provided (as many features might want to create real user name)
+			// need to create as tmp uname first before replacing with user ID based number
+			$user = "tmp" . md5((string) rand());
+			$autogenerate_uname = true;
+		}
+
 		$user = trim($user);
 
 		if ($this->user_exists($user)
@@ -6256,6 +6257,19 @@ class UsersLib extends TikiLib
 				|| strtolower($user) == 'registered'
 		) {
 			return false;
+		}
+
+		if ($prefs['user_unique_email'] == 'y' && $this->get_user_by_email($email)) {
+			if ($autogenerate_uname) {
+				// If the user to be added is to be autogenerated and the email already exists it means the user
+				// is already created, for example in the 2nd pass in the registration process. To silently exit.
+				return false;
+			}
+			$smarty = TikiLib::lib('smarty');
+			$smarty->assign('errortype', 'login');
+			$smarty->assign('msg', tra('We were unable to create your account because this email is already in use.'));
+			$smarty->display('error.tpl');
+			die;
 		}
 
 		$userexists_cache[$user] = NULL;
@@ -6300,6 +6314,19 @@ class UsersLib extends TikiLib
 			)
 		);
 
+		if ($autogenerate_uname) {
+			// only autogenerate if no username is provided (as many features might want to create real user name)
+			$user = $this->autogenerate_login($userId);
+			$userTable->update(
+				array(
+					'login' => $user,
+				),
+				array(
+					'userId' => $userId,
+				)
+			);
+		}
+
 		if (empty($groups)) {
 			$this->assign_user_to_group($user, 'Registered');
 		} else {
@@ -6335,7 +6362,13 @@ class UsersLib extends TikiLib
 			'userId' => $userId,
 		));
 
-		return true;
+		return $user;
+	}
+
+	function autogenerate_login($userId, $digits=6) {
+		//create unique hash based on $userId, between 0 and 999999 (if digits = 6)
+		$userHash = $userId*pow(9,$digits) % (pow(10,$digits));
+		return sprintf('%0'.  $digits . 'd', $userHash); //add leading 0's
 	}
 
 	function set_user_default_preferences($user, $force=true)
@@ -6357,14 +6390,32 @@ class UsersLib extends TikiLib
 			$this->set_user_preference($user, 'language', $prefs['language']);
 		}
 	}
+
 	function change_user_email_only($user, $email)
 	{
+		global $prefs;
+		if ($prefs['user_unique_email'] == 'y' && $this->other_user_has_email($user, $email)) {
+			$smarty = TikiLib::lib('smarty');
+			$smarty->assign('errortype', 'login');
+			$smarty->assign('msg', tra('Email cannot be set because this email is already in use by another user.'));
+			$smarty->display('error.tpl');
+			die;
+		}
 		$query = 'update `users_users` set `email`=? where binary `login`=?';
 		$result = $this->query($query, array($email, $user));
 	}
 
 	function change_user_email($user, $email, $pass=null)
 	{
+		global $prefs;
+		if ($prefs['user_unique_email'] == 'y' && $this->other_user_has_email($user, $email)) {
+			$smarty = TikiLib::lib('smarty');
+			$smarty->assign('errortype', 'login');
+			$smarty->assign('msg', tra('Email cannot be set because this email is already in use by another user.'));
+			$smarty->display('error.tpl');
+			die;    
+		}
+
 		// Need to change the email-address for notifications, too
 		$notificationlib = TikiLib::lib('notification');
 		$oldMail = $this->get_user_email($user);
@@ -6486,11 +6537,19 @@ class UsersLib extends TikiLib
 
 	function get_user_by_email($email)
 	{
-		$query = 'select `login` from `users_users` where `email`=?';
-		$pass = $this->getOne($query, array($email));
+		$query = 'select `login` from `users_users` where upper(`email`)=?';
+		$pass = $this->getOne($query, array(TikiLib::strtoupper($email)));
 
 		return $pass;
 	}
+
+	function other_user_has_email($user, $email)
+	{
+		$query = 'select `login` from `users_users` where upper(`email`)=? and `login`!=?';
+		$pass = $this->getOne($query, array(TikiLib::strtoupper($email), $user));
+
+		return $pass;	
+	}	
 
 	function is_due($user, $method=null)
 	{
@@ -6600,7 +6659,7 @@ class UsersLib extends TikiLib
 
 		if ($prefs['pass_chr_case'] == 'y') {
 			if (!preg_match_all('/[a-z]+/', $pass, $foo) || !preg_match_all('/[A-Z]+/', $pass, $foo)) {
-				$errors[] = tra('Password must contain at least one alphabetical character in lower case like a and one in upper case like A.');
+				$errors[] = tra('Password must contain at least one lowercase alphabetical character like "a" and one uppercase character like "A".');
 			}
 		}
 
@@ -6621,7 +6680,7 @@ class UsersLib extends TikiLib
 			$previous = '';
 			foreach ($chars as $char) {
 				if ($char == $previous) {
-					$errors[] = tra('Password must contain no consecutive repetition of the same character as 111 or aab');
+					$errors[] = tra('Password must not contain a consecutive repetition of the same character such as "111" or "aab"');
 					break;
 				}
 				$previous = $char;
@@ -6630,7 +6689,7 @@ class UsersLib extends TikiLib
 
 		if ($prefs['pass_diff_username'] == 'y') {
 			if (strtolower($user) == strtolower($pass)) {
-				$errors[] = tra('Password must be different from the user login.');
+				$errors[] = tra('The password must be different from the user\'s log-in name.');
 			}
 		}
 
@@ -6880,6 +6939,13 @@ class UsersLib extends TikiLib
 		}
 
 		if (isset($u['email'])) {
+			if ($prefs['user_unique_email'] == 'y' && $this->other_user_has_email($u['login'], $u['email'])) {
+				$smarty = TikiLib::lib('smarty');
+				$smarty->assign('errortype', 'login');
+				$smarty->assign('msg', tra('Email cannot be set because this email is already in use by another user.'));
+				$smarty->display('error.tpl');
+				die;
+			}
 			$q[] = '`email` = ?';
 			$bindvars[] = strip_tags($u['email']);
 		}
@@ -7856,7 +7922,7 @@ class UsersLib extends TikiLib
 	 * @param string $path Users will have to autologin using this path on the site using the token
 	 * @throws Exception
 	 */
-	function invite_tempuser($emails, $groups, $timeout, $prefix = '_token', $path = 'tiki-index.php') {
+	function invite_tempuser($emails, $groups, $timeout, $prefix = 'guest', $path = 'tiki-index.php') {
 		global $smarty, $user, $prefs;
 		include_once ('lib/webmail/tikimaillib.php');
 

@@ -73,7 +73,6 @@ function prefs_global_list($partial = false)
 			'size' => 30,
 			'default' => TikiInit::tempdir(),
 			'perspective' => false,
-			'default' => 'temp',
 		),
 		'helpurl' => array(
 			'name' => tra('Help URL'),
@@ -155,7 +154,7 @@ function prefs_global_list($partial = false)
 			'default' => 'n',
 		),
 		'maxArticles' => array(
-			'name' => tra('Maximum number of articles on articles home page'),
+			'name' => tra('Maximum number of articles on the articles homepage'),
             'description' => tra(''),
 			'type' => 'text',
 			'size' => '5',
@@ -172,7 +171,6 @@ function prefs_global_list($partial = false)
 		),
 		'urlOnUsername' => array(
 			'name' => tra('URL to go to when clicking on a username'),
-            'description' => tra(''),
 			'type' => 'text',
 			'description' => tra('URL to go to when clicking on a username.').' '.tra('Default').': tiki-user_information.php?userId=%userId% <em>('.tra('Use %user% for login name and %userId% for userId)').')</em>',
 			'default' => '',
@@ -186,7 +184,7 @@ function prefs_global_list($partial = false)
 			'tags' => array('basic'),
 		),
 		'useGroupTheme' => array(
-			'name' => tra('Group Theme'),
+			'name' => tra('Group theme'),
             'description' => tra('Each group can have its own theme'),
 			'type' => 'flag',
 			'default' => 'n',
@@ -274,7 +272,7 @@ function prefs_global_list($partial = false)
 		'registerKey' => array(
 			'name' => tra('Registration page key'),
             'hint' => tra('Key required to be on included the URL to access the registration page (if not empty).'),
-			'description' =>  tra('e.g. To register users need to go to: tiki-register.php?key=yourregistrationkeyvalue'),
+			'description' =>  tra('for example, to register, users need to go to: tiki-register.php?key=yourregistrationkeyvalue'),
 			'type' => 'text',
 			'size' => 15,
 			'default' => '',
@@ -306,7 +304,7 @@ function prefs_global_list($partial = false)
 			'name' => tra('Create a new group for each user'),
             'description' => tra(''),
 			'type' => 'flag',
-			'hint' => tra("The group will be named identical to the user's username"),
+			'hint' => tra("The group name will be the same as the user's username"),
 			'help' => 'Groups',
 			'default' => 'n',
 			'keywords' => 'eponymous groups',
@@ -371,14 +369,14 @@ function prefs_global_list($partial = false)
 		),
 		'useUrlIndex' => array(
 			'name' => tra('Use custom homepage'),
-			'description' => tra('Use a Tiki feature homepage or another homepage'),
+			'description' => tra('Use the top page of a Tiki feature or another homepage'),
 			'type' => 'flag',
 			'default' => 'n',
 			'tags' => array('basic'),
 		),
 		'tikiIndex' => array(
-			'name' => tra('Use Tiki feature as homepage'),
-            'description' => tra('Select the Tiki feature to use as the site homepage. Only enabled features are listed.'),
+			'name' => tra('Use the top page of a Tiki feature as the homepage'),
+            'description' => tra('Select the Tiki feature to provide the site homepage. Only enabled features are listed.'),
 			'type' => 'list',
 			'options' => feature_home_pages($partial),
 			'default' => 'tiki-index.php',

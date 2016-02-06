@@ -130,7 +130,7 @@ class WikiLib extends TikiLib
 	}
 
 	// Returns all pages that links from here or to here, without distinction
-	// This is used by wiki3d, to make the graph
+	// This is used by wiki mindmap, to make the graph
 	public function wiki_get_neighbours($page)
 	{
 		$neighbours = array();
@@ -1227,6 +1227,9 @@ class WikiLib extends TikiLib
 		}
 
 		if ($prefs['feature_sefurl'] == 'y') {
+
+			// escape colon chars so the url doesn't appear to be protocol:address - occurs with user pages and namespaces
+			$href = str_replace(':', '%3A', $href);
 
 			include_once('tiki-sefurl.php');
 			return filter_out_sefurl($href, 'wiki');

@@ -16,6 +16,14 @@ if (strpos($_SERVER["SCRIPT_NAME"], basename(__FILE__)) !== false) {
  */
 class StatsLib extends TikiLib
 {
+	/**
+	 *  Check if the prerequisites for recording a statistics hit are fulfilled
+	 */
+	public static function is_stats_hit() {
+		global $prefs, $user;
+		return $prefs['feature_stats'] === 'y' && ( $prefs['count_admin_pvs'] === 'y' || $user != 'admin' );
+	}
+
 	// obsolete, but keeped for compatibility purposes
 	// use Tikilib::list_pages() instead
     /**
@@ -267,7 +275,7 @@ class StatsLib extends TikiLib
 				}
 				if ($view['views'] == $minvar) {
 					$stats['worstday'] .= $tikilib->get_long_date($view['unixtime']) . ' (' . $minvar . ' ' . tra('pvs') . ')<br />';
-					$w > 0 ? $stats['worstdesc'] = tra('Days with the least pageviews') : $stats['worstdesc'] = tra('Day with the least pageviews');
+					$w > 0 ? $stats['worstdesc'] = tra('Days with the fewest pageviews') : $stats['worstdesc'] = tra('Day with the fewest pageviews');
 					$w++;
 				}
 			}
@@ -292,9 +300,8 @@ class StatsLib extends TikiLib
      */
     public function stats_hit($object, $type, $id = null)
 	{
-		if ( is_null($object) || is_null($type) ) {
-			$result = false;
-			return $result;
+		if ( empty($object) || empty($type) || !StatsLib::is_stats_hit() ) {
+			return false;
 		}
 
 		list($month, $day, $year) = explode(',', $this->date_format("%m,%d,%Y"));

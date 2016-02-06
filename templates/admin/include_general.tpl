@@ -77,6 +77,7 @@
 					</div>
 				</div>
 				{preference name=email_footer}
+				{preference name=mail_template_custom_text}
 			</fieldset>
 			<fieldset>
 				<legend>{tr}Newsletter{/tr}</legend>
@@ -341,6 +342,7 @@
 				{preference name=users_prefs_display_12hr_clock}
 			</fieldset>
 			{preference name=tiki_same_day_time_only}
+			{preference name=jquery_timeago}
 			{preference name=wikiplugin_now}
 			{preference name=wikiplugin_countdown}
 			{preference name=wikiplugin_timesheet}

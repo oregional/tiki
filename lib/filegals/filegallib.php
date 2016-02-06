@@ -523,11 +523,10 @@ class FileGalLib extends TikiLib
 				}
 			}
 			//if no archives allowed by user, then replace certain original file information with
-			//informtion from the validated draft
+			//information from the validated draft
 			if ($archives == -1) {
 				$filesTable->update(
 					array(
-						'path' => $newPath,
 						'filename' => $draft['filename'],
 						'filesize' => $draft['filesize'],
 						'filetype' => $draft['filetype'],
@@ -2532,7 +2531,7 @@ class FileGalLib extends TikiLib
 
 		$files = $this->table('tiki_files');
 
-		if ($prefs['count_admin_pvs'] == 'y' || $user != 'admin') {
+		if (StatsLib::is_stats_hit()) {
 			// Enforce max download per file
 			if ( $prefs['fgal_limit_hits_per_file'] == 'y' ) {
 				$limit = $this->get_download_limit($id);
@@ -2573,7 +2572,7 @@ class FileGalLib extends TikiLib
 	function add_file_gallery_hit($id)
 	{
 		global $prefs, $user;
-		if ($prefs['count_admin_pvs'] == 'y' || $user != 'admin') {
+		if (StatsLib::is_stats_hit()) {
 			$fileGalleries = $this->table('tiki_file_galleries');
 			$fileGalleries->update(array('hits' => $fileGalleries->increment(1)), array('galleryId' => (int) $id));
 		}

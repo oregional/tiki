@@ -28,7 +28,7 @@ function prefs_memcache_list()
 			'description' => tra('Server list which may be accessed. For each server, the address, port and weight must be specified.'),
 			'type' => 'textarea',
 			'filter' => 'striptags',
-			'hint' => tra('One per line. address:port (weight) e.g. "localhost:11211 (1)"'),
+			'hint' => tra('One per line, with format of address:port (weight); for example, "localhost:11211 (1)"'),
 			'serialize' => 'prefs_memcache_serialize_servers',
 			'unserialize' => 'prefs_memcache_unserialize_servers',
 			'size' => 10,
@@ -37,7 +37,7 @@ function prefs_memcache_list()
 		),
 		'memcache_prefix' => array(
 			'name' => tra('Memcache key prefix'),
-			'description' => tra('When the memcache cluster is used by multiple applications, using unique prefixes for each of them helps avoiding conflicts.'),
+			'description' => tra('When the memcache cluster is used by multiple applications, using unique prefixes for each of them helps avoid conflicts.'),
 			'filter' => 'word',
 			'size' => 10,
 			'type' => 'text',

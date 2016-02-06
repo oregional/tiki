@@ -357,8 +357,8 @@ function checkAddresses($recipients, $error = true)
 			$ok = $ret[0];
 		}
 		if ( $error && !$ok) {
-			$e[] = tra('One of the email addresses you typed is invalid:') . '&nbsp;' . $recipient;
-			$logslib->add_log('share', tra('One of the email addresses you typed is invalid:') . ' ' . $recipient . ' ' . tra('by') . ' ' . $user);
+			$e[] = tra('One of the email addresses that was input is invalid:') . '&nbsp;' . $recipient;
+			$logslib->add_log('share', tra('One of the email addresses that was input is invalid:') . ' ' . $recipient . ' ' . tra('by') . ' ' . $user);
 		}
 	}
 
@@ -558,7 +558,7 @@ function postForum($forumId, $subject)
 	$forumperms = Perms::get(array( 'type' => 'forum', 'object' => $forumId ));
 
 	if (!($forumperms->forum_post and $forumperms->forum_post_topic) or !$forumperms->admin_forum) {
-		$errors[] = tra('Permission to post in forum denied');
+		$errors[] = tra("You don't have permission to post in this forum");
 		return 0;
 	}
 

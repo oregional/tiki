@@ -15,7 +15,7 @@ function prefs_site_list()
 	return array (
 		'site_closed' => array(
 			'name' => tra('Close site'),
-			'description' => tra('Close site (except for those with permission)'),
+			'description' => tra('Close the site (except for those with access permission)'),
 			'type' => 'flag',
 			'perspective' => false,
 			'tags' => array('basic'),
@@ -68,11 +68,11 @@ function prefs_site_list()
 		),
 		'site_title_breadcrumb' => array(
 			'name' => tra('Browser title display mode'),
-			'description' => tra('When breadcrumbs are used, method in which the browser title should be displayed.'),
+			'description' => tra('When breadcrumbs are used, method to display the browser title.'),
 			'type' => 'list',
 			'options' => array(
-				'invertfull' => tra('Most specific first'),
-				'fulltrail' => tra('Least specific first (site)'),
+				'invertfull' => tra('Most-specific first'),
+				'fulltrail' => tra('Least-specific first (site)'),
 				'pagetitle' => tra('Current only'),
 				'desc' => tra('Description'),
 			),
@@ -118,7 +118,7 @@ function prefs_site_list()
 		),
 		'site_google_analytics_account' => array(
 			'name' => tr('Google Analytics account number'),
-			'description' => tra('The account number for the site. Your account number from Google looks like UA-XXXXXXX-YY. All you need to enter is XXXXXXX-YY'),
+			'description' => tra('The account number for the site. The account number from Google is something like UA-XXXXXXX-YY. Enter only XXXXXXX-YY'),
 			'type' => 'text',
 			'size' => 15,
 			'default' => '',
@@ -129,9 +129,10 @@ function prefs_site_list()
 		),
 		'site_layout' => array(
 			'name' => tr('Site layout'),
-			'description' => tr('Changes the overall site layout templates'),
+			'description' => tr('Changes the template for the overall site layout'),
 			'type' => 'list',
 			'default' => 'basic',
+			'help' => 'Site Layout',
 			'tags' => array('advanced'),
 			'options' => $available_layouts,
 		),
@@ -149,6 +150,34 @@ function prefs_site_list()
 			'tags' => array('experimental'),
 			'type' => 'flag',
 			'default' => 'n',
+		),
+		'site_piwik_analytics_server_url' => array(
+			'name' => tr('Piwik server url'),
+			'description' => tr('The url to your Piwik Server') . '<br />'
+					. tr('In your Piwik, your selected site (Site Id) MUST have view permission for anonymous OR you can insert in your Piwik server url a token authentification parameter.'),
+			'type' => 'text',
+			'filter' => 'url',
+			'size' => 30,
+			'default' => '',
+			'hint' => 'http(s)://yourpiwik.tld/index.php(?token_auth=yourtokencode)',
+		),
+		'site_piwik_site_id' => array(
+			'name' => tra('Site Id'),
+			'description' => tr('The ID of your website in Piwik.'),
+			'type' => 'text',
+			'size' => '5',
+			'default' => '',
+			'dependencies' => array(
+				'site_piwik_analytics_server_url',
+			),
+		),
+		'site_google_credentials' => array(
+			'name' => tra('Google Authentication Credentials File'),
+			'description' => tr('Path to you Google Service Account credentials JSON file.'),
+			'type' => 'text',
+			'size' => 30,
+			'default' => '',
+			'warning' => 'Must be kept private and not accessible on the internet directly',
 		),
 	);
 }

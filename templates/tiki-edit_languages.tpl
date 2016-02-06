@@ -1,3 +1,4 @@
+{* $Id$ *}
 {title admpage="i18n"}{tr}Edit languages{/tr}{/title}
 <div class="t_navbar margin-bottom-md">
 	{if $smarty.session.interactive_translation_mode eq 'on'}
@@ -5,24 +6,12 @@
 	{else}
 		{button href="tiki-interactive_trans.php?interactive_translation_mode=on" _text="{tr}Toggle interactive translation on{/tr}" _ajax="n"}
 	{/if}
-	<div class="btn-group">
-		<button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-			{icon name="export"} {tr}Export{/tr}
-			<span class="caret"></span>
-		</button>
-		<ul class="dropdown-menu">
-			<li>
-				<a class="btn btn-link tips" href="{service controller=language action=download_db_translations}" title=":{tr}Download a file with all the translations in the database for the selected language.{/tr}">
-					{tr}Download Translations{/tr}
-				</a>
-			</li>
-			<li>
-				<a class="btn btn-link tips" href="{service controller=language action=write_to_language_php}" title=":{tr}Translations in the database will be merged with the other translations in language.php for the selected language.{/tr}">
-					{tr}Write to language.php{/tr}
-				</a>
-			</li>
-		</ul>
-	</div>
+	<a class="btn btn-link tips" href="{service controller=language action=manage_custom_php_translations}" title="{tr}Customized String Translation{/tr}:{tr}Manage local translations in a custom.php file{/tr}">
+		{icon name="file-code-o"} {tr}Custom Translations{/tr}
+	</a>
+	<a class="btn btn-link tips" href="{service controller=language action=upload language={$edit_language}}" title="{tr}Upload Translations{/tr}:{tr}Upload a file with translations for the selected language.{/tr}">
+		{icon name="upload"} {tr}Upload Translations{/tr}
+	</a>
 </div>
 <form action="tiki-edit_languages.php" id="select_action" method="post" class="form-horizontal">
 	{if isset($find)}
@@ -34,12 +23,23 @@
 	<div class="form-group">
 		<div class="adminoptionbox">
 			<label for="edit_language" class="col-md-4 control-label">{tr}Language{/tr}</label>
-			<div class="col-md-8">
+			<div class="col-md-6">
 				<select id="edit_language" class="translation_action form-control" name="edit_language">
 					{section name=ix loop=$languages}
 						<option value="{$languages[ix].value|escape}" {if $edit_language eq $languages[ix].value}selected="selected"{/if}>{$languages[ix].name}</option>
 					{/section}
 				</select>
+			</div>
+			<div class="col-md-2">
+				<a class="btn btn-link tips" href="{service controller=language action=download language={$edit_language} file_type=language_php}" title="{tr}Download{/tr}:{tr}Download language.php file for the selected language.{/tr}">
+					{icon name="download"}
+				</a>
+				<a class="btn btn-link tips" href="{service controller=language action=download_db_translations language={$edit_language}}" title="{tr}Download Database Translations{/tr}:{tr}Download a file with all the translations in the database for the selected language.{/tr}">
+					{icon name="file-text-o"}
+				</a>
+				<a class="btn btn-link tips" href="{bootstrap_modal controller=language action=write_to_language_php language={$edit_language}}" title="{tr}Write to language.php{/tr}:{tr}Translations in the database will be merged with the other translations in language.php for the selected language.{/tr}">
+					{icon name="flash"}
+				</a>				
 			</div>
 		</div>
 	</div>

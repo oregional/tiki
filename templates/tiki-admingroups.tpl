@@ -144,7 +144,7 @@
 		{assign var=tabaddeditgroup_admgrp value="{tr}Add a New Group{/tr}"}
 	{/if}
 
-	{tab name=$tabaddeditgroup_admgrp}
+	{tab name="{$tabaddeditgroup_admgrp}"}
 		{* ----------------------- tab with form --------------------------------------- *}
 
 		{if !empty($user) and $prefs.feature_user_watches eq 'y' && !empty($groupname)}
@@ -245,7 +245,7 @@
 			{/if}
 			{if $prefs.useGroupTheme eq 'y'}
 				<div class="form-group">
-					<label for="groups_theme" class="control-label col-md-3">{tr}Group Theme{/tr}</label>
+					<label for="groups_theme" class="control-label col-md-3">{tr}Group theme{/tr}</label>
 					<div class="col-md-9">
 						<select name="theme" id="groups_theme" class="form-control">
 							<option value="" {if $grouptheme eq ""} selected="selected"{/if}>{tr}none{/tr} ({tr}Use site default{/tr})</option>
@@ -360,7 +360,7 @@
 						<div class="checkbox">
 							<label>
 								<input type="checkbox" name="userChoice"{if $userChoice eq 'y'} checked="checked"{/if}>
-								{tr}User can assign to the group himself{/tr}
+								{tr}User can assign himself or herself to the group{/tr}
 							</label>
 						</div>
 					</div>

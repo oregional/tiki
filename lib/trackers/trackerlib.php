@@ -145,7 +145,7 @@ class TrackerLib extends TikiLib
 	public function add_item_attachment_hit($id)
 	{
 		global $prefs, $user;
-		if ($user != 'admin' || $prefs['count_admin_pvs'] == 'y' ) {
+		if (StatsLib::is_stats_hit()) {
 			$attachments = $this->attachments();
 			$attachments->update(array('hits' => $attachments->increment(1)), array('attId' => (int) $id));
 		}
@@ -593,13 +593,14 @@ class TrackerLib extends TikiLib
 	}
 
 	/*shared*/
-	public function get_user_items($user)
+	public function get_user_items($auser, $with_groups = true)
 	{
+		global $user;
 		$items = array();
 
 		$query = "select ttf.`trackerId`, tti.`itemId` from `tiki_tracker_fields` ttf, `tiki_tracker_items` tti, `tiki_tracker_item_fields` ttif";
 		$query .= " where ttf.`fieldId`=ttif.`fieldId` and ttif.`itemId`=tti.`itemId` and `type`=? and tti.`status`=? and `value`=?";
-		$result = $this->fetchAll($query, array('u','o',$user));
+		$result = $this->fetchAll($query, array('u','o',$auser));
 		$ret = array();
 
 		$trackers = $this->table('tiki_trackers');
@@ -630,31 +631,33 @@ class TrackerLib extends TikiLib
 			}
 		}
 
-		$groups = $this->get_user_groups($user);
+		if ($with_groups) {
+			$groups = $this->get_user_groups($auser);
 
-		foreach ($groups as $group) {
-			$query = "select ttf.`trackerId`, tti.`itemId` from `tiki_tracker_fields` ttf, `tiki_tracker_items` tti, `tiki_tracker_item_fields` ttif ";
-			$query .= " where ttf.`fieldId`=ttif.`fieldId` and ttif.`itemId`=tti.`itemId` and `type`=? and tti.`status`=? and `value`=?";
-			$result = $this->fetchAll($query, array('g','o',$group));
+			foreach ($groups as $group) {
+				$query = "select ttf.`trackerId`, tti.`itemId` from `tiki_tracker_fields` ttf, `tiki_tracker_items` tti, `tiki_tracker_item_fields` ttif ";
+				$query .= " where ttf.`fieldId`=ttif.`fieldId` and ttif.`itemId`=tti.`itemId` and `type`=? and tti.`status`=? and `value`=?";
+				$result = $this->fetchAll($query, array('g', 'o', $group));
 
-			foreach ($result as $res) {
-				$itemId = $res["itemId"];
+				foreach ($result as $res) {
+					$itemId = $res["itemId"];
 
-				$trackerId = $res["trackerId"];
-				// Now get the isMain field for this tracker
-				$fieldId = $trackerFields->fetchOne('fieldId', array('isMain' => 'y', 'trackerId' => (int) $trackerId));
-				// Now get the field value
-				$value = $trackerItemFields->fetchOne('value', array('fieldId' => (int) $fieldId, 'itemId' => (int) $itemId));
-				$tracker = $trackers->fetchOne('name', array('trackerId' => (int) $trackerId));
+					$trackerId = $res["trackerId"];
+					// Now get the isMain field for this tracker
+					$fieldId = $trackerFields->fetchOne('fieldId', array('isMain' => 'y', 'trackerId' => (int)$trackerId));
+					// Now get the field value
+					$value = $trackerItemFields->fetchOne('value', array('fieldId' => (int)$fieldId, 'itemId' => (int)$itemId));
+					$tracker = $trackers->fetchOne('name', array('trackerId' => (int)$trackerId));
 
-				$aux["trackerId"] = $trackerId;
-				$aux["itemId"] = $itemId;
-				$aux["value"] = $value;
-				$aux["name"] = $tracker;
+					$aux["trackerId"] = $trackerId;
+					$aux["itemId"] = $itemId;
+					$aux["value"] = $value;
+					$aux["name"] = $tracker;
 
-				if (!in_array($itemId, $items)) {
-					$ret[] = $aux;
-					$items[] = $itemId;
+					if (!in_array($itemId, $items)) {
+						$ret[] = $aux;
+						$items[] = $itemId;
+					}
 				}
 			}
 		}
@@ -1321,8 +1324,8 @@ class TrackerLib extends TikiLib
 		if ($csort_mode == '`created`') {
 			$csort_mode = 'tti.created';
 		}
-		$query = 'SELECT tti.*, ttif.`value`, ttf.`type`'
-				.', '.( ($numsort) ? "cast($csort_mode as decimal)" : $csort_mode).' as `sortvalue`'
+		$query = 'SELECT tti.*'
+				.', '.( ($numsort) ? "cast(max($csort_mode) as decimal)" : "max($csort_mode)").' as `sortvalue`'
 			.' FROM '.$base_tables.$sort_tables.$cat_table
 			.$mid
 			.' GROUP BY tti.`itemId`'
@@ -1681,7 +1684,7 @@ class TrackerLib extends TikiLib
 						$this->log($version, $itemId, $array['fieldId'], '?');
 					}
 				} elseif ($array['options_array'][0] == 'email') {
-					if (!empty($array['value']) && validate_email($array['value'])) {
+					if (!empty($array['value']) && validate_email($array['value']) && ($prefs['user_unique_email'] != 'y' || !$userlib->other_user_has_email($trackersync_user, $array['value']))) {
 						$old_value = $userlib->get_user_email($trackersync_user);
 						$userlib->change_user_email($trackersync_user, $array['value']);
 					}
@@ -2448,6 +2451,9 @@ class TrackerLib extends TikiLib
 			}
 		}
 
+		// remove the object and uncategorize etc while the item still exists
+		$this->remove_object("trackeritem", $itemId);
+
 		$this->trackers()->update(
 			array('lastModif' => $this->now, 'items' => $this->trackers()->decrement(1)),
 			array('trackerId' => (int) $trackerId)
@@ -2481,7 +2487,7 @@ class TrackerLib extends TikiLib
 			$currentCategId=$categlib->get_category_id("Tracker Item $itemId");
 			$categlib->remove_category($currentCategId);
 		}
-		$this->remove_object("trackeritem", $itemId);
+
 		if (isset($options['autoCreateGroup']) && $options['autoCreateGroup'] == 'y') {
 			$userlib = TikiLib::lib('user');
 			$groupName = $this->groupName($options, $itemId);

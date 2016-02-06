@@ -11,7 +11,7 @@
 			<div class="btn-group">
 				{if $js == 'n'}<ul class="cssmenu_horiz"><li>{/if}
 				<a class="btn btn-link" data-toggle="dropdown" data-hover="dropdown" href="#">
-					{icon name="sort-down"}
+					{icon name="history"}
 				</a>
 				<ul class="dropdown-menu" role="menu">
 					<li class="dropdown-title">
@@ -31,7 +31,7 @@
 			<div class="btn-group">
 				{if $js == 'n'}<ul class="cssmenu_horiz"><li>{/if}
 				<a class="btn btn-link" data-toggle="dropdown" data-hover="dropdown" href="#">
-					{icon name="more"}
+					{icon name='menu-extra'}
 				</a>
 				<ul class="dropdown-menu">
 					<li class="dropdown-title">
@@ -84,13 +84,6 @@
 								{/if}
 							</li>
 						{/if}
-					{if $prefs.themegenerator_feature eq "y" and !empty($prefs.themegenerator_theme)}
-						<li>
-							<a href="#" onclick="openThemeGenDialog();return false;">
-								{icon name="themegenerator"} {tr}Theme Generator{/tr}
-							</a>
-						</li>
-					{/if}
 					{if $prefs.feature_comments_moderation eq "y"}
 						<li>
 							<a href="tiki-list_comments.php">

@@ -9,7 +9,7 @@ function prefs_calendar_list()
 {
 	return array(
 		'calendar_view_days' => array(
-			'name' => tra('Days to display in the Calendar'),
+			'name' => tra('Days to display in the calendar'),
             'description' => tra(''),
 			'type' => 'multicheckbox',
 			'options' => array( 
@@ -43,7 +43,7 @@ function prefs_calendar_list()
             'description' => tra(''),
 			'type' => 'list',
 			'options' => array(
-				'y' => tra('Focus Date'),
+				'y' => tra('Focus date'),
 				'n' => tra('Period beginning'),
 			),
 			'default' => 'n',

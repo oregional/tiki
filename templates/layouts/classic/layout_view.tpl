@@ -7,6 +7,8 @@
 <body{html_body_attributes}>
 {$cookie_consent_html}
 
+{include file="layout_fullscreen_check.tpl"}
+
 {if $prefs.feature_ajax eq 'y'}
     {include file='tiki-ajax_header.tpl'}
 {/if}
@@ -42,8 +44,8 @@
                                 {modulelist zone=pagetop}
                             {/if}
                             {error_report}
-                            <div class="clearfix">
-                                <div class="pull-right">{block name=quicknav}{/block}</div>
+                            <div class="pull-right">
+                                {block name=quicknav}{/block}
                             </div>
                             {block name=title}{/block}
                             {block name=navigation}{/block}
@@ -62,8 +64,8 @@
                                 {modulelist zone=pagetop}
                             {/if}
                             {error_report}
-                            <div class="clearfix">
-                                <div class="pull-right">{block name=quicknav}{/block}</div>
+                            <div class="pull-right">
+                                {block name=quicknav}{/block}
                             </div>
                             {block name=title}{/block}
                             {block name=navigation}{/block}
@@ -84,8 +86,8 @@
                                 {modulelist zone=pagetop}
                             {/if}
                             {error_report}
-                            <div class="clearfix">
-                                <div class="pull-right">{block name=quicknav}{/block}</div>
+                            <div class="pull-right">
+                                {block name=quicknav}{/block}
                             </div>
                             {block name=title}{/block}
                             {block name=navigation}{/block}
@@ -106,8 +108,8 @@
                                 {modulelist zone=pagetop}
                             {/if}
                             {error_report}
-                            <div class="clearfix">
-                                <div class="pull-right">{block name=quicknav}{/block}</div>
+                            <div class="pull-right">
+                                {block name=quicknav}{/block}
                             </div>
                             {block name=title}{/block}
                             {block name=navigation}{/block}

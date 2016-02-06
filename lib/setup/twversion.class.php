@@ -18,16 +18,16 @@ class TWVersion
 	public $star;			// Star being used for this version tree
 	public $svn;			// Is this a Subversion version or a package?
 
-	function TWVersion()
+	function __construct()
 	{
 		// Set the development branch.  Valid are:
 		//   stable   : Represents stable releases.
 		//   unstable : Represents candidate and test/development releases.
-		//   trunk     : Represents next generation development version.
+		//   trunk    : Represents next generation development version.
 		$this->branch 	= 'trunk';
 
 		// Set everything else, including defaults.
-		$this->version 	= '15.0svn';	// needs to have no spaces for releases
+		$this->version 	= '16.0svn';	// needs to have no spaces for releases
 		$this->star	= '?';
 		$this->releases	= array();
 
@@ -163,6 +163,8 @@ class TWVersion
 				'6.11',
 				'6.12',
 				'6.13',
+				'6.14',
+				'6.15',
 				'7.0beta1',
 				'7.0beta2',
 				'7.0RC1',
@@ -195,6 +197,7 @@ class TWVersion
 				'9.8',
 				'9.9',
 				'9.10',
+				'9.11',
 				'10.0alpha',
 				'10.0beta',
 				'10.0',
@@ -216,6 +219,7 @@ class TWVersion
 				'12.2',
 				'12.3',
 				'12.4',
+				'12.5',
 				'13.0beta',
 				'13.0',
 				'13.1',
@@ -223,6 +227,7 @@ class TWVersion
 				'14.0beta',
 				'14.0',
 				'14.1',
+				'14.2',
 			);
 	}
 

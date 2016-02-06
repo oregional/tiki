@@ -156,6 +156,9 @@ function iconset_legacy()
 			'admin_socialnetworks' => array(
 				'id' => 'large/socialnetworks',
 			),
+			'admin_stats' => array(
+				'id' => 'large/stats48x48',
+			),
 			'admin_textarea' => array(
 				'id' => 'large/editing',
 			),
@@ -464,7 +467,7 @@ function iconset_legacy()
 				'id' => 'text_list_numbers',
 			),
 			'lock' => array(
-				'id' => 'lock_add',
+				'id' => 'lock',
 			),
 			'log' => array(
 				'id' => 'book',
@@ -489,6 +492,9 @@ function iconset_legacy()
 			//map in defaults
 			'menu' => array(
 				'id' => 'application_side_tree',
+			),
+			'menu-extra' => array(
+				'id' => 'resultset_down',
 			),
 			'menuitem' => array(
 				'id' => 'arrow_right',
@@ -704,9 +710,6 @@ function iconset_legacy()
 			),
 			'th-list' => array(
 				'id' => 'text_list_bullets',
-			),
-			'themegenerator' => array(
-				'id' => 'palette',
 			),
 			'three-d' => array(
 				'id' => 'application_side_tree',
