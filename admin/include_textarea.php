@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -24,7 +24,7 @@ foreach ($parserlib->plugin_get_list() as $name) {
 	}
 }
 $smarty->assign('plugins', $plugins);
-if (isset($_REQUEST['textareasetup']) && (getCookie('admin_textarea', 'tabs') != 3)) {
+if (isset($_REQUEST['textareasetup']) && (getCookie('admin_textarea', 'tabs') != '#contentadmin_textarea-3')) {
 	// tab=3 is plugins alias tab (TODO improve)
 	ask_ticket('admin-inc-textarea');
 	foreach (glob('temp/cache/wikiplugin_*') as $file) {
@@ -40,23 +40,11 @@ $pluginsAlias = WikiPlugin_Negotiator_Wiki_Alias::getList();
 $pluginsReal = $parserlib->plugin_get_list(true, false);
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	$cachelib = TikiLib::lib('cache');
-	$areanames = array(
-		'editwiki',
-		'editpost',
-		'editpost2',
-		'blogedit',
-		'faqans',
-		'body',
-		'description',
-		'trackerDescription'
-	);
-	$langLib = TikiLib::lib('language');
-	$languages = $langLib->list_languages();
+	$languages = TikiLib::lib('language')->list_languages();
+
 	foreach ($languages as $tlang) {
-		foreach ($areanames as $an) {
-			$cachetag = 'plugindesc' . $tlang['value'] . $an . '_js=' . $prefs['javascript_enabled'];
-			$cachelib->invalidate($cachetag);
-		}
+		$cachetag = 'plugindesc' . $tlang['value'] . '_js=' . $prefs['javascript_enabled'];
+		$cachelib->invalidate($cachetag);
 	}
 	if (isset($_POST['enable'])) {
 		if (!is_array($_POST['enabled'])) {
@@ -81,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	if (isset($_POST['textareasetup'])
 			&& !in_array($_POST['plugin_alias'], $pluginsReal)
 			&& isset($_REQUEST['plugin_alias'])
-			&& (getCookie('admin_textarea', 'tabs') == 3)
+			&& (getCookie('admin_textarea', 'tabs') == '#contentadmin_textarea-3')
 	) {
 		// tab=3 is plugins alias tab (TODO improve)
 		$info = array(

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -212,7 +212,7 @@ if (! $db && ! defined('TIKI_IN_INSTALLER')) {
 	if(!empty($dbfail_url)) {
 		header('location: '.$dbfail_url);
 	} else {
-		header('location: tiki-install.php');
+		echo file_get_contents('templates/database_connection_error.html');
 	}
 	exit;
 } elseif ($db) {

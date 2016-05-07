@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -253,7 +253,7 @@ function wikiplugin_articles_info()
 			),
 			'urlparam' => array(
 				'required' => false,
-				'name' => tra('Additional URL Param to the link to read article'),
+				'name' => tra('Additional URL parameter for the link to read the article'),
 				'filter' => 'text',
 				'default' => '',
 				'since' => '6.0',
@@ -275,7 +275,7 @@ function wikiplugin_articles_info()
 			'translationOrphan' => array(
 				'required' => false,
 				'name' => tra('No translation'),
-				'description' => tra('User or pipe separated list of two letter language codes for additional languages
+				'description' => tra('User- or pipe-separated list of two-letter language codes for additional languages
 					to display. List pages with no language or with a missing translation in one of the language'),
 				'filter' => 'alpha',
 				'separator' => '|',

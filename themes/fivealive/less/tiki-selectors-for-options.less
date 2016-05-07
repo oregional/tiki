@@ -9,10 +9,17 @@
 // If Glyphicons should be rendered in a color other than the Bootstrap default or the theme default, uncomment and specify the color.
 // .glyphicon {color: @gray-lighter;}
 
+@imagePathTop: ~"../../../images/";
+
 // Header graphics
 .header_outer {
 	// whole width div containing the header strip
 	background: @header_outer-background; // url('@{imagePath}siteheadertile.png') 0 0 no-repeat;
+}
+
+.header_container {
+	/* 2nd whole width div for background image tricks */
+	background: url('@{imagePathTop}header_left.png') 0 100% no-repeat;
 }
 
 .header_container > .container {
@@ -77,7 +84,10 @@ textarea,
 	a:visited {
 		color: @footer-link-color;
 	}
-	// #a9a9a9;
+	a.btn-default,
+	a.btn-default:visited {
+		color: @footer-color;
+	}
 }
 
 // @navbar-default-link-background: #bfbd23;
@@ -93,6 +103,15 @@ textarea,
 
 .postbody-title {
 	background: @postbody-title-background; //url('@{imagePath}siteheader.png') no-repeat -480px -200px;
+}
+
+.postbody-title .title > .panel-title a.link,
+.panel-default > .panel-heading a {
+	color: @postbody-title-color;
+}
+
+.blog-postbody-title h2.panel-title {
+	font-size: 20px;
 }
 
 .siteloginbar_popup .dropdown-menu > li > a {
@@ -243,4 +262,12 @@ header.header {
 .autotoc .nav .nav > li > a:hover {
 	color: @dropdown-link-hover-color;
 	background: @dropdown-link-hover-bg;
+}
+
+#col2 .panel-title,
+#col3 .panel-title,
+a.flipmoduletitle,
+#col2 .panel-default > .panel-heading a,
+#col3 .panel-default > .panel-heading a {
+	color: @side-column-panel-title-color;
 }

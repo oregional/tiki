@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -99,5 +99,5 @@ function module_last_tracker_items($mod_reference, $module_params)
 	}
 	$smarty->assign('tpl_module_title', tra("Last Items"));
 	if (!strcasecmp($module_params['sort_mode'], 'lastModif_desc'))
-		$smarty->assign('tpl_module_title', tra("Last Modified Items"));
+		$smarty->assign('tpl_module_title', tra("Last modified Items"));
 }

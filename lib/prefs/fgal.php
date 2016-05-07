@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -287,8 +287,6 @@ function prefs_fgal_list()
 			'filter' => 'alpha',
 			'default' => 'n',
 			'help' => 'elFinder',
-			'warning' => tra('Experimental'),
-			'tags' => array('experimental'),
 			'dependencies' => array('feature_jquery_ui'),
 		),
 		'fgal_viewerjs_feature' => array(
@@ -306,7 +304,7 @@ function prefs_fgal_list()
 			'description' => tra('Where ViewerJS is installed'),
 			'type' => 'text',
 			'filter' => 'url',
-			'default' => 'vendor/ViewerJS/ViewerJS/index.html',
+			'default' => 'files/viewerjs/ViewerJS/index.html',
 			'help' => 'ViewerJS',
 			'tags' => array('experimental'),
 			'dependencies' => array('fgal_viewerjs_feature'),

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -23,8 +23,8 @@ class CacheClearCommand extends Command
 			->addArgument(
 				'cache',
 				InputArgument::OPTIONAL,
-				'Type of cache to clear (public, private, templates, modules)',
-				'private'
+				'Type of cache to clear (public, private, templates, modules, all)',
+				'all'
 			)
 			->addOption(
 				'all',
@@ -58,6 +58,9 @@ class CacheClearCommand extends Command
 			case 'modules':
 				$output->writeln('Clearing module caches');
 				return $cachelib->empty_cache('modules_cache');
+			case 'all':
+				$output->writeln('Clearing all caches');
+				return $cachelib->empty_cache();
 			case '':
 				return $output->writeln('Missing parameter.');
 			default:

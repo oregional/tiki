@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -419,7 +419,6 @@ class ArtLib extends TikiLib
 			'body' => $body,
 			'publishDate' => (int) $publishDate,
 			'expireDate' => (int) $expireDate,
-			'created' => (int) $this->now,
 			'author' => $user,
 			'type' => $type,
 			'rating' => (float) $rating,
@@ -450,6 +449,8 @@ class ArtLib extends TikiLib
 			$smarty->assign('mail_old_data', $oldArticle['heading'] . "\n----------------------\n" . $oldArticle['body']);
 
 		} else {
+			$info['created'] = (int) $this->now;
+
 			$articleId = $article_table->insert($info);
 
 			global $prefs;

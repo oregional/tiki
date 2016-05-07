@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -566,13 +566,19 @@ function sendFileGalleryEmailNotification($event, $galleryId, $galleryName, $nam
 		include_once('lib/webmail/tikimaillib.php');
 		$smarty->assign('galleryName', $galleryName);
 		$smarty->assign('galleryId', $galleryId);
+		$smarty->assign('fileId', $fileId);
 		$smarty->assign('fname', $name);
 		$smarty->assign('filename', $filename);
 		$smarty->assign('fdescription', $description);
 		$smarty->assign('mail_date', $tikilib->now);
 		$smarty->assign('author', $user);
-		$foo = parse_url($_SERVER["REQUEST_URI"]);
-		$machine = $tikilib->httpPrefix(true) . dirname($foo["path"]);
+		global $url_host;
+		if (empty($_SERVER['argc']) && !empty($url_host)) {
+			$foo = parse_url($_SERVER['REQUEST_URI']);
+			$machine = $tikilib->httpPrefix(true) . dirname($foo['path']);
+		} else {
+			$machine = '';		// console command
+		}
 		$smarty->assign('mail_machine', $machine);
 
 		foreach ($nots as $not) {
@@ -843,12 +849,13 @@ function sendCommentNotification($type, $id, $title, $content, $commentId=null)
 			$smarty->assign('mail_item_title', $trklib->get_isMain_value($trackerId, $id));
 		}
 
-		// Blog comment mail
+		// General comment mail
 		$smarty->assign('mail_objectid', $id);
 		$smarty->assign('objecttype', $type);
 		$smarty->assign('mail_user', $user);
 		$smarty->assign('mail_title', $title);
 		$smarty->assign('mail_comment', $content);
+		$smarty->assign('comment_id', $commentId);
 
 		sendEmailNotification($watches, null, 'user_watch_comment_subject.tpl', null, 'user_watch_comment.tpl');
 	}

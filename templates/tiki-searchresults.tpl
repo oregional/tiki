@@ -6,7 +6,7 @@
 
 <div class="margin-bottom-md nohighlight">
 	{if $searchStyle neq "menu" && $prefs.feature_search_show_object_filter eq 'y'}
-		<div class="t_navbar">
+		<div class="t_navbar margin-bottom-sm">
 			{tr}Search in:{/tr}
 			{foreach item=name key=k from=$where_list}
 				{button _auto_args='where,highlight' href="tiki-searchresults.php?where=$k" _selected="{if $where == $k}y{else}n{/if}" _selected_class="highlight" class="btn btn-default" _text="$name"}
@@ -124,7 +124,7 @@
 									<option value="forums">{tr}Forums{/tr}</option>
 								{/if}
 								{if $prefs.feature_faqs eq 'y'}
-									<option value="faqs">{tr}Faqs{/tr}</option>
+									<option value="faqs">{tr}FAQs{/tr}</option>
 								{/if}
 								{if $prefs.feature_blogs eq 'y'}
 									<option value="blogs">{tr}Blogs{/tr}</option>

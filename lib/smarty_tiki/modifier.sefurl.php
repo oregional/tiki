@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -90,7 +90,7 @@ function smarty_modifier_sefurl($source, $type='wiki', $with_next = '', $all_lan
 
 		case 'trackeritem':
 			$replacementpage = '';
-			if ($prefs["feature_sefurl_tracker_prefixalias"] == 'y') {
+			if ($prefs["feature_sefurl_tracker_prefixalias"] == 'y' && $prefs['tracker_prefixalias_on_links'] == 'y') {
 				$trklib = TikiLib::lib('trk');
 				$replacementpage = $trklib->get_trackeritem_pagealias($source);
 			}

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -79,7 +79,7 @@ function wikiplugin_rss_info()
 				'required' => false,
 				'name' => tra('Icon'),
 				'filter' => 'url',
-				'description' => tra('Url to a favicon to put before each entry'),
+				'description' => tra('URL to a favicon to put before each entry'),
 				'since' => '5.0',
 				'default' => '',
 			),

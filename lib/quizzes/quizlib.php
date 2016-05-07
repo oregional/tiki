@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -1201,7 +1201,7 @@ class HW_QuizQuestionMultipleChoice extends HW_QuizQuestion
     /**
      * @param $lines
      */
-    public function HW_QuizQuestionMultipleChoice($lines)
+    public function __construct($lines)
 	{
 		$this->from_text($lines);
 	}
@@ -1305,7 +1305,7 @@ class HW_QuizQuestionYesNo extends HW_QuizQuestion
     /**
      * @param $lines
      */
-    public function HW_QuizQuestionYesNo($lines)
+    public function __construct($lines)
 	{
 		$this->from_text($lines);
 	}
@@ -1395,7 +1395,7 @@ class Quiz
 	public $sEpilogue;
 	public $dbFields;
 
-	public function Quiz()
+	public function __construct()
 	{
 		global $user;
 		$userlib = TikiLib::lib('user');

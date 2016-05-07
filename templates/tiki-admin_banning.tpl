@@ -41,7 +41,7 @@
 
 {title help="Banning"}{tr}Banning system{/tr}{/title}
 
-<div class="t_navbar" xmlns="http://www.w3.org/1999/html">
+<div class="t_navbar">
 	<form action="tiki-admin_banning.php" method="post">
 	<input type="hidden" name="export" value="y">
 		<button name="csv" type="submit" class="btn btn-default">
@@ -245,7 +245,7 @@
 							class="tips"
 							title="{tr}Actions{/tr}"
 							href="#"
-							{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.banning_actions|escape:"javascript"|escape:"html"}{/if}
+							{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.banning_actions|escape:"javascript"|escape:"html"}{/if}
 							style="padding:0; margin:0; border:0"
 						>
 							{icon name='wrench'}

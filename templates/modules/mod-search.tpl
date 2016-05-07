@@ -3,19 +3,18 @@
 	{if $tiki_p_search eq 'y'}
 		{tikimodule error=$module_error title=$smod_params.title name="search" flip=$smod_params.flip decorations=$smod_params.decorations nobox=$smod_params.nobox notitle=$smod_params.notitle}
 			{if $smod_params.tiki_search neq 'none'}
-				<form id="search-module-form{$search_mod_usage_counter}" method="get" action="{$smod_params.search_action}"{if $smod_params.use_autocomplete eq 'y'} onsubmit="return submitSearch{$search_mod_usage_counter}()"{/if}>
-					<div style="position: relative">
-						<div class="form-group{if $smod_params.compact eq "y"} col-sm-9{/if}">
-							<input class="form-control" id="search_mod_input_{$search_mod_usage_counter}" name="{if $smod_params.search_action eq 'tiki-searchindex.php'}filter~content{else}find{/if}" {if !empty($smod_params.input_size)}size="{$smod_params.input_size}" style="width: auto"{/if} type="text" accesskey="s" value="{$smod_params.input_value|escape}" />
-						</div>
+				<form class="form-inline navbar-form" id="search-module-form{$search_mod_usage_counter}" method="get" action="{$smod_params.search_action}"{if $smod_params.use_autocomplete eq 'y'} onsubmit="return submitSearch{$search_mod_usage_counter}()"{/if}>
+<div style="position: relative;">
+						<div class="form-group">
+							<input style="width: 72%;float:left;" placeholder="{tr}Find{/tr}" class="form-control" id="search_mod_input_{$search_mod_usage_counter}" name="{if $smod_params.search_action eq 'tiki-searchindex.php'}filter~content{else}find{/if}" {if !empty($smod_params.input_size)}size="{$smod_params.input_size}" style="width: auto"{/if} type="text" accesskey="s" value="{$smod_params.input_value|escape}" />&nbsp;
+					{*	</div> *}
 						{if $smod_params.show_object_filter eq 'y'}
-							<div class="form-group clearfix">
-								<div class="col-md-2 control-label">
-									{tr}in:{/tr}
-								</div>
-								<div class="col-md-10">
+							<label class="control-label" for="filterType">
+								{tr}in{/tr}&nbsp;
+							</label>
+							<div class="form-group">
 									{if $smod_params.search_action eq 'tiki-searchindex.php'}
-										<select name="filter~type" class="form-control" {*style="width:{$smod_params.select_size}em;"*}>
+										<select id="filterType" name="filter~type" class="form-control" {*style="width:{$smod_params.select_size}em;"*}>
 											<option value="">{tr}Entire Site{/tr}</option>
 											{if $prefs.feature_wiki eq 'y'}<option value="wiki page"{if $smod_params.where eq "wiki page"} selected="selected"{/if}>{tr}Wiki Pages{/tr}</option>{/if}
 											{if $prefs.feature_blogs eq 'y'}<option value="blog post"{if $smod_params.where eq "blog post"} selected="selected"{/if}>{tr}Blog Posts{/tr}</option>{/if}
@@ -45,7 +44,7 @@
 											{if $prefs.feature_trackers eq 'y'}<option value="trackers"{if $smod_params.where eq "trackers"} selected="selected"{/if}>{tr}Trackers{/tr}</option>{/if}
 										</select>
 									{/if}
-								</div>
+
 							</div>
 						{elseif !empty($prefs.search_default_where)}
 							{if is_array($prefs.search_default_where)}
@@ -57,61 +56,74 @@
 							{/if}
 						{/if}
 
+							{if $smod_params.compact eq "y"}
+							<div style="width: 25%; float:left; text-align:center">
+
+							<button type="submit" class="btn btn-default search_mod_magnifier">
+								{icon name="search"}
+							</button>
+								</div>
+
+							<div class="btn-group search_mod_buttons box" style="display:none;position:absolute;left:2.5em;top:2.5em;z-index:2;white-space:nowrap;">
+								{else}
+								&nbsp;<div class="btn-group">
+									{/if}
+									{foreach $smod_params.additional_filters as $key => $filter}
+										<input type="hidden" name="filter~{$key|escape}" value="{$filter|escape}"/>
+									{/foreach}
+									{if $smod_params.show_search_button eq 'y'}
+										<input type = "submit" class="btn btn-default btn-sm tips{if $smod_params.default_button eq 'search'} button_default{/if}"
+											   name = "search" value = "{$smod_params.search_submit|escape}"
+											   title="{tr}Search{/tr}|{tr}Search for text throughout the site.{/tr}"
+											   {if $smod_params.compact eq "y"}data-placement="bottom"{/if}
+											   onclick = "$('#search-module-form{$search_mod_usage_counter}').attr('action', '{$smod_params.search_action|escape:javascript}').attr('page_selected','');"
+										/>
+									{/if}
+									{if $smod_params.show_go_button eq 'y'}
+										<input type = "submit" class="btn btn-default btn-sm tips{if $smod_params.compact eq "y"} bottom{/if}{if $smod_params.default_button eq 'go'} button_default{/if}"
+											   name = "go" value = "{$smod_params.go_submit|escape}"
+											   title="{tr}Search{/tr}|{tr}Go directly to a page, or search in page titles if exact match is not found.{/tr}"
+											   {if $smod_params.compact eq "y"}data-placement="bottom"{/if}
+											   onclick = "$('#search-module-form{$search_mod_usage_counter}').attr('action', '{$smod_params.go_action|escape:javascript}').attr('page_selected','');
+											   {if $smod_params.search_action eq 'tiki-searchindex.php'}
+													   $('#search-module-form{$search_mod_usage_counter} input[name=\'filter~content\']').attr('name', 'find');
+											   {/if}"
+										/>
+										<input type="hidden" name="exact_match" value="" />
+									{/if}
+									{if $smod_params.show_edit_button eq 'y' and $tiki_p_edit eq 'y'}
+										<input type = "submit" class = "btn btn-default btn-sm tips{if $smod_params.compact eq "y"} bottom{/if}{if $smod_params.default_button eq 'edit'} button_default{/if}"
+											   name = "edit" value = "{$smod_params.edit_submit|escape}"
+											   title="{tr}Search{/tr}|{tr}Edit existing page or create a new one.{/tr}"
+											   {if $smod_params.compact eq "y"}data-placement="bottom"{/if}
+											   onclick = "$('#search-module-form{$search_mod_usage_counter} input[name!={if $smod_params.search_action eq 'tiki-searchindex.php'}\'filter~content\'{else}\'find\'{/if}]').attr('name', '');
+													   $('#search-module-form{$search_mod_usage_counter} input[name={if $smod_params.search_action eq 'tiki-searchindex.php'}\'filter~content\'{else}\'find\'{/if}]').attr('name', 'page');
+													   $('#search-module-form{$search_mod_usage_counter}').attr('action', '{$smod_params.edit_action|escape:javascript}').attr('page_selected','');"
+										/>
+									{/if}
+								</div></div>
+
+
 						{if $smod_params.tiki_search neq 'y'}
 							{if $smod_params.advanced_search_option eq 'y'}
-								<label for="boolean">{tr}Advanced:{/tr}<input type="checkbox" name="boolean" id="boolean"{if $smod_params.advanced_search eq "y"} checked="checked"{/if} /></label>
+								<div class="checkbox" style="padding-left: 6px; padding-right: 6px;">
+									<label for="boolean"><input type="checkbox" name="boolean" id="boolean"{if $smod_params.advanced_search eq "y"} checked="checked"{/if} /> {tr}Advanced{/tr}
+										{if $smod_params.advanced_search_help eq 'y'}
+											<a href="{bootstrap_modal controller=search action=help}">{icon name='help'} {tr}Search Help{/tr}</a>
+										{/if}
+
+									</label>
+								</div>
 							{else}
 								{if $smod_params.advanced_search eq "y"}<input type="hidden" name="boolean" value="on" />{/if}
 							{/if}
 							<input type="hidden" name="boolean_last" value="{$smod_params.advanced_search}" />
-							{if $smod_params.advanced_search_help eq 'y'}
-								<a href="{bootstrap_modal controller=search action=help}">{tr}Search Help{/tr} {icon name='help'}</a>
-							{/if}
+
 						{/if}
-						{if $smod_params.compact eq "y"}
-							<div class="col-sm-3" style="padding: 0 3px;">
-								<button type="submit" class="btn btn-default search_mod_magnifier">
-									{icon name="search"}
-								</button>
-							</div>
-							<div class="btn-group search_mod_buttons box" style="display:none;position:absolute;right:0;top:2.5em;z-index:2;white-space:nowrap;">
-						{else}
-							<div class="btn-group">
-						{/if}
-							{foreach $smod_params.additional_filters as $key => $filter}
-								<input type="hidden" name="filter~{$key|escape}" value="{$filter|escape}"/>
-							{/foreach}
-							{if $smod_params.show_search_button eq 'y'}
-								<input type = "submit" class="btn btn-default btn-sm tips{if $smod_params.default_button eq 'search'} button_default{/if}"
-									name = "search" value = "{$smod_params.search_submit|escape}"
-									title="{tr}Search{/tr}|{tr}Search for text throughout the site.{/tr}"
-									{if $smod_params.compact eq "y"}data-placement="bottom"{/if}
-									onclick = "$('#search-module-form{$search_mod_usage_counter}').attr('action', '{$smod_params.search_action|escape:javascript}').attr('page_selected','');"
-								/>
-							{/if}
-							{if $smod_params.show_go_button eq 'y'}
-								<input type = "submit" class="btn btn-default btn-sm tips{if $smod_params.compact eq "y"} bottom{/if}{if $smod_params.default_button eq 'go'} button_default{/if}"
-									name = "go" value = "{$smod_params.go_submit|escape}"
-									title="{tr}Search{/tr}|{tr}Go directly to a page, or search in page titles if exact match is not found.{/tr}"
-									{if $smod_params.compact eq "y"}data-placement="bottom"{/if}
-									onclick = "$('#search-module-form{$search_mod_usage_counter}').attr('action', '{$smod_params.go_action|escape:javascript}').attr('page_selected','');
-									{if $smod_params.search_action eq 'tiki-searchindex.php'}
-										$('#search-module-form{$search_mod_usage_counter} input[name=\'filter~content\']').attr('name', 'find');
-									{/if}"
-								/>
-									<input type="hidden" name="exact_match" value="" />
-							{/if}
-							{if $smod_params.show_edit_button eq 'y' and $tiki_p_edit eq 'y'}
-								<input type = "submit" class = "btn btn-default btn-sm tips{if $smod_params.compact eq "y"} bottom{/if}{if $smod_params.default_button eq 'edit'} button_default{/if}"
-									name = "edit" value = "{$smod_params.edit_submit|escape}"
-									title="{tr}Search{/tr}|{tr}Edit existing page or create a new one.{/tr}"
-									{if $smod_params.compact eq "y"}data-placement="bottom"{/if}
-									onclick = "$('#search-module-form{$search_mod_usage_counter} input[name!={if $smod_params.search_action eq 'tiki-searchindex.php'}\'filter~content\'{else}\'find\'{/if}]').attr('name', '');
-									$('#search-module-form{$search_mod_usage_counter} input[name={if $smod_params.search_action eq 'tiki-searchindex.php'}\'filter~content\'{else}\'find\'{/if}]').attr('name', 'page');
-									$('#search-module-form{$search_mod_usage_counter}').attr('action', '{$smod_params.edit_action|escape:javascript}').attr('page_selected','');"
-								/>
-							{/if}
-						</div>
+
+
+
+
 						{if $smod_params.compact eq "y"}
 							{jq}
 $(".search_mod_magnifier").mouseover( function () {
@@ -129,7 +141,7 @@ $("#search_mod_input_{{$search_mod_usage_counter}}")
 );
 							{/jq}
 						{/if}
-					</div>
+							</div>
 				</form>
 				{jq notonready=true}
 					function submitSearch{{$search_mod_usage_counter}}() {
@@ -145,7 +157,7 @@ $("#search_mod_input_{{$search_mod_usage_counter}}")
 							$f.attr('action', '{{$smod_params.search_action|escape:javascript}}');
 						}
 						$exact = $f.find("input[name=exact_match]");
-						if ($exact.val() != "On") {
+						if ($exact.val() != "y") {
 							$exact.remove(); // seems exact_match is true even if empty
 						}
 						return true;
@@ -153,7 +165,7 @@ $("#search_mod_input_{{$search_mod_usage_counter}}")
 				{/jq}
 				{if $smod_params.use_autocomplete eq 'y'}
 					{capture name="selectFn"}select: function(event, item) {ldelim}
-						$('#search-module-form{$search_mod_usage_counter}').data('page_selected', item.item.value).find("input[name=exact_match]").val("On");
+						$('#search-module-form{$search_mod_usage_counter}').data('page_selected', item.item.value).find("input[name=exact_match]").val("y");
 						{rdelim}, open: function(event, item) {ldelim}
 						$(".search_mod_buttons", "#search-module-form{$search_mod_usage_counter}").hide();
 						{rdelim}, close: function(event, item) {ldelim}

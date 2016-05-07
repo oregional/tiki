@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -111,14 +111,31 @@ class Services_File_Controller
 
 		if (isset($_FILES['files']) && is_array($_FILES['files']['tmp_name'])) {
 
-			// a few other params that are still arrays but shouldn't be
-			$input->offsetSet('galleryId', $input->galleryId->asArray()[0]);
-			$input->offsetSet('hit_limit', $input->hit_limit->asArray()[0]);
-			$input->offsetSet('isbatch', $input->isbatch->asArray()[0]);
-			$input->offsetSet('deleteAfter', $input->deleteAfter->asArray()[0]);
-			$input->offsetSet('author', $input->author->asArray()[0]);
-			$input->offsetSet('user', $input->user->asArray()[0]);
-			$input->offsetSet('listtoalert', $input->listtoalert->asArray()[0]);
+			// a few other params that are still arrays but shouldn't be (mostly)
+			if (is_array($input->galleryId->asArray())) {
+				$input->offsetSet('galleryId', $input->galleryId->asArray()[0]);
+			}
+			if (is_array($input->hit_limit->asArray())) {
+				$input->offsetSet('hit_limit', $input->hit_limit->asArray()[0]);
+			}
+			if (is_array($input->isbatch->asArray())) {
+				$input->offsetSet('isbatch', $input->isbatch->asArray()[0]);
+			}
+			if (is_array($input->deleteAfter->asArray())) {
+				$input->offsetSet('deleteAfter', $input->deleteAfter->asArray()[0]);
+			}
+			if (is_array($input->deleteAfter_unit->asArray())) {
+				$input->offsetSet('deleteAfter_unit', $input->deleteAfter_unit->asArray()[0]);
+			}
+			if (is_array($input->author->asArray())) {
+				$input->offsetSet('author', $input->author->asArray()[0]);
+			}
+			if (is_array($input->user->asArray())) {
+				$input->offsetSet('user', $input->user->asArray()[0]);
+			}
+			if (is_array($input->listtoalert->asArray())) {
+				$input->offsetSet('listtoalert', $input->listtoalert->asArray()[0]);
+			}
 
 			for ($i = 0; $i < count($_FILES['files']['tmp_name']); $i++) {
 				if (is_uploaded_file($_FILES['files']['tmp_name'][$i])) {
@@ -134,7 +151,7 @@ class Services_File_Controller
 						$file['info'] =  $filegallib->get_file_info($file['fileId']);
 						// when stored in the database the file contents is here and should not be sent back to the client
 						$file['info']['data'] = null;
-						$file['syntax'] = $filegallib->getWikiSyntax($file['galleryId'], $file['info']);
+						$file['syntax'] = $filegallib->getWikiSyntax($file['galleryId'], $file['info'], $input->asArray());
 					}
 
 					if ($input->isbatch->word() && stripos($input->type->text(), 'zip') !== false) {

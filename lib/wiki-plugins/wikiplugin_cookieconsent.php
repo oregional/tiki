@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -29,7 +29,7 @@ function wikiplugin_cookieconsent_info()
 			'element' => array(
 				'required' => false,
 				'name' => tra('Containing Element'),
-				'description' => tr('DOM element to contain everything (DIV, SPAN etc). Default to %0,
+				'description' => tr('DOM element to contain everything (div, span, etc). The default is %0,
 					set to %1 for no container.', '<code>div</code>', '<code>none</code>'),
 				'since' => '10.0',
 				'default' => 'div',

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -27,6 +27,7 @@ class Search_ContentSource_ForumSource implements Search_ContentSource_Interface
 
 		$data = array(
 			'title' => $typeFactory->sortable($item['name']),
+			'creation_date' => $typeFactory->timestamp($item['created']),
 			'description' => $typeFactory->plaintext($item['description']),
 			'language' => $typeFactory->identifier($item['forumLanguage'] ?: 'unknown'),
 
@@ -44,6 +45,7 @@ class Search_ContentSource_ForumSource implements Search_ContentSource_Interface
 	{
 		return array(
 			'title',
+			'creation_date',
 			'description',
 			'language',
 

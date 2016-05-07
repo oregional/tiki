@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -34,8 +34,11 @@ class Services_Search_CustomSearchController
 			throw new Services_Exception(tra('Unfortunately, the search cache has expired. Please reload the page to start over.'));
 		}
 
+		/** @var Search_Query $query */
 		$query = $definition['query'];
+		/** @var Search_FacetProvider $formatter */
 		$formatter = $definition['formatter'];
+		/** @var Search_Elastic_FacetBuilder $facetsBuilder */
 		$facetsBuilder = $definition['facets'];
 
 		$adddata = json_decode($input->adddata->text(), true);
@@ -147,6 +150,15 @@ class Services_Search_CustomSearchController
 
 		$unifiedsearchlib = TikiLib::lib('unifiedsearch');
 		$unifiedsearchlib->initQuery($query); // Done after cache because permissions vary
+
+
+		if ($prefs['unified_highlight_results'] === 'y') {
+			$query->applyTransform(
+				new \Search\ResultSet\UrlHighlightTermsTransform(
+					$query->getTerms()
+				)
+			);
+		}
 
 		$facetsBuilder->build($query, $unifiedsearchlib->getFacetProvider());
 

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -26,7 +26,7 @@ class Tracker_Field_Location extends Tracker_Field_Abstract implements Tracker_F
 				'params' => array(
 					'use_as_item_location' => array(
 						'name' => tr('Use as item location'),
-						'description' => tr('When enabled, records the field\'s value as the item\'s geolocation to be displayed on locator maps.'),
+						'description' => tr("When enabled, the field's value is recorded as the item's geolocation to be displayed on locator maps."),
 						'filter' => 'int',
 						'options' => array(
 							0 => tr('No'),

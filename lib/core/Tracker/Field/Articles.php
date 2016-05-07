@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -173,8 +173,8 @@ class Tracker_Field_Articles extends Tracker_Field_Abstract
 
 		$articleInfo = $this->articleSource->getProvidedFields();
 		$data = array();
-		foreach ($articleInfo as $key=>$v) {
-			$data[$k] = $baseKey."_".$v;
+		foreach ($articleInfo as $k => $v) {
+			$data[$k] = $baseKey . '_' . $v;
 		}
 		$data[] = $baseKey;
 

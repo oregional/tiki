@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -76,7 +76,7 @@ class TWVersion
 				23=>'Altair',		// 12.x
 				24=>'Fomalhaut',	// 13.x
 				25=>'Peony',		// 14.x
-				26=>'Star TBA',		// 15.x
+				26=>'Situla',		// 15.x
 		);
 	}
 
@@ -228,6 +228,9 @@ class TWVersion
 				'14.0',
 				'14.1',
 				'14.2',
+				'15.0alpha',
+				'15.0beta',
+				'15.0',
 			);
 	}
 

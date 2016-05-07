@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -27,6 +27,8 @@ class Search_ContentSource_FileGallerySource implements Search_ContentSource_Int
 
 		$data = array(
 			'title' => $typeFactory->sortable($item['name']),
+			'creation_date' => $typeFactory->timestamp($item['created']),
+			'modification_date' => $typeFactory->timestamp($item['lastModif']),
 			'description' => $typeFactory->plaintext($item['description']),
 			'language' => $typeFactory->identifier('unknown'),
 
@@ -46,6 +48,8 @@ class Search_ContentSource_FileGallerySource implements Search_ContentSource_Int
 			'title',
 			'description',
 			'language',
+			'creation_date',
+			'modification_date',
 
 			'gallery_id',
 

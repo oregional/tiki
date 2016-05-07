@@ -4,9 +4,9 @@
 <div class="t_navbar margin-bottom-md">
 	{if $tiki_p_create_blogs eq 'y' or $tiki_p_blog_admin eq 'y'}
 		<div class="pull-left">
-			{button href="tiki-edit_blog.php" _icon_name="create" _text="{tr}Create Blog{/tr}" _type="text" class="btn btn-link"}
+			{button href="tiki-edit_blog.php" _icon_name="create" _text="{tr}Create Blog{/tr}" _type="link" class="btn btn-link"}
 			{if $tiki_p_read_blog eq 'y' and $tiki_p_blog_admin eq 'y'}
-				{button href="tiki-list_posts.php" _type="text" class="btn btn-link" _icon_name="list" _text="{tr}List Posts{/tr}"}
+				{button href="tiki-list_posts.php" _type="link" class="btn btn-link" _icon_name="list" _text="{tr}List Posts{/tr}"}
 			{/if}
 		</div>
 	{/if}
@@ -154,7 +154,7 @@
 						class="tips"
 						title="{tr}Actions{/tr}"
 						href="#"
-						{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.blog_actions|escape:"javascript"|escape:"html"}{/if}
+						{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.blog_actions|escape:"javascript"|escape:"html"}{/if}
 						style="padding:0; margin:0; border:0"
 					>
 						{icon name='wrench'}

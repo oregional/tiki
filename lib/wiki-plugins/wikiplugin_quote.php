@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -17,6 +17,7 @@ function wikiplugin_quote_info()
 		'introduced' => 1,
 		'filter' => 'text',
 		'tags' => array( 'basic' ),
+		'url' => 'URL',
 		'params' => array(
 			'replyto' => array(
 				'required' => false,
@@ -26,26 +27,35 @@ function wikiplugin_quote_info()
 				'filter' => 'text',
 				'default' => '',
 			),
+			'thread_id' => array(
+				'required' => false,
+				'name' => tra('Thread Id for Forum replies'),
+				'description' => tra('The thread Id of the comment being replied to in forums. Overwrites replyto'),
+				'since' => '15',
+				'filter' => '	text',
+				'default' => '',
+			),
 		),
 	);
 }
 
-function wikiplugin_quote($data, $params)
+function wikiplugin_quote($data, $params, $url='')
 {
-	$data = trim($data);
-	extract($params, EXTR_SKIP);
-	if (!empty($replyto)) {
-		$caption = $replyto .' '.tra('wrote:');
-	} else {
-		$caption = tra('Quote:');
-	}
-    
-	$begin  = "<div class='quote'><div class='quoteheader'>";
-    $begin .= "$caption</div><div class='quotebody'>";
-	$end = "</div></div>";
+	global $smarty;
 
-	// Prepend any newline char with br
-	$data = preg_replace("/\\n/", "<br />", $data);
-    // Insert "\n" at data begin if absent (so start-of-line-sensitive syntaxes will be parsed OK)
-	return $begin . $data . $end;
+
+	if ($params['thread_id']) {
+		$commentslib = TikiLib::lib('comments');
+		$comment_info = $commentslib->get_comment($params['thread_id']);
+		$replyto = $comment_info['userName'];
+	} elseif ($params['replyto']) {
+		$replyto = $params['replyto'];
+	}
+
+	$smarty->assign('comment_info', $comment_info);
+	$smarty->assign('replyto', $replyto);
+	$smarty->assign('data', trim($data));
+	$smarty->assign('url', trim($url));
+
+	return $smarty->fetch("wiki-plugins/wikiplugin_quote.tpl");
 }

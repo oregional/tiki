@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -24,7 +24,7 @@ class WizardLib extends TikiLib
 	 * 
 	 * Use the start functions, e.g. startAdminWizard, to start the wizard manually, not this function
 	 *
-	 * @param mixed $user The logged in user
+	 * @param mixed $user The logged-in user
 	 * @param string $homePageUrl The return URL
 	 * @param bool $force Force the opening of the admin wizard
 	 * @return none

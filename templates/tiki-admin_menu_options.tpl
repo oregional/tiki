@@ -2,7 +2,7 @@
 {title help="Menus" url="tiki-admin_menu_options.php?menuId=$menuId" admpage="general&amp;cookietab=3"}{tr}Menu{/tr}: {$editable_menu_info.name}{/title}
 
 <div class="t_navbar margin-bottom-md">
-	<a class="btn btn-default" href="tiki-admin_menus.php">
+	<a class="btn btn-link" href="tiki-admin_menus.php">
 		{icon name="list"} {tr}List Menus{/tr}
 	</a>
 	{if $tiki_p_edit_menu eq 'y'}
@@ -89,7 +89,7 @@
 											<span class="help-block">
 												{if $channels[user].url}
 													{tr}URL:{/tr}
-													<a href="{$channels[user].url|escape:'url'}"
+													<a href="{$channels[user].sefurl|escape}"
 													   class="link tips" target="_blank"
 													   title=":{$channels[user].canonic|escape}">{$channels[user].canonic|truncate:40:' ...'|escape}</a>
 												{/if}
@@ -140,7 +140,7 @@
 									class="tips"
 									title="{tr}Actions{/tr}"
 									href="#"
-									{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.menu_options_actions|escape:"javascript"|escape:"html"}{/if}
+									{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.menu_options_actions|escape:"javascript"|escape:"html"}{/if}
 									style="padding:0; margin:0; border:0"
 								>
 									{icon name='wrench'}
@@ -433,7 +433,7 @@
 					<label class="control-label col-md-3" for="menu_groupname">{tr}Group:{/tr}</label>
 
 					<div class="col-md-9">
-						<select id="menu_groupname" name="groupname[]" class="form-control" multiple="multiple">
+						<select id="menu_groupname" name="groupname[]" class="form-control margin-bottom-md" multiple="multiple">
 							<option value="">&nbsp;</option>
 							{foreach key=k item=i from=$option_groups}
 								<option value="{$k|escape}" {$i}>{$k|escape}</option>{/foreach}
@@ -507,32 +507,36 @@
 {/tab}
 
 {tab name="{tr}Preview{/tr}"}
-	<form action="tiki-admin_menu_options.php">
+	<h2>{tr}Preview menu{/tr}</h2>
+	<form action="tiki-admin_menu_options.php" class="form-inline">
 		<input type="hidden" name="menuId" value="{$menuId}">
-
-		<h2>{tr}Preview menu{/tr}</h2>
-		<fieldset style="padding:1em;margin-bottom: 1em;">
-			<legend>{tr}Appearance{/tr}</legend>
-			<label for="preview_type">Type:</label>
-			<select id="preview_type" name="preview_type" onchange="this.form.submit()">
+		<div class="form-group">
+			<label for="preview_type" class="control-label">Type:</label>
+			<select id="preview_type" class="form-control" name="preview_type" onchange="this.form.submit()">
 				<option value="vert"{if $preview_type eq 'vert'} selected{/if}>{tr}Vertical{/tr}</option>
 				<option value="horiz"{if $preview_type eq 'horiz'} selected{/if}>{tr}Horizontal{/tr}</option>
 			</select>
-			<label for="preview_css">CSS:</label>
+		</div>
+		<div class="checkbox">
+			<label for="preview_css">
 			<input type="checkbox" id="preview_css" name="preview_css"
-				   onchange="this.form.submit()"{if $preview_css eq 'y'} checked="checked"{/if}>
-			<br>
-			<label for="preview_code">Smarty Code</label>
-				<pre id="preview_code">
-	{ldelim}menu id={$menuId} css={$preview_css} type={$preview_type}{rdelim
-					}</pre>{* <pre> cannot have extra spaces for indenting *}
-		</fieldset>
-		<div class="box">
-			<div class="box-title"><strong>{$editable_menu_info.name|escape}</strong></div>
-			<div class="box-data clearfix">
-				{menu id=$menuId css=$preview_css type=$preview_type}
-			</div>
+			   onchange="this.form.submit()"{if $preview_css eq 'y'} checked="checked"{/if}>
+				CSS</label>
 		</div>
 	</form>
+
+	<h2>Smarty Code</h2>
+	<pre id="preview_code">
+	{ldelim}menu id={$menuId} css={$preview_css} type={$preview_type}{rdelim
+					}</pre>{* <pre> cannot have extra spaces for indenting *}
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">{$editable_menu_info.name|escape}</h3>
+		</div>
+		<div class="panel-body clearfix">
+			{menu id=$menuId css=$preview_css type=$preview_type}
+		</div>
+	</div>
+
 {/tab}
 {/tabset}

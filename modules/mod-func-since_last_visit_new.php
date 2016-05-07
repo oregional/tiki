@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -18,7 +18,7 @@ function module_since_last_visit_new_info()
 {
 	return array(
 		'name' => tra('Since Last Visit'),
-		'description' => tra('Displays to logged in users new or updated objects since a point in time, by default their last login date and time.'),
+		'description' => tra('Displays to logged-in users new or updated objects since a point in time, by default their last login date and time.'),
 		'params' => array(
 			'showuser' => array(
 				'name' => tra('Show users'),
@@ -236,7 +236,7 @@ function module_since_last_visit_new($mod_reference, $params = null)
 				$ret['items']['posts']['list'][$count]['href']
 					= 'tiki-view_forum_thread.php?forumId=' . $res['object'] . '&comments_parentId=';
 				if ($res['parentId']) {
-					$ret['items']['posts']['list'][$count]['href'].=$res['parentId'].'#threadId'.$res['threadId'];
+					$ret['items']['posts']['list'][$count]['href'].=$res['parentId'].'#threadId='.$res['threadId'];
 				} else {
 					$ret['items']['posts']['list'][$count]['href'].=$res['threadId'];
 				}

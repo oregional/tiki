@@ -142,7 +142,7 @@
 				{if $prefs.wiki_list_size eq 'y'}
 					{assign var='cntcol' value=$cntcol+1}
 					<th id="size">
-						{self_link _sort_arg='sort_mode' _sort_field='size' _title="{tr}Page size{/tr}"}{tr}Size{/tr}{/self_link}
+						{self_link _sort_arg='sort_mode' _sort_field='page_size' _title="{tr}Page size{/tr}"}{tr}Size{/tr}{/self_link}
 					</th>
 				{/if}
 
@@ -390,7 +390,7 @@
 								class="tips"
 								title="{tr}Actions{/tr}"
 								href="#"
-								{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.page_actions|escape:"javascript"|escape:"html"}{/if}
+								{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.page_actions|escape:"javascript"|escape:"html"}{/if}
 								style="padding:0; margin:0; border:0"
 							>
 								{icon name='wrench'}

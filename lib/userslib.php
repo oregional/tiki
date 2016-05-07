@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -1496,7 +1496,7 @@ class UsersLib extends TikiLib
 
 		$ret = true;
 		$ret &= $this->ldap_sync_user($user, $pass);
-		$ret &= $this->ldap_sync_groups($user, $pass);
+		$ret &= $this->_ldap_sync_groups($user, $pass);
 
 		// Invalidate cache
 		$cachelib = TikiLib::lib('cache');
@@ -1944,7 +1944,7 @@ class UsersLib extends TikiLib
 
 	/**
 	 * @param string $edited_user : username (login) of the user that might be edited
-	 * @param string $editing_user : username of user doing the editing (or logged in user if omitted)
+	 * @param string $editing_user : username of user doing the editing (or logged-in user if omitted)
 	 * @return bool : true if $editing_user can edit $edited_user
 	 */
 	function user_can_be_edited($edited_user, $editing_user = '')
@@ -2656,7 +2656,7 @@ class UsersLib extends TikiLib
 	 * @param string $class		add a class to the a tag (default userlink)
 	 * @return string           HTML anchor tag
 	 */
-	function build_userinfo_tag($auser = '', $body = '', $class = 'userlink')
+	function build_userinfo_tag($auser = '', $body = '', $class = 'userlink', $show_popup = 'y')
 	{
 		global $user, $prefs;
 
@@ -2686,7 +2686,9 @@ class UsersLib extends TikiLib
 		$url = "tiki-user_information.php?userId=$id";
 		$url = filter_out_sefurl($url);
 		$extra = '';
-		if ($prefs['feature_community_mouseover'] == 'y' && ($this->get_user_preference($auser, 'show_mouseover_user_info', 'y') == 'y' || $prefs['feature_friends'] == 'y')) {
+		if ($show_popup == "n") {
+			//do nothing for adding a tip
+		} elseif ($prefs['feature_community_mouseover'] == 'y' && ($this->get_user_preference($auser, 'show_mouseover_user_info', 'y') == 'y' || $prefs['feature_friends'] == 'y')) {
 			$data = TikiLib::lib('service')->getUrl(array(
 				'controller' => 'user',
 				'action' => 'info',
@@ -3174,7 +3176,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_autoapprove_submission',
-				'description' => tra('Submitted articles automatically approved'),
+				'description' => tra('Submitted articles are automatically approved'),
 				'level' => 'editors',
 				'type' => 'articles',
 				'admin' => false,
@@ -3255,7 +3257,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_topic_read',
-				'description' => tra('Can read a topic (Applies only to individual topic perms)'),
+				'description' => tra('Can read a topic (applies only to individual topic permissions)'),
 				'level' => 'basic',
 				'type' => 'articles',
 				'admin' => false,
@@ -3408,7 +3410,7 @@ class UsersLib extends TikiLib
 			),
 			array(
 				'name' => 'tiki_p_calendar_add_my_particip',
-				'description' => tra('Can add own user to the participants'),
+				'description' => tra('Can add himself or herself to the participants'),
 				'level' => 'registered',
 				'type' => 'calendar',
 				'admin' => false,
@@ -5369,7 +5371,7 @@ class UsersLib extends TikiLib
 				'name' => 'tiki_p_admin_structures',
 				'description' => tra('Can administer structures'),
 				'level' => 'admin',
-				'type' => 'wiki structure',
+				'type' => 'wiki structure',		// NB "wiki structure" objects use the perms set on the top "wiki page"
 				'admin' => true,
 				'prefs' => array('feature_wiki_structure'),
 				'scope' => 'object',
@@ -5378,7 +5380,7 @@ class UsersLib extends TikiLib
 				'name' => 'tiki_p_edit_structures',
 				'description' => tra('Can create and edit structures'),
 				'level' => 'editors',
-				'type' => 'wiki structure',
+				'type' => 'wiki structure',		// NB "wiki structure" objects use the perms set on the top "wiki page"
 				'admin' => false,
 				'prefs' => array('feature_wiki_structure'),
 				'scope' => 'object',
@@ -5387,7 +5389,7 @@ class UsersLib extends TikiLib
 				'name' => 'tiki_p_lock_structures',
 				'description' => tra('Can lock structures'),
 				'level' => 'editors',
-				'type' => 'wiki structure',
+				'type' => 'wiki structure',		// NB "wiki structure" objects use the perms set on the top "wiki page"
 				'admin' => false,
 				'prefs' => array('feature_wiki_structure', 'lock_wiki_structures'),
 				'scope' => 'object',
@@ -5396,7 +5398,7 @@ class UsersLib extends TikiLib
 				'name' => 'tiki_p_watch_structure',
 				'description' => tra('Can watch structures'),
 				'level' => 'registered',
-				'type' => 'wiki structure',
+				'type' => 'wiki structure',		// NB "wiki structure" objects use the perms set on the top "wiki page"
 				'admin' => false,
 				'prefs' => array('feature_wiki_structure'),
 				'scope' => 'global',
@@ -7891,7 +7893,7 @@ class UsersLib extends TikiLib
 
 	/**
 	 * This is a function to automatically login a user programatically
-	 * @param $uname The user account name to log the user in as
+	 * @param string $uname The user account name to log the user in as
 	 * @return bool true means that successfully logged in or already logged in. false means no such user.
 	 */
 	function autologin_user($uname)
@@ -7922,14 +7924,14 @@ class UsersLib extends TikiLib
 	 * @param string $path Users will have to autologin using this path on the site using the token
 	 * @throws Exception
 	 */
-	function invite_tempuser($emails, $groups, $timeout, $prefix = 'guest', $path = 'tiki-index.php') {
+	function invite_tempuser($emails, $groups, $timeout, $prefix = 'guest', $path = 'index.php') {
 		global $smarty, $user, $prefs;
 		include_once ('lib/webmail/tikimaillib.php');
 
 		$mail = new TikiMail();
 		foreach ($emails as $email) {
 			if (!validate_email($email)) {
-				throw new Exception(tra('Invalid email address %1.', $email));
+				throw new Exception(tr('Invalid email address "%0"', $email));
 			}
 		}
 		$foo = parse_url($_SERVER['REQUEST_URI']);
@@ -7953,7 +7955,7 @@ class UsersLib extends TikiLib
 			$mail->setHtml($smarty->fetch('mail/invite_tempuser.tpl'));
 
 			if (!$mail->send($email)) {
-				$errormsg = tra('Unable to send mail');
+				$errormsg = tr('Unable to send mail to invite "%0"', $email);
 				if (Perms::get()->admin) {
 					$mailerrors = print_r($mail->errors, true);
 					$errormsg .= $mailerrors;
@@ -7965,7 +7967,7 @@ class UsersLib extends TikiLib
 	}
 
 	/**
-	 * @param $uname The username of the temporary user to remove (or disable depending on the pref)
+	 * @param string $uname The username of the temporary user to remove (or disable depending on the pref)
 	 *
 	 */
 	function remove_temporary_user($uname) {

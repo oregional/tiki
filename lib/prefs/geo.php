@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -57,7 +57,7 @@ function prefs_geo_list()
 			'filter' => 'word',
 			'separator' => ',',
 			'default' => array('openstreetmap'),
-			'tags' => array('advanced', 'experimental'),
+			'tags' => array('advanced'),
 		),
 		'geo_google_streetview' => array(
 			'name' => tr('Google Street View'),
@@ -101,7 +101,7 @@ function prefs_geo_list()
 			'description' => tr(''),
 			'type' => 'list',
 			'options' => array(
-					'ol2' => tra('OpenLayers 2.x (pre-Tiki 15.x legacy)'),
+					'ol2' => tra('OpenLayers 2.x (for use up to at least 15.x)'),
 					'ol3' => tra('OpenLayers 3.x (experimental)'),
 				),
 			'default' => 'ol2',

@@ -10,8 +10,10 @@
 			{/if}
 		{/foreach}
 		{if $header}
+			{$fieldcount = 0}
 			<tr>
 				{foreach from=$column item=col}
+					{$fieldcount = $fieldcount + 1}
 					<th>
 						{if isset($col.sort) && $col.sort}
 							{if !empty($sort_jsvar) and !empty($_onclick)}
@@ -44,14 +46,17 @@
 		{foreach from=$results item=row}
 			<tr>
 				{foreach from=$column item=col}
-					{if $col.mode eq 'raw'}
-						<td>{$row[$col.field]}</td>
+					{if isset($col.mode) && $col.mode eq 'raw'}
+						<td>{if !empty($row[$col.field])}{$row[$col.field]}{/if}</td>
 					{else}
-						<td>{$row[$col.field]|escape}</td>
+						<td>{if !empty($row[$col.field])}{$row[$col.field]|escape}{/if}</td>
 					{/if}
 				{/foreach}
 			</tr>
 		{/foreach}
 		</tbody>
+		{if !empty($tstotals) && $tsOn}
+			{include file="../../tablesorter/totals.tpl" fieldcount="{$fieldcount}"}
+		{/if}
 	</table>
 </div>

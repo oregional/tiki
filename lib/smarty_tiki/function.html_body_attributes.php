@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -25,6 +25,10 @@ function smarty_function_html_body_attributes($params, $smarty)
 	}
 
 	$class .= ' tiki ';
+
+	//filename of script called (i.e. tiki-index, tiki-user_information, tiki-view_forum, etc), then sanitize chars
+	$script_filename = pathinfo($_SERVER['SCRIPT_NAME'], PATHINFO_FILENAME);
+	$class .= ' ' . filter_var($script_filename, FILTER_SANITIZE_SPECIAL_CHARS, array(FILTER_FLAG_STRIP_LOW,FILTER_FLAG_STRIP_HIGH)) . ' ';
 	
 	if (isset($section_class)) {
 		$class .= $section_class;
@@ -69,7 +73,17 @@ function smarty_function_html_body_attributes($params, $smarty)
 			}
 		}
 	}
-	
+
+	if (!empty($page) && $page == $prefs['tikiIndex']) {
+		$class .= ' homepage';
+	}
+
+	if (!empty($pageLang)) {
+		$class .= ' ' . $pageLang;
+	} else {
+		$class .= ' ' . $prefs['language'];
+	}
+
 	if (!empty($onload)) {
 		$back .= ' onload="' . $onload . '"';
 	}

@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -19,7 +19,10 @@ if (!isset($_REQUEST["page_ref_id"])) {
 	$smarty->display("error.tpl");
 	die;
 }
-$access->check_permission('tiki_p_view');
+
+$page_info = $structlib->s_get_page_info($_REQUEST["page_ref_id"]);
+
+$access->check_permission('tiki_p_view', tra('View this wiki page'), 'wiki page', $page_info['pageName']);
 
 if (isset($_REQUEST['move_to'])) {
 	check_ticket('edit-structure');
@@ -27,7 +30,6 @@ if (isset($_REQUEST['move_to'])) {
 }
 
 $structure_info = $structlib->s_get_structure_info($_REQUEST["page_ref_id"]);
-$page_info      = $structlib->s_get_page_info($_REQUEST["page_ref_id"]);
 
 $smarty->assign('page_ref_id', $_REQUEST["page_ref_id"]);
 $smarty->assign('structure_id', $structure_info["page_ref_id"]);
@@ -45,7 +47,7 @@ if ( ! $perms->view ) {
 
 if ($perms->edit_structures) {
 	if ($prefs['lock_wiki_structures'] === 'y') {
-		$lockedby = TikiLib::lib('attribute')->get_attribute('wiki structure', $_REQUEST['page_ref_id'], 'tiki.object.lock');
+		$lockedby = TikiLib::lib('attribute')->get_attribute('wiki structure', $structure_info['pageName'], 'tiki.object.lock');
 		if ($lockedby && $lockedby === $user && $perms->lock_structures || ! $lockedby || $perms->admin_structures) {
 			$editable = 'y';
 		} else {
@@ -215,6 +217,12 @@ foreach ($subtree as $i=>$s) { // dammed recursivite - acn not do a left join
 	}
 }
 $smarty->assign('subtree', $subtree);
+
+if ($tikilib->user_watches($user, 'structure_changed', $structure_info['page_ref_id'], 'structure')) {
+	$page_info['watching'] = true;
+}
+$smarty->assign('page_info', $page_info);
+
 
 // Re-categorize
 if ($editable === 'y') {

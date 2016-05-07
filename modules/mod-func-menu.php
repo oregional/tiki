@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -48,8 +48,8 @@ function module_menu_info()
 				'default' => 'y',
 			),
 			'navbar_brand' => array(
-				'name' => tra('The URL of the navbar brand(logo)'),
-				'description' => tra('Used in Bootstrap navbar menus, if there is a Brand logo to be attached to the menu').' ( y / n )',
+				'name' => tra('The URL of the navbar brand (logo)'),
+				'description' => tra('Used in Bootstrap navbar menus, if there is a Brand logo to be attached to the menu'),
 				'default' => '',
 			),
 			'navbar_class' => array(

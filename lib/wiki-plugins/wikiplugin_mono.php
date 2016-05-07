@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -19,7 +19,7 @@ function wikiplugin_mono_info()
 			'font' => array(
 				'required' => false,
 				'name' => tra('Font'),
-				'description' => tra('Font name as known in browsers.'),
+				'description' => tra('Font name as recognized by browsers.'),
 				'since' => '1',
 				'default' => 'monospace',
 				'filter' => 'text',

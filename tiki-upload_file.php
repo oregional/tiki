@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -89,7 +89,7 @@ if (isset($_REQUEST['galleryId'][1])) {
 	foreach ($_REQUEST['galleryId'] as $i => $gal) {
 		if (!$i) continue;
 		// TODO get the good gal_info
-		$perms = $tikilib->get_perm_object($_REQUEST['galleryId'][$i], 'file gallery', $gal_info, false);
+		$perms = $tikilib->get_perm_object($_REQUEST['galleryId'][$i], 'file gallery', isset($gal_info) ? $gal_info : '', false);
 		$access->check_permission('tiki_p_upload_files');
 	}
 }
@@ -181,7 +181,7 @@ if ( $isUpload ) {
 }
 
 $fileparts = pathinfo($fileInfo['filename']);
-$fileInfo['extension'] = $fileparts['extension'];
+$fileInfo['extension'] = isset($fileparts['extension']) ? $fileparts['extension'] : '';
 $smarty->assign_by_ref('fileInfo', $fileInfo);
 $smarty->assign('editFileId', (int) $fileId);
 
@@ -189,7 +189,7 @@ $smarty->assign('editFileId', (int) $fileId);
 $smarty->assign('galleryId', empty( $_REQUEST['galleryId'][0] ) ? '' : $_REQUEST['galleryId'][0]);
 
 if ( empty( $fileId ) ) {
-	if ($gal_info['type'] == 'user') {
+	if (isset($gal_info['type']) && $gal_info['type'] == 'user') {
 		$galleries = $filegallib->getSubGalleries($requestGalleryId, true, 'userfiles');
 	} else {
 		$galleries = $filegallib->getSubGalleries($requestGalleryId, true, 'upload_files');

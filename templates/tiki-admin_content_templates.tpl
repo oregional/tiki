@@ -1,4 +1,4 @@
-{title help='Content+Templates' url='tiki-admin_content_templates.php'}{tr}Content templates{/tr}{/title}
+{title help='Content Templates' url='tiki-admin_content_templates.php'}{tr}Content templates{/tr}{/title}
 
 
 {tabset}
@@ -25,7 +25,7 @@
 					<a href="tiki-admin_content_templates.php?offset={$offset}&amp;sort_mode={if $sort_mode eq 'name_desc'}name_asc{else}name_desc{/if}">{tr}Name{/tr}</a>
 				</th>
 				<th>
-					<a href="tiki-admin_content_templates.php?offset={$offset}&amp;sort_mode={if $sort_mode eq 'created_desc'}created_asc{else}created_desc{/if}">{tr}Last Modified{/tr}</a>
+					<a href="tiki-admin_content_templates.php?offset={$offset}&amp;sort_mode={if $sort_mode eq 'created_desc'}created_asc{else}created_desc{/if}">{tr}Last modified{/tr}</a>
 				</th>
 				<th>{tr}Sections{/tr}</th>
 				<th>{tr}Categories{/tr}</th>
@@ -93,7 +93,7 @@
 								class="tips"
 								title="{tr}Actions{/tr}"
 								href="#"
-								{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.template_actions|escape:"javascript"|escape:"html"}{/if}
+								{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.template_actions|escape:"javascript"|escape:"html"}{/if}
 								style="padding:0; margin:0; border:0"
 							>
 								{icon name='wrench'}

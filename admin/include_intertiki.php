@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -18,6 +18,7 @@ if (!isset($_REQUEST['known_hosts'])) {
 }
 if (isset($_REQUEST['del'])) {
 	check_ticket('admin-inc-intertiki');
+	$access->check_authenticity(tra('Are you sure you want to remove this server?'));
 	$_REQUEST["intertikiclient"] = true;
 	foreach ($prefs['interlist'] as $k => $i) {
 		if ($k != $_REQUEST['del']) {
@@ -27,6 +28,7 @@ if (isset($_REQUEST['del'])) {
 }
 if (isset($_REQUEST['delk'])) {
 	check_ticket('admin-inc-intertiki');
+	$access->check_authenticity(tra('Are you sure you want to remove this host?'));
 	foreach ($prefs['known_hosts'] as $k => $i) {
 		if ($k != $_REQUEST['delk']) {
 			$_REQUEST['known_hosts'][$k] = $i;

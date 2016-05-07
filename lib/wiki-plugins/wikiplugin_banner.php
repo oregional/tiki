@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -26,7 +26,7 @@ function wikiplugin_banner_info()
 			'target' => array(
 				'required' => false,
 				'name' => tra('Target'),
-				'description' => tra('Determines the browser behavior once the banner is clicked'),
+				'description' => tra('Determines the browser behavior when the banner is clicked'),
 				'since' => '3.0',
 				'default' => '',
 				'options' => array(

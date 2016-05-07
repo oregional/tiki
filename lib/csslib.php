@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -92,15 +92,15 @@ class cssLib extends TikiLib
 				// hide layouts that are for internal use only
 				continue;
 			} elseif ($layoutName == 'basic') {
-				$selectable_layouts[$layoutName] = tra('Standard Bootstrap');
+				$selectable_layouts[$layoutName] = tra('Basic Bootstrap');
 			} elseif ($layoutName == 'classic') {
-				$selectable_layouts[$layoutName] = tra('Classic Tiki with shadows');
-			} elseif ($layoutName == 'header_middle_footer_containers') {
-				$selectable_layouts[$layoutName] = tra('3 separate header, middle, footer containers');
+				$selectable_layouts[$layoutName] = tra('Classic Tiki (3 containers - header, middle, footer)');
 			} elseif ($layoutName == 'header_middle_footer_containers_3-6-3') {
-				$selectable_layouts[$layoutName] = tra('3 separate header, middle, footer containers with 3-6-3 columns');
+				$selectable_layouts[$layoutName] = tra('Wider side columns (3 containers - header, middle, footer)');
 			} elseif ($layoutName == 'social') {
-				$selectable_layouts[$layoutName] = tra('Social networking style');
+				$selectable_layouts[$layoutName] = tra('Fixed top navbar 2 (uses site icon + "topbar" module zone)');
+			} elseif ($layoutName == 'fixed_top_modules') {
+				$selectable_layouts[$layoutName] = tra('Fixed top navbar 1 (uses "top" module zone)');
 			} else {
 				$selectable_layouts[$layoutName] = $layoutLabel;
 			} 

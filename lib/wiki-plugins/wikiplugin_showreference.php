@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -41,7 +41,7 @@ function wikiplugin_showreference_info()
 			'hlevel' => array(
 				'required' => false,
 				'name' => tra('Header Tag'),
-				'description' => tr('The html header tag level of the title. Default: %01%1', '<code>', '</code>'),
+				'description' => tr('The HTML header tag level of the title. Default: %01%1', '<code>', '</code>'),
 				'since' => '10.0',
 				'options' => array(
 					array('text' => '', 'value' => ''),

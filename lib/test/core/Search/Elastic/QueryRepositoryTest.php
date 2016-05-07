@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -13,11 +13,11 @@ class Search_Elastic_QueryRepositoryTest extends PHPUnit_Framework_TestCase
 
 		$status = $connection->getStatus();
 		if (! $status->ok) {
-			$this->markTestSkipped('ElasticSearch needs to be available on localhost:9200 for the test to run.');
+			$this->markTestSkipped('Elasticsearch needs to be available on localhost:9200 for the test to run.');
 		}
 
 		if (version_compare($status->version->number, '1.1.0') < 0) {
-			$this->markTestSkipped('ElasticSearch 1.1+ required');
+			$this->markTestSkipped('Elasticsearch 1.1+ required');
 		}
 
 		$this->index = new Search_Elastic_Index($connection, 'test_index');

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -186,7 +186,7 @@ class CCLiteLib extends TikiDb_Bridge
 	 * @amount		amount (decimal/float for cost, or email for adduser command)
 	 * @currency	currency (same as currency "name" in cclite (not "code" yet)
 	 * 				defaults to registry currency
-	 * @main_user	source of payment - uses logged in user if empty
+	 * @main_user	source of payment - uses logged-in user if empty
 	 *
 	 * @return		result from cclite server (html hopefully)
 	 */

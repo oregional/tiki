@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -107,6 +107,7 @@ function prefs_feature_list($partial = false)
 			'type' => 'flag',
 			'keywords' => 'CRUD',
 			'default' => 'n',
+			'tags' => array('basic'),
 			'admin' => 'trackers',
 			'view' => 'tiki-list_trackers.php',
 			'module' => 'tracker',
@@ -163,7 +164,7 @@ function prefs_feature_list($partial = false)
 			'default' => 'n',
 		),
 		'feature_file_galleries_templates' => array(
-			'name' => tra('File Galleries configuration templates'),
+			'name' => tra('File gallery configuration templates'),
             'description' => tra(''),
 			'type' => 'flag',
 			'keywords' => tra('template'),
@@ -280,13 +281,13 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_search' => array(
 			'name' => tra('Unified Search Index'),
-			'description' => tra('Also known as "Advanced Search". Enables searching for content at the site using a Tiki-managed index.'),
+			'description' => tra('Enables searching for content at the site using a Tiki-managed index.'),
 			'help' => 'Search',
 			'type' => 'flag',
-			'default' => 'n',
-			'tags' => array('advanced'),
+			'default' => 'y',
+			'tags' => array('basic'),
 			'admin' => 'search',
-			'warning' => tra("Unified Search requires more server processing resources, and that you properly set the server permissions. Also, it's recommended to set a cron job to periodically rebuild the search index."),
+			'warning' => tra("Unified Search requires server processing resources and that you properly set the server permissions. It's recommended to set a cron job to periodically rebuild the search index."),
 			'module' => 'search',
 			'view' => 'tiki-searchindex.php',
 			'permission' => array(
@@ -330,7 +331,7 @@ function prefs_feature_list($partial = false)
 			'tags' => array('basic'),
 		),
 		'feature_faqs' => array(
-			'name' => tra('FAQ'),
+			'name' => tra('FAQs'),
 			'description' => tra('Frequently asked questions and answers'),
 			'warning' => tra('There has been discussion about this feature being retired, so keep in mind that normal wiki pages can be used to create and display FAQs.'),
 			'help' => 'FAQ',
@@ -387,7 +388,7 @@ function prefs_feature_list($partial = false)
 			'default' => 'n',
 		),
 		'feature_references' => array(
-			'name' => tra('Wiki References'),
+			'name' => tra('Wiki references'),
 			'description' => tra('Permits using references and the reference library.'),
 			'type' => 'flag',
 			'dependencies' => array(
@@ -635,8 +636,8 @@ function prefs_feature_list($partial = false)
 			'default' => 'n',
 		),
 		'feature_print_indexed' => array(
-			'name' => tra('Print Indexed'),
-			'description' => tra('Print Indexed'),
+			'name' => tra('Print indexed'),
+			'description' => tra('Print indexed'),
 			'help' => 'Print+Indexed',
 			'type' => 'flag',
 			'default' => 'n',
@@ -745,7 +746,7 @@ function prefs_feature_list($partial = false)
 			'default' => 'n',
 		),
 		'feature_referer_stats' => array(
-			'name' => tra('Referer Stats'),
+			'name' => tra('Referer stats'),
 			'description' => tra('Record domain name of sites that send visitors to this Tiki.'),
 			'help' => 'Stats',
 			'keywords' => 'stat analytics referrer refferer refferrer',
@@ -1364,7 +1365,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_cms_sharethis' => array(
 			'name' => tra('ShareThis buttons'),
-            'description' => tra('Enable sharing site content via ShareThis'),
+			'description' => tra('Enable sharing site content via ShareThis'),
 			'type' => 'flag',
 			'hint' => tra('Insert a ShareThis button from www.sharethis.com.'),
 			'default' => 'n',
@@ -1416,11 +1417,10 @@ function prefs_feature_list($partial = false)
 		'feature_search_fulltext' => array(
 			'name' => tra('MySQL full-text search'),
 			'description' => tra("Also known as 'Basic Search'. This search uses the MySQL full-text search feature. The indexation is continuously updated."),
-			'warning' => tra("InnoDB doesn't support Full-Text Search earlier than version 5.6, so in this case use Unified Search."),
+			'warning' => tra("Deprecated: This feature is unmaintained and may not be reliable. InnoDB doesn't support Full-Text Search earlier than version 5.6."),
 			'type' => 'flag',
 			'help' => 'Search',
 			'default' => 'n',
-			'tags' => array('basic'),
 			'dbfeatures' => array('mysql_fulltext'),
 			'admin' => 'search',
 			'view' => 'tiki-searchresults.php',
@@ -1444,7 +1444,6 @@ function prefs_feature_list($partial = false)
 			'help' => 'Search+Stats',
 			'default' => 'n',
 			'keywords' => 'stat analytics',
-			'tags' => array('basic'),
 			'view' => 'tiki-search_stats.php',
 			'dbfeatures' => array('mysql_fulltext'),
 		),
@@ -1462,37 +1461,44 @@ function prefs_feature_list($partial = false)
             'description' => tra('allow filtering of objects'),
 			'type' => 'flag',
 			'default' => 'n',
+			'tags' => array('basic'),
 		),
 		'feature_search_show_search_box' => array(
 			'name' => tra('Search box'),
             'description' => tra('make the search box visible'),
 			'type' => 'flag',
 			'default' => 'y',
-			'tags' => array('basic'),
+			'dependencies' => array(
+				'feature_search_fulltext',
+			),
 		),
 		'feature_search_show_visit_count' => array(
 			'name' => tra('Visits'),
             'description' => tra('show number of visits'),
 			'type' => 'flag',
 			'default' => 'n',
+			'tags' => array('basic'),
 		),
 		'feature_search_show_pertinence' => array(
 			'name' => tra('Relevance'),
             'description' => tra('enable searching by relevance'),
 			'type' => 'flag',
 			'default' => 'n',
+			'tags' => array('basic'),
 		),
 		'feature_search_show_object_type' => array(
 			'name' => tra('Object type'),
             'description' => tra('search for a specific object type'),
 			'type' => 'flag',
 			'default' => 'n',
+			'tags' => array('basic'),
 		),
 		'feature_search_show_last_modification' => array(
 			'name' => tra('Last-modified date'),
             'description' => tra('Show the last-modified date'),
 			'type' => 'flag',
 			'default' => 'n',
+			'tags' => array('basic'),
 			'tags' => array('basic'),
 		),
 		'feature_blog_rankings' => array(
@@ -1528,7 +1534,7 @@ function prefs_feature_list($partial = false)
 		),
 		'feature_blog_sharethis' => array(
 			'name' => tra('ShareThis buttons'),
-            'description' => tra(''),
+			'description' => tra('Enable sharing site content via ShareThis'),
 			'type' => 'flag',
 			'hint' => tra('Insert a ShareThis button from [http://www.sharethis.com].'),
 			'default' => 'n',
@@ -1762,8 +1768,8 @@ function prefs_feature_list($partial = false)
 			'default' => 'n',
 		),
 		'feature_sitelogo' => array(
-			'name' => tra('Site Logo and Title'),
-            'description' => tra('display a site logo image and/or title'),
+			'name' => tra('Site logo and title'),
+            'description' => tra('Display a site logo image and/or title'),
 			'type' => 'flag',
 			'warning' => tra('This setting is expected to be moved from here to the admin-modules page .'),
 			'default' => 'y',
@@ -2321,6 +2327,13 @@ function prefs_feature_list($partial = false)
 				'textFilter' => 'attach wiki',
 			),
 		),
+		'feature_wiki_sharethis' => array(
+			'name' => tra('ShareThis buttons'),
+			'description' => tra('Enable sharing site content via ShareThis'),
+			'type' => 'flag',
+			'hint' => tra('Insert a ShareThis button from www.sharethis.com.'),
+			'default' => 'n',
+		),
 		'feature_dump' => array(
 			'name' => tra('Dumps'),
             'description' => tra('Enable exporting the site as a downloadable archive'),
@@ -2820,6 +2833,7 @@ function prefs_feature_list($partial = false)
 			'description' => tra('Enable/disable inline comments.'),
 			'dependencies' => array(
 				'feature_wiki_comments',
+				'feature_wiki_paragraph_formatting',
 			),
 			'type' => 'flag',
 			'default' => 'n',

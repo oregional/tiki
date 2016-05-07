@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -57,6 +57,7 @@ class Table_Code_WidgetOptionsPager extends Table_Code_WidgetOptions
 				}
 				$addcol = implode($this->nt, $addcol);
 			}
+			$total = !empty(parent::$s['total']) ? parent::$s['total'] : 0;
 			$ap = array(
 				//parse HTML string from entire page
 				'var parsedpage = $.parseHTML(data), table = $(parsedpage).find(\'' . parent::$tid . '\'), r = {};',
@@ -64,7 +65,7 @@ class Table_Code_WidgetOptionsPager extends Table_Code_WidgetOptions
 				'r.rows = $(table).find(\'tbody tr\');',
 				!empty($addcol) ? $addcol : null,
 				//tablesorter needs total rows
-				'r.total = \'' . parent::$s['total'] . '\';',
+				'r.total = \'' . $total . '\';',
 				//extract number of filtered rows for use in row count display
 				'r.filteredRows = $(table).data(\'count\');',
 				'r.headers = null;',

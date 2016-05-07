@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -665,7 +665,7 @@ class UnifiedSearchLib
 		if($tiki_p_admin != 'y') {
 			$errlib->report(tr('Contact the site administrator. The index needs rebuilding.'));
 		} else {
-			$errlib->report('<a title="' . tr("Rebuild Search index") .'" href="tiki-admin.php?page=search&rebuild=now">'. tr("Click here to rebuild index") . '</a>');
+			$errlib->report('<a title="' . tr("Rebuild search index") .'" href="tiki-admin.php?page=search&rebuild=now">'. tr("Click here to rebuild index") . '</a>');
 		}
 
 
@@ -684,7 +684,7 @@ class UnifiedSearchLib
 				$connection = $this->getElasticConnection(true);
 				$root = $connection->rawApi('');
 				$info[tr('Client Node')] = $root->name;
-				$info[tr('ElasticSearch Version')] = $root->version->number;
+				$info[tr('Elasticsearch Version')] = $root->version->number;
 				$info[tr('Lucene Version')] = $root->version->lucene_version;
 
 				$cluster = $connection->rawApi('/_cluster/health');
@@ -706,11 +706,17 @@ class UnifiedSearchLib
 						$info[tr('Node %0', $node->name)] = tr('Using %0, since %1', $node->jvm->mem->heap_used, $node->jvm->uptime);
 					}
 				} else {
-					$status = $connection->rawApi('/_status');
+					$status = $connection->getIndexStatus();
+
 					foreach ($status->indices as $indexName => $data) {
 						if (strpos($indexName, $prefs['unified_elastic_index_prefix']) === 0) {
-							$info[tr('Index %0', $indexName)] = tr('%0 documents, totaling %1 bytes', 
-								$data->docs->num_docs, number_format($data->index->primary_size_in_bytes));
+							if (isset($data->primaries)) {	// v2
+								$info[tr('Index %0', $indexName)] = tr('%0 documents, totaling %1 bytes',
+									$data->primaries->docs->count, number_format($data->primaries->store->size_in_bytes));
+							} else {					// v1
+								$info[tr('Index %0', $indexName)] = tr('%0 documents, totaling %1 bytes',
+									$data->docs->num_docs, number_format($data->index->primary_size_in_bytes));
+							}
 						}
 					}
 

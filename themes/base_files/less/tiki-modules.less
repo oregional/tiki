@@ -103,6 +103,11 @@ li.archivedate {
     padding: 6px;
 }
 
+// Add vertical space when now-form-inline items wrap
+.box-search .panel-body * {
+	margin-bottom: .3em;
+}
+
 .box-forums_most_read_topics .hits {
 	font-style: italic;
 }
@@ -162,9 +167,14 @@ li.archivedate {
 	text-align: center;
 }
 
-.sitelogo img {
-	margin-top: 10px;
-}
+.sitelogo img { margin-top: 10px; }
+
+.modules > .module .sitelogo img,
+.sitetitles { margin-left: 15px; }
+
+.box-logo > div > .sitelogo + .sitetitles { padding-left: 15px; }
+
+
 
 .pass a,
 .pass a:visited,
@@ -179,6 +189,11 @@ li.login_link ul li a {
 
 .siteloginbar_popup img {
 	height: 24px;
+}
+
+.navbar-form .siteloginbar_poppedup .form-control,
+.navbar-form .siteloginbar_poppedup .form-group.text-center{
+	width: 100%;
 }
 
 // /* Center column */
@@ -205,7 +220,7 @@ a.flip:hover,
 	font-size: 1em;
 }
 
-footer.footer .modules > .module {
+footer.footer .modules > .module:not(.panel) {
 	padding-left: 15px;
 	padding-right: 15px;
 }

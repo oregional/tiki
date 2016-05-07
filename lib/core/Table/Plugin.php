@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -241,17 +241,22 @@ class Table_Plugin
 				'filter' => 'striptags',
 				'advanced' => true,
 			),
+			'tstotalformat' => array(
+				'required' => false,
+				'name' => tra('Total Format'),
+				'description' => tr('Format for table totals (click %0 for patterns). Example:',
+					'<a href="http://mottie.github.io/tablesorter/docs/example-widget-math.html#mask_examples">here</a>')
+					. ' <code>#,###.</code><br>',
+			),
 			'tstotaloptions' => array(
 				'required' => false,
 				'name' => tra('Total Options'),
-				'description' => tr('Options for totals which are set in the %0 parameter:', '<code>tstotals</code>')
-					. '<br><strong>format</strong> - ' . tr('sets the number format (click %0 for patterns).
-					Example:', '<a href="http://mottie.github.io/tablesorter/docs/example-widget-math.html#mask_examples">here</a>')
-					. ' <code>format:$#,##0.00</code><br>'
-					. '<strong>ignore</strong> - ' . tr('indicate comma-separated columns (by number starting
-					with 0) that should be excluded from all total calculations set in the %0 parameter. Remember to
-					include any columns that will be added for row totals set in the %0 parameter. Example:',
-					'<code>tstotals</code>') . '<code>ignore:0,1,4</code><br>',
+				'description' => tr('Pipe-separated options for totals for each column which are set in the %0 parameter:',
+					'<code>tstotals</code>') . '<br><strong>format</strong> - '
+					. tr('overrides the default number format set in %0', 'tstotalformat') . '<br>'
+					. '<strong>ignore</strong> - ' . tr('column will be excluded from total calculations set in the %0
+					parameter. Remember to include any columns that will be added for row totals set in the %0
+					parameter.', '<code>tstotals</code>') . '<br>' . tr('Example:') . '<code>ignore|ignore|#,###.</code>',
 				'since' => '15.0',
 				'doctype' => 'tablesorter',
 				'default' => '',
@@ -281,7 +286,7 @@ class Table_Plugin
 	 */
 	public function setSettings ($id = null, $server = 'n', $sortable = 'n', $sortList = null, $tsortcolumns = null,
 		$tsfilters = null, $tsfilteroptions = null, $tspaginate = null, $tscolselect = null, $ajaxurl = null,
-		$totalrows = null, $tstotals = null, $tstotaloptions = null)
+		$totalrows = null, $tstotals = null, $tstotalformat = null, $tstotaloptions = null)
 	{
 		$s = array();
 
@@ -464,54 +469,54 @@ class Table_Plugin
 
 		//tstotals
 		if (!empty($tstotals)) {
-			switch ($tstotals) {
-				case 'y':
-					$s['math']['totals'][0] = ['type' => 'col', 'formula' => 'sum', 'filter' => '',
-						'label' => tr('Page totals')];
-					break;
-				default:
-					$tst = Table_Check::parseParam($tstotals);
-					if (is_array($tst)) {
-						foreach ($tst as $key => $tinfo) {
-							if (!empty($tinfo['type'] && in_array($tinfo['type'], ['col', 'row', 'all']))) {
-								$s['math']['totals'][$tinfo['type']][$key]['formula'] = !empty($tinfo['formula'])
-									&& in_array($tinfo['formula'], $this->mathtypes) ? $tinfo['formula'] : 'sum';
-								if (!empty($tinfo['filter']) && isset($this->totalfilters[$tinfo['filter']])) {
-									if ($server === 'y') {
-										$s['math']['totals'][$tinfo['type']][$key]['filter'] = '';
-										$labelfilter = '';
-									} else {
-										$s['math']['totals'][$tinfo['type']][$key]['filter'] = $this->totalfilters[$tinfo['filter']];
-										$labelfilter = $tinfo['filter'];
-									}
-								} else {
-									$s['math']['totals'][$tinfo['type']][$key]['filter'] = '';
-									$labelfilter = '';
-								}
-								if (isset($tinfo['label'])) {
-									$s['math']['totals'][$tinfo['type']][$key]['label'] = $tinfo['label'];
-								} else {
-									$map = ['col' => 'Column', 'row' => 'Row', 'all' => 'Table'];
-									$label = $map[$tinfo['type']] . ' '
-										. $s['math']['totals'][$tinfo['type']][$key]['formula'] . ' ' . $labelfilter;
-									$s['math']['totals'][$tinfo['type']][$key]['label'] = tr($label);
-								}
+			if (trim($tstotals) === 'y') {
+				$tstotals = 'type:col;formula:sum;label:' . tr('Page totals');
+			}
+			$tst = Table_Check::parseParam($tstotals);
+			if (is_array($tst)) {
+				foreach ($tst as $key => $tinfo) {
+					if (!empty($tinfo['type'] && in_array($tinfo['type'], ['col', 'row', 'all']))) {
+						$s['math']['totals'][$tinfo['type']][$key]['formula'] = !empty($tinfo['formula'])
+							&& in_array($tinfo['formula'], $this->mathtypes) ? $tinfo['formula'] : 'sum';
+						if (!empty($tinfo['filter']) && isset($this->totalfilters[$tinfo['filter']])) {
+							if ($server === 'y') {
+								$s['math']['totals'][$tinfo['type']][$key]['filter'] = '';
+								$labelfilter = '';
+							} else {
+								$s['math']['totals'][$tinfo['type']][$key]['filter'] = $this->totalfilters[$tinfo['filter']];
+								$labelfilter = $tinfo['filter'];
 							}
+						} else {
+							$s['math']['totals'][$tinfo['type']][$key]['filter'] = '';
+							$labelfilter = '';
+						}
+						if (isset($tinfo['label'])) {
+							$s['math']['totals'][$tinfo['type']][$key]['label'] = $tinfo['label'];
+						} else {
+							$map = ['col' => 'Column', 'row' => 'Row', 'all' => 'Table'];
+							$label = $map[$tinfo['type']] . ' '
+								. $s['math']['totals'][$tinfo['type']][$key]['formula'] . ' ' . $labelfilter;
+							$s['math']['totals'][$tinfo['type']][$key]['label'] = tr($label);
 						}
 					}
+				}
 			}
+		}
+
+		//tstotalformat
+		if (!empty($tstotalformat)) {
+			$s['math']['format'] = $tstotalformat;
 		}
 
 		//tstotaloptions
 		if (!empty($tstotaloptions)) {
 			$tsto = Table_Check::parseParam($tstotaloptions);
-			if (is_array($tsto[0])) {
-				foreach($tsto[0] as $option => $string) {
-					if (in_array($option, ['format', 'ignore'])) {
-						if ($option == 'ignore') {
-							$string = explode(',', $string);
-						}
-						$s['math'][$option] = $string;
+			if (is_array($tsto)) {
+				foreach($tsto as $col => $option) {
+					if ($option === 'ignore') {
+						$s['columns'][$col]['math']['ignore'] = true;
+					} elseif (!empty($option)) {
+						$s['columns'][$col]['math']['format'] = $option;
 					}
 				}
 			}

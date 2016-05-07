@@ -6,7 +6,8 @@
 // If Glyphicons should be rendered in a color other than the Bootstrap default or the theme default, uncomment and specify the color.
 // .glyphicon {color: @gray-lighter;}
 
-body {
+body,
+body.fullscreen {
 	background: #90140c url('@{imagePath}stripes.png') repeat-x 50% 0;
 }
 
@@ -44,12 +45,28 @@ h2.sitesubtitle {
 	}
 }
 
+.topbar.row {
+	border: solid #600;
+	border-width: 15px 15px 0 15px;
+}
+
+.topbar a {
+	color: @navbar-default-link-color;
+}
+
 #middle,
 .row-middle,
 .layout_social > .container {
 	background: #f3f3f3;
-	border: 15px solid #600000;
+	border: solid #600;
+	border-width: 0 15px;
 }
+
+.top_modules div:not(.panel) .btn-link,
+#fullscreenbutton a {
+	color: #fe9b27;
+}
+
 
 //.btn-default {
 //  background: #fea841;
@@ -138,6 +155,10 @@ h2.sitesubtitle {
 	background: #fff;
 }
 
+.table .table {
+	background: #f3f3f3;
+}
+
 .cssmenu_horiz a,
 .cssmenu_vert a {
 	color: @link-color;
@@ -186,7 +207,30 @@ h2.sitesubtitle {
 	}
 }
 
-.main-footer {
+footer.footer {
+	.panel-default {
+		border: none;
+	}
+	.panel {
+		background: transparent;
+		border: none;
+		box-shadow: none;
+	}
+	.panel-default > .panel-heading {
+		background-color: transparent;
+		border-color: transparent;
+
+	}
+}
+
+#bottom_modules {
+	background: #000;
+	border: solid #600;
+	border-width: 0 15px;
+}
+
+.main-footer,
+footer.footer {
 	color: lighten(#9d9d9d, 15%);
 	a {
 		color: #9d9d9d;
@@ -198,4 +242,14 @@ h2.sitesubtitle {
 	h1, h2, h3, h4, h5 {
 		color: @brand-warning;
 	}
+}
+
+// /* Autosave Preview handle */
+#autosave_preview {
+	background: #f3f3f3;
+	color: @text-color;
+}
+
+.tablesorter-header {
+	color: #e5e5e5;
 }

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -15,7 +15,7 @@ function prefs_unified_list()
 			'options' => array(
 				'lucene' => tra('Lucene (PHP implementation)'),
 				'mysql' => tra('MySQL full-text search'),
-				'elastic' => tra('ElasticSearch'),
+				'elastic' => tra('Elasticsearch'),
 			),
 			'default' => 'mysql',
 		),
@@ -31,10 +31,11 @@ function prefs_unified_list()
 			'description' => tra('Highlight the result snippet based on the search query. Enabling this option will impact performance, but improve user experience.'),
 			'type' => 'flag',
 			'default' => 'n',
+			'tags' => array('basic'),
 		),
 		'unified_lucene_max_result' => array(
 			'name' => tra('Lucene maximum results'),
-			'description' => tra('Maximum amount of results to expose. Results further than these will need a more refined query to be reached.'),
+			'description' => tra('Maximum number of results to produce. Results beyond these will need a more refined query to be reached.'),
 			'type' => 'text',
 			'filter' => 'int',
 			'default' => 200,
@@ -141,6 +142,14 @@ function prefs_unified_list()
 			'type' => 'flag',
 			'default' => 'y',
 		),
+		'unified_relation_object_indexing' => array(
+			'name' => tra('Relation types to index within object.'),
+			'description' => tra('Comma-separated relation types for which objects should be indexed in their related objects. (Elasticsearch needed)'),
+			'type' => 'textarea',
+			'dependencies' => array(
+				'unified_elastic_index_current',
+			),
+		),
 		'unified_cached_formatters' => array(
 			'name' => tra('Search formatters to cache'),
 			'description' => tra('Search formatters to cache the output of'),
@@ -198,7 +207,7 @@ function prefs_unified_list()
 			'default' => array(),
 		),
 		'unified_elastic_url' => array(
-			'name' => tra('ElasticSearch URL'),
+			'name' => tra('Elasticsearch URL'),
 			'description' => tra('URL of any node in the cluster.'),
 			'type' => 'text',
 			'filter' => 'url',
@@ -206,15 +215,15 @@ function prefs_unified_list()
 			'size' => 40,
 		),
 		'unified_elastic_index_prefix' => array(
-			'name' => tra('ElasticSearch index prefix'),
-			'description' => tra('Prefix used for all indexes for this installation in ElasticSearch.'),
+			'name' => tra('Elasticsearch index prefix'),
+			'description' => tra('Prefix used for all indexes for this installation in Elasticsearch.'),
 			'type' => 'text',
 			'filter' => 'word',
 			'default' => 'tiki_',
 			'size' => 10,
 		),
 		'unified_elastic_index_current' => array(
-			'name' => tra('ElasticSearch current index'),
+			'name' => tra('Elasticsearch current index'),
 			'description' => tra('A new index is created upon rebuild and the old one is then destroyed. This setting allows you to see the currently active one.'),
 			'hint' => tra('Do not change this value unless you know what you are doing.'),
 			'type' => 'text',
@@ -226,7 +235,7 @@ function prefs_unified_list()
 			'name' => tr('Tokenize CamelCase words'),
 			'description' => tr('Consider the components of camel-case words as separate tokens, allowing them to be searched individually.'),
 			'warning' => tr('Conflicts with Tokenize Version Numbers.'),
-			'hint' => tr('ElasticSearch only'),
+			'hint' => tr('Elasticsearch only'),
 			'type' => 'flag',
 			'default' => 'n',
 		),
@@ -266,13 +275,20 @@ function prefs_unified_list()
 			'hint' => tr('MySQL full-text search has its own list of stop words configured in the server.'),
 		),
 		'unified_trim_sorted_search' => array(
-			'name' => tra('Automatically Trim ElasticSearch results on Date-Sorted Query'),
+			'name' => tra('Automatically Trim Elasticsearch results on Date-Sorted Query'),
 			'description' => tra('Automatically trim Elastic Search results in unified search if the query is sorted by modification or creation date.'),
 			'type' => 'flag',
 			'default' => 'n',
 			'dependencies' => array(
 				'feature_search',
 			),
+		),
+		'unified_highlight_results' => array(
+			'name' => tra('Highlight results pages'),
+			'description' => tra('Highlight words on the result pages based on the search query.'),
+			'type' => 'flag',
+			'default' => 'y',
+			'tags' => array('basic'),
 		),
 	);
 }

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -120,6 +120,9 @@ function smarty_function_popup($params, $smarty)
 			$delay = '{"show":"'. (int) $explode[0] . '", "hide":"' . (int) $explode[1] . '"}';
 		}
 		$retval .= ' data-delay=\'' . $delay . '\'';
+	} else {
+		// add a short default close delay so you can hover over the popover
+		$retval .= ' data-delay=\'{"show":"0","hide":"10"}\'';
 	}
 
 	return $retval;

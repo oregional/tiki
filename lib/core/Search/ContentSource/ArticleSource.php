@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -56,6 +56,7 @@ class Search_ContentSource_ArticleSource implements Search_ContentSource_Interfa
 		$data = array(
 			'title' => $typeFactory->sortable($article['title']),
 			'language' => $typeFactory->identifier($article['lang'] ? $article['lang'] : 'unknown'),
+			'creation_date' => $typeFactory->timestamp($article['created']),
 			'modification_date' => $typeFactory->timestamp($article['publishDate']),
 			'contributors' => $typeFactory->multivalue(array($article['author'])),
 			'description' => $typeFactory->plaintext($article['heading']),
@@ -88,6 +89,7 @@ class Search_ContentSource_ArticleSource implements Search_ContentSource_Interfa
 		return array(
 			'title',
 			'language',
+			'creation_date',
 			'modification_date',
 			'contributors',
 			'description',

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -34,8 +34,8 @@ function wikiplugin_fancytable_info()
 			 ),
 			 'headaligns' => array(
 				 'required' => false,
-				 'name' => tra('Header Horizontal Align'),
-				 'description' => tr('Horizontal alignments for header cells separated by %0. Choices: %1', '<code>|</code>',
+				 'name' => tra('Header Horizontal Alignment'),
+				 'description' => tr('Horizontal alignments for header cells, separated by %0. Choices: %1', '<code>|</code>',
 					 '<code>left</code>, <code>right</code>, <code>center</code>, <code>justify</code>'),
 				 'default' => '',
 				 'since' => '4.1',
@@ -43,8 +43,8 @@ function wikiplugin_fancytable_info()
 			 ),
 			 'headvaligns' => array(
 				 'required' => false,
-				 'name' => tra('Header Vertical Align'),
-				 'description' => tr('Vertical alignments for header cells separated by %0. Choices: %1', '<code>|</code>',
+				 'name' => tra('Header Vertical Alignment'),
+				 'description' => tr('Vertical alignments for header cells, separated by %0". Choices: %1', '<code>|</code>',
 					 '<code>top</code>, <code>middle</code>, <code>bottom</code>, <code>baseline</code>'),
 				 'default' => '',
 				 'since' => '4.1',
@@ -53,7 +53,7 @@ function wikiplugin_fancytable_info()
 			 'colwidths' => array(
 				 'required' => false,
 				 'name' => tra('Column Widths'),
-				 'description' => tr('Column widths followed by px for pixels or % for percentages. Each column
+				 'description' => tr('Column widths followed by "px" for pixels or "%" for percentages. Each column
 				    separated by %0.', '<code>|</code>'),
 				 'default' => '',
 				 'since' => '4.1'
@@ -61,7 +61,7 @@ function wikiplugin_fancytable_info()
 			 'colaligns' => array(
 				 'required' => false,
 				 'name' => tra('Cell Horizontal Align'),
-				 'description' => tr('Table body column horizontal alignments separated by %0. Choices: %1', '<code>|</code>',
+				 'description' => tr('Table body column horizontal alignments, separated by %0. Choices: %1', '<code>|</code>',
 					 '<code>left</code>, <code>right</code>, <code>center</code>, <code>justify</code>'),
 				 'default' => '',
 				 'since' => '4.1',
@@ -70,7 +70,7 @@ function wikiplugin_fancytable_info()
 			 'colvaligns' => array(
 				 'required' => false,
 				 'name' => tra('Cell Vertical Align'),
-				 'description' => tr('Table body column vertical alignments separated by %0. Choices: %1', '<code>|</code>',
+				 'description' => tr('Table body column vertical alignments, separated by %0. Choices: %1', '<code>|</code>',
 					 '<code>top</code>, <code>middle</code>, <code>bottom</code>, <code>baseline</code>'),
 				 'default' => '',
 				 'since' => '4.1',
@@ -119,6 +119,7 @@ function wikiplugin_fancytable($data, $params)
 				null,
 				null,
 				isset($tstotals) ? $tstotals : null,
+				isset($tstotalformat) ? $tstotalformat : null,
 				isset($tstotaloptions) ? $tstotaloptions : null
 			);
 			if (is_array($ts->settings)) {
@@ -137,7 +138,7 @@ function wikiplugin_fancytable($data, $params)
 				$msg = '<em>' . tra('The jQuery Sortable Tables feature must be activated for the sort feature to work.')
 					. '</em>';
 			} elseif ($prefs['javascript_enabled'] !== 'y') {
-				$msg =  '<em>' . tra('Javascript must be enabled for the sort feature to work.') . '</em>';
+				$msg =  '<em>' . tra('JavaScript must be enabled for the sort feature to work.') . '</em>';
 			} else {
 				$msg = '<em>' . tra('Unable to load the jQuery Sortable Tables feature.') . '</em>';
 			}

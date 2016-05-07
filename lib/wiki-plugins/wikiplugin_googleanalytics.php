@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -14,12 +14,12 @@ function wikiplugin_googleanalytics_info()
 		'prefs' => array( 'wikiplugin_googleanalytics' ),
 		'iconname' => 'chart',
 		'format' => 'html',
-		'introduced' => 3,
+		'introduced' => 14,
 		'params' => array(
 			'account' => array(
 				'required' => true,
 				'name' => tra('Account Number'),
-				'description' => tr('The account number for the site. Your account number from google looks like
+				'description' => tr('The account number for the site. Your account number from Google looks like
 					%0. All you need to enter is %1', 'UA-XXXXXXX-YY','<code>XXXXXXX-YY</code>'),
 				'since' => '3.0',
 				'filter' => 'text',

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -153,7 +153,7 @@ function wikiplugin_tracker_info()
                                         I.e., the first template will be used for the first to, the second template if exists will be used
                                         for the second from (otherwise the last given template will be used). Each template needs two files, one for the subject one for the body. The subject will be named
                                         template_subject.tpl. All the templates must be in the %0templates/mail%1 directory. Example:
-                                        %0webmaster@my.com|a@my.com,b@my.com|template_a.tpl,template_b.tpl%1 (%0templates/mail/template_tracker_modified.tpl%1
+                                        %0webmaster@my.com|a@my.com,b@my.com|templatea.tpl,templateb.tpl%1 (%0templates/mail/tracker_changed_notification.tpl%1
                                         is the default from which you can get inspiration). Please note that you need to have an email
                                         address in the normal "Copy activity to email" property in the Tracker notifications panel as well',
                                         '<code>', '</code>'),
@@ -465,8 +465,10 @@ function wikiplugin_tracker_info()
 				'name' => tra('Template Page'),
 				'description' => tr('Name of the wiki page containing the template to format the output to wiki page.
 					Must be set for %0 to work. The template can contain variables to represent fields, for example
-					%1 would result in the value of fieldId 6.', '<code>outputtowiki</code>',
-					'<code>{$f_6}</code>'),
+					%1 would result in the value of fieldId 6. Also %2 can be used for the itemId and if you have set
+					%3 to yes, you can use %4 and %5.', '<code>outputtowiki</code>','<code>{$f_6}</code>',
+					'<code>{$f_itemId}</code>','<code>register</code>','<code>{$register_login}</code>',
+					'<code>{$register_email}</code>'),
 				'since' => '6.0',
 				'filter' => 'pagename',
 				'default' => '',
@@ -762,8 +764,8 @@ function wikiplugin_tracker($data, $params)
 		$outf = array();
 		$auto_fieldId = array();
 		$hidden_fieldId = array();
-		if (!empty($fields)  || !empty($wiki) || !empty($tpl)) {
-			if ($registration == 'y' && $prefs["user_register_prettytracker"] == 'y' && !empty($prefs["user_register_prettytracker_tpl"])) {
+		if (!empty($fields)  || !empty($wiki) || !empty($tpl) ||  !empty($prefs['user_register_prettytracker_tpl'])) {
+			if (isset($registration) && $registration == 'y' && $prefs["user_register_prettytracker"] == 'y' && !empty($prefs["user_register_prettytracker_tpl"])) {
 				$registrationlib = TikiLib::lib('registration');
 				$smarty->assign('listgroups', $registrationlib->merged_prefs['choosable_groups']);
 				$smarty->assign('register_login', $smarty->fetch('register-login.tpl'));
@@ -777,7 +779,13 @@ function wikiplugin_tracker($data, $params)
 					$smarty->assign('form', 'register');
 					$smarty->assign('register_antibot', $smarty->fetch('antibot.tpl'));
 				}
-				$wiki = $prefs["user_register_prettytracker_tpl"];
+				if (empty($wiki) && empty($tpl)) {	// no template in params?
+					if (preg_match('/\.tpl$/i', $prefs['user_register_prettytracker_tpl'])) {	// ends in .tpl?
+						$tpl = $prefs['user_register_prettytracker_tpl'];
+					} else {
+						$wiki = $prefs['user_register_prettytracker_tpl'];
+					}
+				}
 			}
 			if (!empty($wiki)) {
 				$outf = $trklib->get_pretty_fieldIds($wiki, 'wiki', $prettyModifier, $trackerId);
@@ -854,7 +862,12 @@ function wikiplugin_tracker($data, $params)
 		} else {
 			$unfiltered = array('data' => array());
 			foreach ($outf as $fieldId) {
-				$unfiltered['data'][] = $definition->getField($fieldId);
+				$fieldTemp = $definition->getField($fieldId);
+				if ($fieldTemp) {
+					$unfiltered['data'][] = $fieldTemp;
+				} else {
+					TikiLib::lib('errorreport')->report(tr('Tracker: Field #%0 not found in fields parameter or template', $fieldId));
+				}
 			}
 		}
 
@@ -1095,6 +1108,7 @@ function wikiplugin_tracker($data, $params)
 					$wikioutput = $newpageinfo["data"];
 					$newpagefields = $trklib->get_pretty_fieldIds($outputwiki, 'wiki', $prettyModifier, $trackerId);
 					$tracker_definition = Tracker_Definition::get($trackerId);
+					$wikioutput = str_replace('{$f_itemId}', $rid, $wikioutput);
 					foreach($newpagefields as $lf) {
 						$field = $tracker_definition->getField($lf);
 						$lfpermname = $field['permName'];
@@ -1164,10 +1178,22 @@ function wikiplugin_tracker($data, $params)
 					if (!empty($emailOptions[2])) { //tpl
 						$emailOptions[2] = preg_split('/ *, */', $emailOptions[2]);
 						foreach ($emailOptions[2] as $ieo=>$eo) {
-							if (!preg_match('/\.tpl$/', $eo)) {
-								$emailOptions[2][$ieo] = $eo.'.tpl';
+							if (strpos($eo, 'wiki:') !== 0) {
+								if (!preg_match('/\.tpl$/', $eo)) {
+									$emailOptions[2][$ieo] = $eo . '.tpl';
+								}
+								$tplSubject[$ieo] = str_replace('.tpl', '_subject.tpl', $emailOptions[2][$ieo]);
+							} else {
+								if (! $tikilib->page_exists(substr($eo, 5))) {
+									TikiLib::lib('errorreport')->report(tr('Missing wiki email template page "%0"', htmlspecialchars($wiki)));
+									$emailOptions[2][$ieo] = 'tracker_changed_notification.tpl';
+								} else {
+									$subject_name = str_replace('tpl', 'subject tpl', $emailOptions[2][$ieo]);
+									if ($tikilib->page_exists(substr($subject_name, 5))) {
+										$tplSubject[$ieo] = $subject_name;
+									}
+								}
 							}
-							$tplSubject[$ieo] = str_replace('.tpl', '_subject.tpl', $emailOptions[2][$ieo]);
 						}
 					} else {
 						$emailOptions[2] = array('tracker_changed_notification.tpl');
@@ -1179,15 +1205,23 @@ function wikiplugin_tracker($data, $params)
 					$smarty->assign('mail_date', $tikilib->now);
 					$smarty->assign('mail_itemId', $rid);
 					foreach ($emailOptions[1] as $ieo=>$ueo) {
-						@$mail_data = $smarty->fetch('mail/'.$tplSubject[$itpl]);
-						if (empty($mail_data))
-							$mail_data = tra('Tracker was modified at '). $_SERVER["SERVER_NAME"];
-						$mail->setSubject($mail_data);
-						$mail_data = $smarty->fetch('mail/'.$emailOptions[2][$itpl]);
-						if ($emailformat == 'html') {
-						$mail->setHtml($mail_data);
+						$mailDir = strpos($tplSubject[$itpl], 'wiki:') !== 0 ? 'mail/' : '';
+						@$mail_data = $smarty->fetch($mailDir .$tplSubject[$itpl]);
+						if (empty($mail_data)) {
+							$mail_data = tra('Tracker was modified at '). $_SERVER['SERVER_NAME'];
 						} else {
-						$mail->setText($mail_data);
+							$mail_data = trim(str_replace('&nbsp;', ' ', strip_tags($mail_data)));	// tidy
+						}
+						$mail->setSubject($mail_data);
+						$mailDir = strpos($emailOptions[2][$itpl], 'wiki:') !== 0 ? 'mail/' : '';	// wiki pages dont start with wiki:
+						$mail_data = $smarty->fetch($mailDir .$emailOptions[2][$itpl]);
+						if ($emailformat == 'html') {
+							$mail->setHtml($mail_data, strip_tags($mail_data));
+						} else {
+							if (strpos($emailOptions[2][$itpl], 'wiki:') === 0) {
+								$mail_data =  str_replace('&nbsp;', ' ', strip_tags($mail_data));
+							}
+							$mail->setText($mail_data);
 						}
 						try {
 							$mail->send($ueo);
@@ -1371,7 +1405,7 @@ function wikiplugin_tracker($data, $params)
 			$_REQUEST['error'] = 'y';
 
 			if(count($field_errors['err_mandatory']) > 0) {
-				$msg = tra('Following mandatory fields are missing');
+				$msg = tra('The following mandatory fields are missing');
 					foreach ($field_errors['err_mandatory'] as $err) {
 						$msg .= '<br>&nbsp;&nbsp;&nbsp;&nbsp;' . $err['name'];
 			}

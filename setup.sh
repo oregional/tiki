@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+# (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 #
 # All Rights Reserved. See copyright.txt for details and a complete list of authors.
 # Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -269,8 +269,8 @@ check_distribution
 # part 3 - default and writable subdirs
 # -------------------------------------
 
-DIR_LIST_DEFAULT="addons admin db doc dump files img installer lang lib maps modules permissioncheck temp templates templates_c tests themes tiki_tests vendor vendor_extra whelp"
-DIR_LIST_WRITABLE="db dump img/wiki img/wiki_up img/trackers modules/cache temp temp/cache temp/public templates_c templates themes maps whelp mods files tiki_tests/tests temp/unified-index"
+DIR_LIST_DEFAULT="addons admin db doc dump files img installer lang lib modules permissioncheck temp templates templates_c tests themes tiki_tests vendor vendor_extra whelp"
+DIR_LIST_WRITABLE="db dump img/wiki img/wiki_up img/trackers modules/cache temp temp/cache temp/public templates_c templates themes whelp mods files tiki_tests/tests temp/unified-index"
 DIRS=${DIR_LIST_WRITABLE}
 
 # part 4 - several functions

@@ -3,10 +3,10 @@
 
 <div class="t_navbar margin-bottom-md">
 	{if $tiki_p_admin_quizzes eq 'y'}
-			{button href="tiki-edit_quiz.php" class="btn btn-default" _text="{tr}Admin Quizzes{/tr}"}
+			{button href="tiki-edit_quiz.php" class="btn btn-link" _type="link" _icon_name="gear" _text="{tr}Admin Quizzes{/tr}"}
 	{/if}
 	{if $tiki_p_view_quiz_stats eq 'y'}
-		{button href="tiki-quiz_stats.php" class="btn btn-default" _text="{tr}Quiz Stats{/tr}"}
+		{button href="tiki-quiz_stats.php" class="btn btn-link" _type="link" _icon_name="bar-chart" _text="{tr}Quiz Stats{/tr}"}
 	{/if}
 </div>
 
@@ -81,7 +81,7 @@
 								class="tips"
 								title="{tr}Actions{/tr}"
 								href="#"
-								{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.quiz_actions|escape:"javascript"|escape:"html"}{/if}
+								{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.quiz_actions|escape:"javascript"|escape:"html"}{/if}
 								style="padding:0; margin:0; border:0"
 							>
 								{icon name='wrench'}

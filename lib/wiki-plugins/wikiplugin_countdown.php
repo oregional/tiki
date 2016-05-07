@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -115,7 +115,7 @@ function wikiplugin_countdown_info()
 			),
 			'thousands' => array(
 				'required' => false,
-				'name' => tra('Thousands Separator'),
+				'name' => tra('Thousands separator'),
 				'description' => tr(
 					'Set the thousands separator for results of 1,000 or more.
 					Choices are comma (%0c%1), decimal (%0d%1), space (%0s%1), or leave blank for no separator.', '<code>', '</code>'
@@ -139,7 +139,7 @@ function wikiplugin_countdown($data, $params)
 	extract($params, EXTR_SKIP);
 	//must have an enddate
 	if (!isset($enddate)) {
-		return '<strong>' . tra('COUNTDOWN: Missing "enddate" parameter for plugin') . '</strong><br />';
+		return '<strong>' . tra('Countdown: Missing "enddate" parameter for plugin') . '</strong><br />';
 	}
 	//set now date and time
 	global $tikilib;

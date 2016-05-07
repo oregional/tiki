@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -48,7 +48,7 @@ function wikiplugin_trackeritemfield_info()
 			'fields' => array(
 				'required' => false,
 				'name' => tra('Fields'),
-				'description' => tra('Colon separated list of field IDs. Default is all fields'),
+				'description' => tra('Colon-separated list of field IDs. Default is all fields'),
 				'since' => '2.0',
 				'default' => '',
 				'filter' => 'text',
@@ -249,7 +249,7 @@ function wikiplugin_trackeritemfield($data, $params)
 		}
 
 		if (! $itemObject->canViewField($fieldId)) {
-			return WikiParser_PluginOutput::error(tr('Permission denied'), tr('You are not allowed to view this field.'));
+			return WikiParser_PluginOutput::error(tr('Permission denied'), tr("You don't have permission to view this field."));
 		}
 
 		if (empty($test))

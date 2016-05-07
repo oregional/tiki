@@ -47,6 +47,8 @@
 				{preference name=tracker_legacy_insert}
 				{preference name=tracker_status_in_objectlink}
 				{preference name=tracker_always_notify}
+				{preference name=feature_sefurl_tracker_prefixalias}
+				{preference name=tracker_prefixalias_on_links}
 			</fieldset>
 
 			<fieldset class="admin">
@@ -81,6 +83,13 @@
 						</tr>
 
 					</table>
+			</fieldset>
+			<fieldset class="admin">
+				<legend>{tr}Tracker Force-Fill Feature{/tr}</legend>
+				{preference name=tracker_force_fill}
+				{preference name=tracker_force_tracker_id}
+				{preference name=tracker_force_mandatory_field}
+				{preference name=tracker_force_tracker_fields}
 			</fieldset>
 		{/tab}
 

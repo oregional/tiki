@@ -1,5 +1,5 @@
 {* $Id$ *}
-{title help="File+Galleries" admpage="fgal"}
+{title help="File Galleries" admpage="fgal"}
 	{if $edit_mode eq 'y' and $galleryId eq 0}
 		{tr}Create a File Gallery{/tr}
 	{else}
@@ -59,9 +59,11 @@
 			</li>
 			<li class="divider"></li>
 			{if $edit_mode neq 'y' or $dup_mode neq 'y'}
-				<li>
-					<a href="tiki-list_file_gallery.php?edit_mode=1&galleryId={$galleryId}">{icon name="edit"} {tr}Edit{/tr}</a>
-				</li>
+				{if $tiki_p_create_file_galleries eq 'y' or (not empty($user) and $user eq $gal_info.user and $gal_info.type eq 'user' and $tiki_p_userfiles eq 'y')}
+					<li>
+						<a href="tiki-list_file_gallery.php?edit_mode=1&galleryId={$galleryId}">{icon name="edit"} {tr}Edit{/tr}</a>
+					</li>
+				{/if}
 			{/if}
 			{if $tiki_p_create_file_galleries eq 'y' and $dup_mode ne 'y' and $gal_info.type neq 'user'}
 				<li>
@@ -124,24 +126,24 @@
 	</div>
 	{if $galleryId gt 0}
 	{* main navigation buttons under the page title *}
-		{if $treeRootId eq $prefs.fgal_root_id && ( $tiki_p_list_file_galleries eq 'y'
+	{*	{if $treeRootId eq $prefs.fgal_root_id && ( $tiki_p_list_file_galleries eq 'y'
 			or (!isset($tiki_p_list_file_galleries) and $tiki_p_view_file_gallery eq 'y') )}
 			{button _icon_name="list" _text="{tr}List{/tr}" href="?"}
-		{/if}
+		{/if} *}
 		{if $tiki_p_create_file_galleries eq 'y' and $edit_mode ne 'y'}
-			{button _keepall='y' _icon_name="create" _text="{tr}Create{/tr}" edit_mode=1 parentId=$galleryId cookietab=1}
+			{button _keepall='y' _icon_name="create" _type="link" _text="{tr}Create{/tr}" edit_mode=1 parentId=$galleryId cookietab=1}
 		{/if}
-		{if $tiki_p_admin_file_galleries eq 'y' or ($user eq $gal_info.user and $gal_info.type eq 'user' and $tiki_p_userfiles)}
+		{if $tiki_p_admin_file_galleries eq 'y' or (not empty($user) and $user eq $gal_info.user and $gal_info.type eq 'user' and $tiki_p_userfiles eq 'y')}
 			{if $edit_mode eq 'y' or $dup_mode eq 'y'}
 				{button _keepall='y'  _icon_name="view" _text="{tr}Browse{/tr}" galleryId=$galleryId}
 			{/if}
 		{/if}
 		{if $tiki_p_admin_file_galleries eq 'y' or $user eq $gal_info.user or $gal_info.public eq 'y'}
 			{if $tiki_p_upload_files eq 'y'}
-				{button _keepall='y' _icon_name="export" _text="{tr}Upload{/tr}" href="tiki-upload_file.php" galleryId=$galleryId}
+				{button _keepall='y' _icon_name="export"  _type="link" _text="{tr}Upload{/tr}" href="tiki-upload_file.php" galleryId=$galleryId}
 			{/if}
 			{if $tiki_p_upload_files eq 'y' and $prefs.feature_draw eq 'y'}
-				{button _keepall='y' _icon_name="post" _text="{tr}Draw{/tr}" href="tiki-edit_draw.php" galleryId=$galleryId}
+				{button _keepall='y' _icon_name="post"  _type="link" _text="{tr}Draw{/tr}" href="tiki-edit_draw.php" galleryId=$galleryId}
 			{/if}
 			{if $prefs.feature_file_galleries_batch eq "y" and $tiki_p_batch_upload_file_dir eq 'y'}
 				{button _keepall='y' _icon_name="file-archive" _text="{tr}Batch{/tr}" href="tiki-batch_upload_files.php" galleryId=$galleryId}
@@ -178,11 +180,18 @@
 {if isset($fileChangedMessage) and $fileChangedMessage neq ''}
 	{remarksbox type="note" title="{tr}Note{/tr}"}
 		{$fileChangedMessage}
-		<form method="post" action="{$smarty.server.PHP_SELF}{if !empty($filegals_manager) and $filegals_manager neq ''}?filegals_manager={$filegals_manager|escape}{/if}">
+		<form method="post"
+				action="{$smarty.server.PHP_SELF}{if !empty($filegals_manager) and $filegals_manager neq ''}?filegals_manager={$filegals_manager|escape}{/if}"
+				class="form-inline">
 			<input type="hidden" name="galleryId" value="{$galleryId|escape}">
 			<input type="hidden" name="fileId" value="{$fileId|escape}">
-			{tr}Your comment{/tr} ({tr}optional{/tr}): <input type="text" name="comment" size="40">
-			{icon name='ok' _tag='input_image'}
+			<div class="form-group">
+				<label>
+					{tr}Your comment{/tr} ({tr}optional{/tr}):
+					<input type="text" name="comment" size="30" class="form-input">
+				</label>
+				<button type="submit" class="btn btn-default btn-sm">{icon name='ok'} {tr}Save{/tr}</button>
+			</div>
 		</form>
 	{/remarksbox}
 {/if}

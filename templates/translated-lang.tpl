@@ -8,11 +8,20 @@
 
 {if empty($submenu) || $submenu neq 'y'}
 	<div class="btn-group">
-		{* For all object types: First show the translate icon and on hover the language of the current object *}
-		{if $js == 'n'}<ul class="cssmenu_horiz"><li>{/if}
-		<a class="btn btn-link dropdown-toggle" data-toggle="dropdown" data-hover="dropdown">
-			{icon name="translate"}
-		</a>
+		{if $prefs.lang_available_translations_dropdown neq 'y' }
+			{* For all object types: First show the translate icon and on hover the language of the current object *}
+			{if $js == 'n'}<ul class="cssmenu_horiz"><li>{/if}
+			<a class="btn btn-link dropdown-toggle" data-toggle="dropdown" data-hover="dropdown">
+				{icon name="translate"}
+			</a>
+		{else}
+			<div class="dropdown">
+				{* For all object types: Show everything as a dropdown for visibility *}
+				{if $js == 'n'}<ul class="cssmenu_horiz"><li>{/if}
+				<button class="btn btn-link dropdown-toggle" data-toggle="dropdown" data-hover="dropdown">
+					{icon name="translate"} {$trads[0].langName|escape} ({$trads[0].lang|escape}) <span class="caret"></span>
+				</button>
+		{/if}
 {else}
 	{if $js == 'n'}<ul class="cssmenu_horiz"><li>{/if}
 	<a tabindex="-1" href="#">
@@ -103,6 +112,7 @@
 			{* Translation maintenance *}
 			{capture}
 				{if $object_type eq 'wiki page' and $tiki_p_edit eq 'y'}
+					<li role="separator" class="divider"></li>
 					<li>
 						<a class="tips" href="tiki-edit_translation.php?page={$trads[0].objName|escape:url}&no_bl=y" title=":{tr}Translate page{/tr}">
 							{tr}Translate{/tr}
@@ -114,6 +124,7 @@
 						</a>
 					</li>
 				{elseif $object_type eq 'article' and $tiki_p_edit_article eq 'y'}
+					<li role="separator" class="divider"></li>
 					<li>
 						<a href="tiki-edit_article.php?translationOf={$articleId}" title="{tr}Translate article{/tr}">
 						{tr}Translate{/tr}
@@ -127,12 +138,14 @@
 				{/if}
 			{/capture}
 			{if !empty($smarty.capture.default)}{* Only display the header if there's content *}
-				<li role="separator" class="divider"></li>
 				{$smarty.capture.default}
 			{/if}
 		</ul>
 	{/if}
 	{if $js == 'n'}</li></ul>{/if}
 {if empty($submenu) || $submenu neq 'y'}
+	{if $prefs.lang_available_translations_dropdown eq 'y' }
+		</div>
+	{/if}
 	</div>
 {/if}

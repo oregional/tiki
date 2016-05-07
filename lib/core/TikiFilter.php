@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -23,9 +23,9 @@ class TikiFilter
 		switch( $filter )
 		{
 		case 'alpha':
-			return new Zend\I18n\Filter\Alpha;
+			return new TikiFilter_Alpha;
 		case 'alnum':
-			return new Zend\I18n\Filter\Alnum;
+			return new TikiFilter_Alnum;
 		case 'digits':
 			return new Zend\Filter\Digits;
 		case 'int':

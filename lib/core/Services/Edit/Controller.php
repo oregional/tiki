@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -166,11 +166,11 @@ function get_new_preview() {
 	$("body").css("opacity", 0.6);
 	location.reload(true);
 }
-$(window).load(function(){
+$(window).on("load", function(){
 	if (typeof opener != "undefined") {
 		opener.ajaxPreviewWindow = this;
 	}
-}).unload(function(){
+}).on("unload", function(){
 	if (typeof opener.ajaxPreviewWindow != "undefined") {
 		opener.ajaxPreviewWindow = null;
 	}

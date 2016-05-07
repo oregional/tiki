@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -25,7 +25,7 @@ function wikiplugin_grouplist_info()
 			'linkhome' => array(
 				'required' => false,
 				'name' => tra('Group Homepage'),
-				'description' => tra('Link the group name to the group home page, if there is one (not linked by default)'),
+				'description' => tra('Link the group name to the group homepage, if there is one (not linked to by default)'),
 				'since' => '5.0',
 				'default' => 'n',
 				'filter' => 'alpha',
@@ -38,7 +38,7 @@ function wikiplugin_grouplist_info()
 			'recur' => array(
 				'required' => false,
 				'name' => tra('Recursively List Groups'),
-				'description' => tra('Recurse on the included groups (default is not to recurse)'),
+				'description' => tra('Recursively list the included groups (the default is to not list them repeatedly)'),
 				'since' => '5.0',
 				'default' => 'n',
 				'filter' => 'alpha',

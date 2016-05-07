@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -45,7 +45,7 @@ function wikiplugin_lsdir_info()
 					array('text' => tra('File Size'), 'value' => 'size'), 
 					array('text' => tra('Last Access'), 'value' => 'atime'), 
 					array('text' => tra('Last Metadata Change'), 'value' => 'ctime'), 
-					array('text' => tra('Last Modified'), 'value' => 'mtime'), 
+					array('text' => tra('Last modified'), 'value' => 'mtime'), 
 				)
 			),
 			'filter' => array(

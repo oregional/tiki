@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -61,7 +61,7 @@ if ( !isset($_REQUEST['mobile_mode']) || $_REQUEST['mobile_mode'] === 'y' ) {
 					$headerlib
 						->add_jsfile_external('vendor/jquery/photoswipe/lib/klass.min.js', true)
 						->add_jsfile_external('vendor/jquery/photoswipe/code.photoswipe.jquery-3.0.5.min.js', true)
-						->add_js('var $photosToSwipe = $("a[rel*=\'box\'][rel*=\'type=img\'], a[rel*=\'box\'][rel!=\'type=\']:not(.external)");
+						->add_jq_onready('var $photosToSwipe = $("a[data-box*=\'box\'][data-box*=\'type=img\'], a[data-box*=\'box\'][data-box!=\'type=\']");
 if ($photosToSwipe.length) {$photosToSwipe.photoSwipe();}', 5)
 						->add_cssfile('vendor/jquery/photoswipe/photoswipe.css');
 				}

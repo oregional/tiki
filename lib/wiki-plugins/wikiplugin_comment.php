@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -47,7 +47,7 @@ function wikiplugin_comment_info()
 				'description' => tra('Object ID'),
 				'since' => '8.0',
 				'filter' => 'digits',
-				'default' => tr('The current wiki page you have added the plugin to'),
+				'default' => tr('The current wiki page to which you have added the plugin'),
 				'profile_reference' => 'type_in_param',
 			),
 		)

@@ -3,9 +3,10 @@
 	<input type="hidden" name="ticket" value="{$ticket|escape}">
 	<input type="hidden" name="new_prefs" />
 	<div class="t_navbar margin-bottom-md">
-		{button _class="btn btn-link tips" href="tiki-install.php" _icon_name="database" _text="{tr}Tiki installer{/tr}" _title=":{tr}Reset or upgrade your database{/tr}"}
-		{button _class="btn btn-link tips" href="tiki-admin.php?page=general&amp;forcecheck=1" _icon_name="search" _text="{tr}Check for updates now{/tr}" _title=":{tr}Check for updates now{/tr}"}
-		{button _class="btn btn-link tips" href="tiki-admin_menus.php" _icon_name="menu" _text="{tr}Menus{/tr}" _title=":{tr}Create and edit menus{/tr}"}
+		{button _class="btn btn-link tips" _type="text" href="tiki-install.php" _icon_name="database" _text="{tr}Tiki installer{/tr}" _title=":{tr}Reset or upgrade your database{/tr}"}
+		{button _class="btn btn-link tips" _type="text" href="tiki-admin_menus.php" _icon_name="menu" _text="{tr}Menus{/tr}" _title=":{tr}Create and edit menus{/tr}"}
+		{button _class="btn btn-link tips" _type="text" href="tiki-admin.php?page=general&amp;forcecheck=1" _icon_name="search" _text="{tr}Check for updates now{/tr}" _title=":{tr}Check for updates now{/tr}"}
+		{button _class="btn btn-link tips" _type="text" href="tiki-check.php" _icon_name="heartbeat" _text="{tr}Server Fitness{/tr}" _title=":{tr}Check if your server meets the requirements for running Tiki{/tr}"}
 		<div class="pull-right">
 			<input type="submit" class="btn btn-primary btn-sm tips" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
 		</div>
@@ -18,9 +19,6 @@
 	{tabset name="admin_general"}
 		{tab name="{tr}General Preferences{/tr}"}
 			<h2>{tr}General Preferences{/tr}</h2>
-			{remarksbox type="info" title="{tr}Server Fitness{/tr}" close="n"}
-				{tr}To check if your server meets the requirements for running Tiki please visit <a href="tiki-check.php" class="alert-link">Tiki Server Compatibility Check</a>{/tr}.
-			{/remarksbox}
 			<fieldset>
 				<legend>{tr}Release Check{/tr}</legend>
 				{remarksbox type="info" title="{tr}Tiki version{/tr}" close="n"}
@@ -58,11 +56,14 @@
 				{preference name=mail_crlf}
 				{preference name=zend_mail_handler}
 				<div class="adminoptionboxchild zend_mail_handler_childcontainer smtp">
+					<input type="password" style="display:none" name="zend_mail_smtp_server_autocomplete_off"> {* This is now required so the browser don't store the user's login here *}
 					{preference name=zend_mail_smtp_server}
 					{preference name=zend_mail_smtp_auth}
 					<div class="adminoptionboxchild zend_mail_smtp_auth_childcontainer login plain crammd5">
 						<p>{tr}These values will be stored in plain text in the database:{/tr}</p>
+						<input type="password" style="display:none" name="zend_mail_smtp_user_autocomplete_off"> {* This is now required so the browser don't store the user's login here *}
 						{preference name=zend_mail_smtp_user}
+						<input type="password" style="display:none" name="zend_mail_smtp_pass_autocomplete_off"> {* This is now required so the browser don't store the user's password here *}
 						{preference name=zend_mail_smtp_pass}
 					</div>
 					{preference name=zend_mail_smtp_port}
@@ -176,6 +177,9 @@
 				<div class="adminoptionboxchild print_pdf_from_url_childcontainer webservice">
 					{preference name=print_pdf_webservice_url}
 				</div>
+				<div class="adminoptionboxchild print_pdf_from_url_childcontainer mpdf">
+					{preference name=print_pdf_mpdf_path}
+				</div>
 			</fieldset>
 			<fieldset>
 				<legend>{tr}Terms and Conditions{/tr}</legend>
@@ -236,16 +240,15 @@
 				{preference name=tiki_domain_redirects}
 				{preference name=feature_redirect_on_error}
 				{preference name='feature_wiki_1like_redirection'}
-				<div class="well well-sm">
-					{preference name='permission_denied_login_box' mode='invert'}
-					<div class="adminoptionboxchild" id="permission_denied_login_box_childcontainer">
-						<div class="text-center">
-							<strong>{tr}or{/tr}</strong>
-						</div>
-						</br>
-						{preference name=permission_denied_url}
+				<hr>
+				{preference name='permission_denied_login_box' mode='invert'}
+				<div class="adminoptionboxchild" id="permission_denied_login_box_childcontainer">
+					<div style="text-indent: 28%">
+						<strong>{tr}or{/tr}</strong>
 					</div>
+					{preference name=permission_denied_url}
 				</div>
+				<hr>
 				{preference name='url_anonymous_page_not_found'}
 				{preference name='url_after_validation'}
 				{preference name='feature_alternate_registration_page'}

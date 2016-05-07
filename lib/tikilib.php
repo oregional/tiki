@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -1309,10 +1309,9 @@ class TikiLib extends TikiDb_Bridge
 				from `tiki_object_scores` tos
 				where `recipientObjectType`='user'
 				and tos.`id` = (select max(id) from `tiki_object_scores` where `recipientObjectId` = tos.`recipientObjectId` and `recipientObjectType`='user' group by `recipientObjectId`)
-				group by `recipientObjectId` order by `score` desc
-				limit ? offset ?";
+				group by `recipientObjectId` order by `score` desc";
 
-			$result = $this->fetchAll($query, array($limit, $start));
+			$result = $this->fetchAll($query, NULL, $limit, $start);
 		} else {
 			// score expires
 			$query = "select `recipientObjectId` as `login`,
@@ -1324,10 +1323,9 @@ class TikiLib extends TikiDb_Bridge
 				from `tiki_object_scores` tos
 				where `recipientObjectType`='user'
 				and tos.`id` = (select max(id) from `tiki_object_scores` where `recipientObjectId` = tos.`recipientObjectId` and `recipientObjectType`='user' group by `recipientObjectId`)
-				group by `recipientObjectId` order by `score` desc
-				limit ? offset ?";
+				group by `recipientObjectId` order by `score` desc";
 
-				$result = $this->fetchAll($query, array($score_expiry_days, $limit, $start));
+			$result = $this->fetchAll($query, $score_expiry_days, $limit, $start);
 		}
 
 		foreach ( $result as & $res ) {
@@ -1427,7 +1425,7 @@ class TikiLib extends TikiDb_Bridge
 		switch ($type)	{
 			case 'l':
 				if ($libname) {
-					$ret = "<img width='45' height='45' src='" . $libname . "' " . $style . " alt='" . htmlspecialchars($user, ENT_NOQUOTES) . "'>";
+					$ret = "<img class='user-profile-picture img-rounded' width='45' height='45' src='" . $libname . "' " . $style . " alt='" . htmlspecialchars($user, ENT_NOQUOTES) . "'>";
 				}
 				break;
 			case 'u':
@@ -1435,11 +1433,11 @@ class TikiLib extends TikiDb_Bridge
 				$path = $userprefslib->get_public_avatar_path($user);
 
 				if ($path) {
-					$ret = "<img src='" . htmlspecialchars($path, ENT_NOQUOTES) . "' " . $style . " alt='" . htmlspecialchars($user, ENT_NOQUOTES) . "'>";
+					$ret = "<img class='user-profile-picture img-rounded' src='" . htmlspecialchars($path, ENT_NOQUOTES) . "' " . $style . " alt='" . htmlspecialchars($user, ENT_NOQUOTES) . "'>";
 				}
 				break;
 			case 'g':
-				$ret = "<img src='" . htmlspecialchars($url, ENT_NOQUOTES) . "' " . $style . " alt='" . htmlspecialchars($user, ENT_NOQUOTES) . "'>";
+				$ret = "<img class='user-profile-picture img-rounded' src='" . htmlspecialchars($url, ENT_NOQUOTES) . "' " . $style . " alt='" . htmlspecialchars($user, ENT_NOQUOTES) . "'>";
 				break;
 			case 'n':
 			default:

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -22,7 +22,7 @@ function module_quick_search_info()
 			),
 			'filter_category' => array(
 				'name' => tra('Filter category'),
-				'description' => tra('Limit search results to a specific category. Enter the comma separated list of category IDs to include in the selector. Single category will display no controls.'),
+				'description' => tra('Limit search results to a specific category. Enter the comma-separated list of category IDs to include in the selector. Single category will display no controls.'),
 				'filter' => 'digits',
 				'separator' => ',',
 				'profile_reference' => 'category',

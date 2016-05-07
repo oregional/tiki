@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -20,18 +20,18 @@ function wikiplugin_img_info()
 			'type' => array(
 				'required' => true,
 				'name' => tra('Image Source'),
-				'description' => tra('Choose where to get your image from'),
+				'description' => tra('Choose where to get the image from'),
 				'since' => '11.0',
 				'doctype' => 'id',
 				'default' => '',
 				'filter' => 'word',
 				'options' => array(
 					array('text' => tra('Select an option'), 'value' => ''),
-					array('text' => tra('An image in the File Galleries'), 'value' => 'fileId'),
+					array('text' => tra('An image in the file galleries'), 'value' => 'fileId'),
 					array('text' => tra('An image attached to a wiki page'), 'value' => 'attId'),
-					array('text' => tra('An image anywhere on the internet'), 'value' => 'src'),
-					array('text' => tra('All the images in a File Gallery'), 'value' => 'fgalId'),
-					array('text' => tra('One random image from a File Gallery'), 'value' => 'randomGalleryId'),
+					array('text' => tra('An image anywhere on the Internet'), 'value' => 'src'),
+					array('text' => tra('All the images in a file gallery'), 'value' => 'fgalId'),
+					array('text' => tra('One random image from a file gallery'), 'value' => 'randomGalleryId'),
 				),
 			),
 			'fileId' => array(
@@ -39,7 +39,7 @@ function wikiplugin_img_info()
 				'name' => tra('File ID'),
 				'type' => 'image',
 				'area' => 'fgal_picker_id',
-				'description' => tr('Numeric ID of an image in a File Gallery (or list separated by commas or %0).',
+				'description' => tr('Numeric ID of an image in a file gallery (or a comma- or %0-separated list of IDs).',
 					'<code>|</code>'),
 				'since' => '4.0',
 				'doctype' => 'id',
@@ -52,7 +52,7 @@ function wikiplugin_img_info()
 			'id' => array(
 				'required' => true,
 				'name' => tra('Image ID'),
-				'description' => tr('Numeric ID of an image in an Image Gallery (or list separated by commas or %0).',
+				'description' => tr('Numeric ID of an image in an image gallery (or a comma- or %0-separated list of IDs).',
 					'<code>|</code>'),
 				'since' => '4.0',
 				'doctype' => 'id',
@@ -98,7 +98,7 @@ function wikiplugin_img_info()
 			'attId' => array(
 				'required' => true,
 				'name' => tra('Attachment ID'),
-				'description' => tr('Numeric ID of an image attached to a wiki page (or list separated by commas or %0).',
+				'description' => tr('Numeric ID of an image attached to a wiki page (or a comma- or %0-separated list).',
 					'<code>|</code>'),
 				'since' => '4.0',
 				'doctype' => 'id',
@@ -107,111 +107,23 @@ function wikiplugin_img_info()
 				'default' => '',
 				'parent' => array('name' => 'type', 'value' => 'attId'),
 			),
-			'sort_mode' => array(
-				'required' => false,
-				'name' => tra('Sort Mode'),
-				'description' => tr('Sort by database table field name, ascending or descending. Examples:
-					%0 or %1.', '<code>fileId_asc</code>', '<code>name_desc</code>'),
-				'filter' => 'word',
-				'accepted' => tr('%0 or %1 with actual database field name in place of
-					%2.', '<code>fieldname_asc</code>', '<code>fieldname_desc</code>', '<code>fieldname</code>'),
-				'default' => 'created_desc',
-				'since' => '8.0',
-				'doctype' => 'id',
-				'advanced' => true,
-				'options' => array (
-					array('text' => tra(''), 'value' => ''),
-					array('text' => tra('Created Ascending'), 'value' => 'created_asc'),
-					array('text' => tra('Created Descending'), 'value' => 'created_desc'),
-					array('text' => tra('Name Ascending'), 'value' => 'name_asc'),
-					array('text' => tra('Name Descending'), 'value' => 'name_desc'),
-					array('text' => tra('File Name Ascending'), 'value' => 'filename_asc'),
-					array('text' => tra('File Name Descending'), 'value' => 'filename_desc'),
-					array('text' => tra('Description Ascending'), 'value' => 'description_asc'),
-					array('text' => tra('Description Descending'), 'value' => 'description_desc'),
-					array('text' => tra('Comment Ascending'), 'value' => 'comment_asc'),
-					array('text' => tra('Comment Descending'), 'value' => 'comment_desc'),
-					array('text' => tra('Hits Ascending'), 'value' => 'hits_asc'),
-					array('text' => tra('Hits Descending'), 'value' => 'hits_desc'),
-					array('text' => tra('Max Hits Ascending'), 'value' => 'maxhits_asc'),
-					array('text' => tra('Max Hits Descending'), 'value' => 'maxhits_desc'),
-					array('text' => tra('File Size Ascending'), 'value' => 'filesize_asc'),
-					array('text' => tra('File Size Descending'), 'value' => 'filesize_desc'),
-					array('text' => tra('File Type Ascending'), 'value' => 'filetype_asc'),
-					array('text' => tra('File Type Descending'), 'value' => 'filetype_desc'),
-					array('text' => tra('User Ascending'), 'value' => 'user_asc'),
-					array('text' => tra('User Descending'), 'value' => 'user_desc'),
-					array('text' => tra('Author Ascending'), 'value' => 'author_asc'),
-					array('text' => tra('Author Descending'), 'value' => 'author_desc'),
-					array('text' => tra('Locked By Ascending'), 'value' => 'lockedby_asc'),
-					array('text' => tra('Locked By Descending'), 'value' => 'lockedby_desc'),
-					array('text' => tra('Last Modified User Ascending'), 'value' => 'lastModifUser_asc'),
-					array('text' => tra('Last Modified User Descending'), 'value' => 'lastModifUser_desc'),
-					array('text' => tra('Last Modified Date Ascending'), 'value' => 'lastModif_asc'),
-					array('text' => tra('Last Modified Date Descending'), 'value' => 'lastModif_desc'),
-					array('text' => tra('Last Download Ascending'), 'value' => 'lastDownload_asc'),
-					array('text' => tra('Last Download Descending'), 'value' => 'lastDownload_desc'),
-					array('text' => tra('Delete After Ascending'), 'value' => 'deleteAfter_asc'),
-					array('text' => tra('Delete After Descending'), 'value' => 'deleteAfter_desc'),
-					array('text' => tra('Votes Ascending'), 'value' => 'votes_asc'),
-					array('text' => tra('Votes Descending'), 'value' => 'votes_desc'),
-					array('text' => tra('Points Ascending'), 'value' => 'points_asc'),
-					array('text' => tra('Points Descending'), 'value' => 'points_desc'),
-					array('text' => tra('Archive ID Ascending'), 'value' => 'archiveId_asc'),
-					array('text' => tra('Archive ID Descending'), 'value' => 'archiveId_desc'),
-				),
-			),
 			'thumb' => array(
 				'required' => false,
 				'name' => tra('Thumbnail'),
-				'description' => tr('Makes the image a thumbnail that enlarges to full size when clicked or moused over
-					(unless %0 is set to another target). Values function as follows:', '<code>link</code>') . '<br />'
-					. '<code>y</code> - ' . tr('Enlarges on a new page (depends on browser and preference settings).
-						Enlarges in a popup box when %0', '<code>rel="box"</code>') . '<br />'
-					. '<code>box</code> - ' . tra('Enlarges in a popup box when clicked') . '<br />'
-					. '<code>mouseover</code> - ' . tr('Enlarges in a popup when moused over. Images larger than 400px
-						will fall back to %0', '<code>mousesticky</code>') . '<br />'
-					. '<code>mousesticky</code> - ' . tra('Enlarges in a popup when moused over that stays open until
-						second mouseover or click') . '<br />'
-					. '<code>popup</code> - ' . tra('Enlarges in a separate window or tab (depending on browser settings') . '<br />'
-					. '<code>browse</code>, <code>browsepopup</code> - ' . tr('For image gallery images only: galery
-						browse page opens (in a new tab or window if %0 is used)', '<code>browsepopup</code>') . '<br />'
-					. '<code>download</code> - ' . tra('Dialog box for downloading the image appears when clicked
-						 (file gallery and attachment images only)') . '<br />'
-					. '<code>zoombox</code> - ' . tra('Enlarges in a popup with a zoom option when clicked') . '<br />',
+				'description' => tr('Makes the image a thumbnail with various options.'),
 				'since' => '4.0',
 				'doctype' => 'link',
 				'filter' => 'alpha',
 				'default' => '',
 				'options' => array(
 					array('text' => tra('None'), 'value' => ''),
-					array('text' => tra('Yes'), 'value' => 'y'),
-					array('text' => tra('Box'), 'value' => 'box'),
-					array('text' => tra('Mouseover'), 'value' => 'mouseover'),
-					array('text' => tra('Mouseover (Sticky)'), 'value' => 'mousesticky'),
-					array('text' => tra('Popup'), 'value' => 'popup'),
+					array('text' => tra('Simple - links to full size image on a new page'), 'value' => 'y'),
+					array('text' => tra('"Lightbox" - enlarges in an overlay box when clicked'), 'value' => 'box'),
+					array('text' => tra('Mouseover - enlarges in a popup when moused over'), 'value' => 'mouseover'),
+					array('text' => tra('Mouseover (sticky)'), 'value' => 'mousesticky'),
+					array('text' => tra('Popup - enlarges in a separate window'), 'value' => 'popup'),
 					array('text' => tra('Download'), 'value' => 'download'),
-				),
-			),
-			'button' => array(
-				'required' => false,
-				'name' => tra('Enlarge Button'),
-				'description' => tr('Adds an enlarge button (magnifying glass icon) below the image for use together
-					with %0thumb%1. Follows %0thumb%1 settings unless %0thumb%1 is set to %0mouseover%1 or %0mousesticky%1
-					(or overridden by %0link%1), otherwise button settings are followed, operating as described above
-					for %0thumb%1', '<code>', '</code>'),
-				'since' => '4.0',
-				'doctype' => 'link',
-				'filter' => 'alpha',
-				'default' => '',
-				'advanced' => true,
-				'options' => array(
-					array('text' => tra('None'), 'value' => ''),
-					array('text' => tra('Yes'), 'value' => 'y'),
-					array('text' => tra('Popup'), 'value' => 'popup'),
-					array('text' => tra('Browse'), 'value' => 'browse'),
-					array('text' => tra('Browse Popup'), 'value' => 'browsepopup'),
-					array('text' => tra('Download'), 'value' => 'download'),
+					array('text' => tra('Zoombox - enlarges in a popup with a zoom option'), 'value' => 'zoombox'),
 				),
 			),
 			'link' => array(
@@ -222,27 +134,6 @@ function wikiplugin_img_info()
 				'since' => '3.0',
 				'doctype' => 'link',
 				'filter' => 'url',
-				'default' => '',
-			),
-			'rel' => array(
-				'required' => false,
-				'name' => tra('Link Relation'),
-				'since' => '3.0',
-				'doctype' => 'link',
-				'filter' => 'text',
-				'description' => tr('Specifies the relationship between the link image and the target. Enter %0 to
-					cause the image to enlarge in a popup when clicked.', '<code>box</code>'),
-				'advanced' => true,
-				'default' => '',
-			),
-			'usemap' => array(
-				'required' => false,
-				'name' => tra('Image Map'),
-				'filter' => 'text',
-				'description' => tra('Name of the image map to use for the image.'),
-				'since' => '3.0',
-				'doctype' => 'link',
-				'advanced' => true,
 				'default' => '',
 			),
 			'height' => array(
@@ -273,6 +164,141 @@ function wikiplugin_img_info()
 				'since' => '4.0',
 				'doctype' => 'size',
 				'filter' => 'digits',
+				'default' => '',
+			),
+			'desc' => array(
+				'required' => false,
+				'name' => tra('Caption'),
+				'since' => '3.0',
+				'doctype' => 'text',
+				'filter' => 'text',
+				'description' => tr('Image caption. Use %0name%1 or %0desc%1 or %0namedesc%1 for Tiki name and
+					description properties, %0idesc%1 or %0ititle%1 for metadata from the image itself, otherwise
+					enter your own description.', '<code>', '</code>'),
+				'default' => '',
+			),
+			'alt' => array(
+				'required' => false,
+				'name' => tra('Alternate Text'),
+				'filter' => 'text',
+				'description' => tra('Alternate text that displays when image does not load. Set to "Image" by default.'),
+				'since' => '3.0',
+				'doctype' => 'text',
+				'default' => 'Image',
+			),
+			'responsive' => array(
+				'required' => false,
+				'name' => tra('Responsive Image'),
+				'filter' => 'alpha',
+				'description' => tr('Default set by the admin using a preference and determines whether the image has the %0img-responsive%1 class.', '<code>', '</code>'),
+				'since' => '14.0',
+				'doctype' => 'style',
+				'advanced' => false,
+				'default' => '',
+				'options' => array(
+					array('text' => tra('Default'), 'value' => ''),
+					array('text' => tra('Yes'), 'value' => 'y'),
+					array('text' => tra('No'), 'value' => 'n'),
+				),
+			),
+
+			///// advanced parameters ///////
+
+			'sort_mode' => array(
+				'required' => false,
+				'name' => tra('Sort Mode'),
+				'description' => tr('Sort by database table field name, ascending or descending. Examples:
+					%0 or %1.', '<code>fileId_asc</code>', '<code>name_desc</code>'),
+				'filter' => 'word',
+				'accepted' => tr('%0 or %1 with actual database field name in place of
+					%2.', '<code>fieldname_asc</code>', '<code>fieldname_desc</code>', '<code>fieldname</code>'),
+				'default' => 'created_desc',
+				'since' => '8.0',
+				'doctype' => 'id',
+				'advanced' => true,
+				'options' => array (
+					array('text' => tra(''), 'value' => ''),
+					array('text' => tra('Random'), 'value' => 'random'),
+					array('text' => tra('Created Ascending'), 'value' => 'created_asc'),
+					array('text' => tra('Created Descending'), 'value' => 'created_desc'),
+					array('text' => tra('Name Ascending'), 'value' => 'name_asc'),
+					array('text' => tra('Name Descending'), 'value' => 'name_desc'),
+					array('text' => tra('File Name Ascending'), 'value' => 'filename_asc'),
+					array('text' => tra('File Name Descending'), 'value' => 'filename_desc'),
+					array('text' => tra('Description Ascending'), 'value' => 'description_asc'),
+					array('text' => tra('Description Descending'), 'value' => 'description_desc'),
+					array('text' => tra('Comment Ascending'), 'value' => 'comment_asc'),
+					array('text' => tra('Comment Descending'), 'value' => 'comment_desc'),
+					array('text' => tra('Hits Ascending'), 'value' => 'hits_asc'),
+					array('text' => tra('Hits Descending'), 'value' => 'hits_desc'),
+					array('text' => tra('Max Hits Ascending'), 'value' => 'maxhits_asc'),
+					array('text' => tra('Max Hits Descending'), 'value' => 'maxhits_desc'),
+					array('text' => tra('File Size Ascending'), 'value' => 'filesize_asc'),
+					array('text' => tra('File Size Descending'), 'value' => 'filesize_desc'),
+					array('text' => tra('File Type Ascending'), 'value' => 'filetype_asc'),
+					array('text' => tra('File Type Descending'), 'value' => 'filetype_desc'),
+					array('text' => tra('User Ascending'), 'value' => 'user_asc'),
+					array('text' => tra('User Descending'), 'value' => 'user_desc'),
+					array('text' => tra('Author Ascending'), 'value' => 'author_asc'),
+					array('text' => tra('Author Descending'), 'value' => 'author_desc'),
+					array('text' => tra('Locked By Ascending'), 'value' => 'lockedby_asc'),
+					array('text' => tra('Locked By Descending'), 'value' => 'lockedby_desc'),
+					array('text' => tra('Last modified User Ascending'), 'value' => 'lastModifUser_asc'),
+					array('text' => tra('Last modified User Descending'), 'value' => 'lastModifUser_desc'),
+					array('text' => tra('Last modified Date Ascending'), 'value' => 'lastModif_asc'),
+					array('text' => tra('Last modified Date Descending'), 'value' => 'lastModif_desc'),
+					array('text' => tra('Last Download Ascending'), 'value' => 'lastDownload_asc'),
+					array('text' => tra('Last Download Descending'), 'value' => 'lastDownload_desc'),
+					array('text' => tra('Delete After Ascending'), 'value' => 'deleteAfter_asc'),
+					array('text' => tra('Delete After Descending'), 'value' => 'deleteAfter_desc'),
+					array('text' => tra('Votes Ascending'), 'value' => 'votes_asc'),
+					array('text' => tra('Votes Descending'), 'value' => 'votes_desc'),
+					array('text' => tra('Points Ascending'), 'value' => 'points_asc'),
+					array('text' => tra('Points Descending'), 'value' => 'points_desc'),
+					array('text' => tra('Archive ID Ascending'), 'value' => 'archiveId_asc'),
+					array('text' => tra('Archive ID Descending'), 'value' => 'archiveId_desc'),
+				),
+			),
+			'button' => array(
+				'required' => false,
+				'name' => tra('Enlarge Button'),
+				'description' => tr('Adds an enlarge button (magnifying glass icon) below the image for use together
+					with %0thumb%1. Follows %0thumb%1 settings unless %0thumb%1 is set to %0mouseover%1 or %0mousesticky%1
+					(or overridden by %0link%1), otherwise button settings are followed, operating as described above
+					for %0thumb%1', '<code>', '</code>'),
+				'since' => '4.0',
+				'doctype' => 'link',
+				'filter' => 'alpha',
+				'default' => '',
+				'advanced' => true,
+				'options' => array(
+					array('text' => tra('None'), 'value' => ''),
+					array('text' => tra('Yes'), 'value' => 'y'),
+					array('text' => tra('Popup'), 'value' => 'popup'),
+					array('text' => tra('Browse'), 'value' => 'browse'),
+					array('text' => tra('Browse Popup'), 'value' => 'browsepopup'),
+					array('text' => tra('Download'), 'value' => 'download'),
+				),
+			),
+			'rel' => array(
+				'required' => false,
+				'name' => tra('Link Relation'),
+				'since' => '3.0',
+				'doctype' => 'link',
+				'filter' => 'text',
+				'description' => tr('Specifies the relationship between the link image and the target. Enter %0 to
+					cause the image to enlarge in a popup when clicked.', '<code>box</code>'),
+				'advanced' => true,
+				'default' => '',
+			),
+			'usemap' => array(
+				'required' => false,
+				'name' => tra('Image Map'),
+				'filter' => 'text',
+				'description' => tra('Name of the image map to use for the image.'),
+				'since' => '3.0',
+				'doctype' => 'link',
+				'advanced' => true,
 				'default' => '',
 			),
 			'hspace' => array(
@@ -397,23 +423,12 @@ function wikiplugin_img_info()
 			'class' => array(
 				'required' => false,
 				'name' => tra('CSS Class'),
-				'filter' => 'style',
+				'filter' => 'text',
 				'description' => tr('CSS class to apply to the image. %0class="fixedSize"%1 prevents the image from being
 					automatically resized and relocated in Tiki SlideShows', '<code>', '</code>'),
 				'since' => '3.0',
 				'doctype' => 'style',
 				'advanced' => true,
-				'default' => '',
-			),
-			'desc' => array(
-				'required' => false,
-				'name' => tra('Caption'),
-				'since' => '3.0',
-				'doctype' => 'text',
-				'filter' => 'text',
-				'description' => tr('Image caption. Use %0name%1 or %0desc%1 or %0namedesc%1 for Tiki name and
-					description properties, %0idesc%1 or %0ititle%1 for metadata from the image itself, otherwise
-					enter your own description.', '<code>', '</code>'),
 				'default' => '',
 			),
 			'title' => array(
@@ -442,29 +457,6 @@ function wikiplugin_img_info()
 					array('text' => tra('View'), 'value' => 'view'),
 				),
 			),
-			'alt' => array(
-				'required' => false,
-				'name' => tra('Alternate Text'),
-				'filter' => 'text',
-				'description' => tra('Alternate text that displays when image does not load. Set to "Image" by default.'),
-				'since' => '3.0',
-				'doctype' => 'text',
-				'default' => 'Image',
-			),
-			'responsive' => array(
-				'required' => false,
-				'name' => tra('Responsive Image'),
-				'filter' => 'alpha',
-				'description' => tr('Determines whether the image has the %0img-responsive%1 class.', '<code>', '</code>'),
-				'since' => '14.0',
-				'doctype' => 'style',
-				'advanced' => false,
-				'default' => 'y',				
-				'options' => array(
-					array('text' => tra('Yes'), 'value' => 'y'),
-					array('text' => tra('No'), 'value' => 'n'),
-				),
-			),	
 			'default' => array(
 				'required' => false,
 				'name' => tra('Default Settings'),
@@ -534,7 +526,7 @@ function wikiplugin_img( $data, $params )
 	$imgdata['randomGalleryId'] = '';
 	$imgdata['galleryId'] = '';
 	$imgdata['fgalId'] = '';
-	$imgdata['sort_mode'] = '';
+	$imgdata['sort_mode'] = 'created_desc';
 	$imgdata['attId'] = '';
 	$imgdata['thumb'] = '';
 	$imgdata['button'] = '';
@@ -558,13 +550,13 @@ function wikiplugin_img( $data, $params )
 	$imgdata['title'] = '';
 	$imgdata['metadata'] = '';
 	$imgdata['alt'] = '';
-	$imgdata['responsive'] = 'y';
+	$imgdata['responsive'] = $prefs['image_responsive_class'];
 	$imgdata['default'] = '';
 	$imgdata['mandatory'] = '';
 	$imgdata['fromFieldId'] = 0;		// "private" params set by Tracker_Field_Files
 	$imgdata['fromItemId']  = 0;		// ditto
 	$imgdata['checkItemPerms']  = 'y';	// ditto
-	$imgdata['noDrawIcon']  = 'n';
+	$imgdata['noDrawIcon']  = 'y';
 
 	$imgdata = array_merge($imgdata, $params);
 
@@ -579,7 +571,20 @@ function wikiplugin_img( $data, $params )
 		if (!empty($imgdata['mandatory'])) $imgdata = apply_default_and_mandatory($imgdata, 'mandatory');
 	}
 
-//////////////////////////////////////////////////// Error messages and clean javascript //////////////////////////////
+	// Before it was possible to specify many image types at once and Tiki will guess which one to use.
+	// Now there is "type" field that clearly identifies image type.
+	// Code below leaves image param that is related to "type", removing all others,  this way code is not confused if
+	// several parameters are passed
+	if (!empty($imgdata['type'])) {
+		$info = wikiplugin_img_info();
+		foreach ($info['params']['type']['options'] as $type) {
+			if (!empty($type['value']) && $type['value'] != $imgdata['type'] && !empty($imgdata[$type['value']])) {
+				$imgdata[$type['value']] = null;
+			}
+		}
+	}
+
+	//////////////////////////////////////////////////// Error messages and clean javascript //////////////////////////////
 	// Must set at least one image identifier
 	$set = !empty($imgdata['fileId']) + !empty($imgdata['id']) + !empty($imgdata['src']) + !empty($imgdata['attId'])
 		+ !empty($imgdata['randomGalleryId']) + !empty($imgdata['fgalId']);
@@ -627,7 +632,7 @@ function wikiplugin_img( $data, $params )
 			$id_list = explode($separator, $imgdata[$id]);
 		} else { //fgalId parameter - show all images in a file gallery
 			$filegallib = TikiLib::lib('filegal');
-			$galdata = $filegallib->get_files(0, -1, 'created_desc', '', $imgdata['fgalId'], false, false, false, true, false, false, false, false, '', true, false, false);
+			$galdata = $filegallib->get_files(0, -1, $imgdata['sort_mode'], '', $imgdata['fgalId'], false, false, false, true, false, false, false, false, '', true, false, false);
 			foreach ($galdata['data'] as $filedata) {
 				$id_list[] = $filedata['id'];
 			}
@@ -637,6 +642,7 @@ function wikiplugin_img( $data, $params )
 		foreach ($id_list as $i => $value) {
 			$params[$id] = trim($value);
 			$params['fgalId'] = '';
+			$params['type'] = 'fileId';
 			$repl .= wikiplugin_img($data, $params);
 		}
 		if (strpos($repl, $notice) !== false) {
@@ -1023,9 +1029,17 @@ function wikiplugin_img( $data, $params )
 		if (!empty($fwidth) && !empty($fheight) && !empty($imgdata_dim)) {		// change svg attributes to show at the correct size
 			$svgAttributes = $imgdata_dim . ' viewBox="0 0 ' . $fwidth . ' ' . $fheight . '" preserveAspectRatio="xMinYMin meet"';
 			$repldata = preg_replace('/width="'.$fwidth.'" height="'.$fheight.'"/', $svgAttributes, $repldata);
+			if ($repldata === null) {
+				// if preg_replace fails restore original SVG data
+				TikiLib::lib('errorreport')->report(tr('SVG Image replace error "%0"', preg_last_error()));
+				$repldata = $dbinfo['data'];
+			}
 		}
 		$replimg = '<div type="image/svg+xml" ';
-		$imgdata['class'] .= ' table-responsive svgImage pluginImg' . $imgdata['fileId'];
+		$imgdata['class'] .= ' svgImage pluginImg' . $imgdata['fileId'];
+		if ($imgdata['responsive'] == 'y') {
+			$imgdata['class'] .= ' table-responsive';
+		}
 		$imgdata['class'] = trim($imgdata['class']);
 	} else {
 		$tagName = 'img';
@@ -1101,6 +1115,8 @@ function wikiplugin_img( $data, $params )
 		$replimg .= ' alt="' . $imgdata['desc'] . '"';
 	} elseif (!empty($dbinfo['description'])) {
 		$replimg .= ' alt="' . $dbinfo['description'] . '"';
+	} elseif (!empty($dbinfo['name'])) {
+		$replimg .= ' alt="' . $dbinfo['name'] . '"';
 	} else {
 		$replimg .= ' alt="Image"';
 	}
@@ -1116,18 +1132,16 @@ function wikiplugin_img( $data, $params )
 	//title (also used for description and link title below)
 	//first set description, which is used for title if no title is set
 	if (!empty($imgdata['desc']) || !empty($imgdata['title'])) {
-		$desc = '';
-		$imgname = '';
 		$desconly = '';
+		//attachment database uses comment instead of description or name
+		if (!empty($dbinfo['comment'])) {
+			$desc = $dbinfo['comment'];
+			$imgname = $dbinfo['comment'];
+		} else {
+			$desc = !empty($dbinfo['description']) ? $dbinfo['description'] : '';
+			$imgname = !empty($dbinfo['name']) ? $dbinfo['name'] : '';
+		}
 		if ( !empty($imgdata['desc']) ) {
-			//attachment database uses comment instead of description or name
-			if (!empty($dbinfo['comment'])) {
-				$desc = $dbinfo['comment'];
-				$imgname = $dbinfo['comment'];
-			} elseif (isset($dbinfo)) {
-				$desc = !empty($dbinfo['description']) ? $dbinfo['description'] : '';
-				$imgname = !empty($dbinfo['name']) ? $dbinfo['name'] : '';
-			}
 			switch ($imgdata['desc']) {
 				case 'desc':
 					$desconly = $desc;
@@ -1206,8 +1220,8 @@ function wikiplugin_img( $data, $params )
 			if ($imgdata['thumb'] == 'mouseover') {
 				$popup_params['trigger'] = 'hover';
 			} 
-			// avoid big images will not be closeable on hover. Fallback to require a click to open and a second click somewhere to close.
-			if ($fwidth > 400 || $fheight > 400) {
+			// avoid big images will not be closeable on hover if repsonsive is not set. Fallback to require a click to open and a second click somewhere to close.
+			if ((isset($imgdata['responsive']) && $imgdata['responsive'] != 'y') && ($fwidth > 400 || $fheight > 400)) {
 				$popup_params['trigger'] = 'focus';
 			}
 			

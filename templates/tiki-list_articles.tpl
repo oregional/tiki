@@ -4,20 +4,20 @@
 
 <div class="t_navbar margin-bottom-md">
 	{if $tiki_p_edit_article eq 'y' or $tiki_p_admin eq 'y' or $tiki_p_admin_cms eq 'y'}
-		{button href="tiki-edit_article.php" _type="text" class="btn btn-link" _icon_name="create" _text="{tr}New Article{/tr}"}
+		{button href="tiki-edit_article.php" _type="link" class="btn btn-link" _icon_name="create" _text="{tr}New Article{/tr}"}
 	{/if}
 	{if $prefs.feature_submissions == 'y' && $tiki_p_edit_submission == "y" && $tiki_p_edit_article neq 'y' && $tiki_p_admin neq 'y' && $tiki_p_admin_cms neq 'y'}
-		{button href="tiki-edit_submission.php"  _type="text" class="btn btn-link" _icon_name="create" _text="{tr}New Submission{/tr}"}
+		{button href="tiki-edit_submission.php"  _type="link" class="btn btn-link" _icon_name="create" _text="{tr}New Submission{/tr}"}
 	{/if}
 	{if $tiki_p_read_article eq 'y' or $tiki_p_articles_read_heading eq 'y' or $tiki_p_admin eq 'y' or $tiki_p_admin_cms eq 'y'}
-		{button href="tiki-view_articles.php" _type="text" class="btn btn-link" _icon_name="articles" _text="{tr}View Articles{/tr}"}
+		{button href="tiki-view_articles.php" _type="link" class="btn btn-link" _icon_name="articles" _text="{tr}View Articles{/tr}"}
 	{/if}
 	{if $prefs.feature_submissions == 'y' && ($tiki_p_approve_submission == "y" || $tiki_p_remove_submission == "y" || $tiki_p_edit_submission == "y")}
-		{button href="tiki-list_submissions.php" _type="text" class="btn btn-link" _icon_name="view" _text="{tr}View Submissions{/tr}"}
+		{button href="tiki-list_submissions.php" _type="link" class="btn btn-link" _icon_name="view" _text="{tr}View Submissions{/tr}"}
 	{/if}
 	{if $tiki_p_admin eq 'y' or $tiki_p_admin_cms eq 'y'}
-		{button href="tiki-admin_topics.php"  _type="text" class="btn btn-link" _icon_name="structure" _text="{tr}Article Topics{/tr}"}
-		{button href="tiki-article_types.php"  _type="text" class="btn btn-link" _icon_name="structure" _text="{tr}Article Types{/tr}"}
+		{button href="tiki-admin_topics.php"  _type="link" class="btn btn-link" _icon_name="structure" _text="{tr}Article Topics{/tr}"}
+		{button href="tiki-article_types.php"  _type="link" class="btn btn-link" _icon_name="structure" _text="{tr}Article Types{/tr}"}
 	{/if}
 </div>
 
@@ -161,10 +161,10 @@
 						<td class="text">{$listpages[changes].topicName|escape}</td>
 					{/if}
 					{if $prefs.art_list_date eq 'y'}
-						<td class="date" title="{$listpages[changes].publishDate|tiki_short_datetime}">{$listpages[changes].publishDate|tiki_short_date}</td>
+						<td class="date" title="{$listpages[changes].publishDate|tiki_short_datetime:'':'n'}">{$listpages[changes].publishDate|tiki_short_date}</td>
 					{/if}
 					{if $prefs.art_list_expire eq 'y'}
-						<td class="date" title="{$listpages[changes].expireDate|tiki_short_datetime}">{$listpages[changes].expireDate|tiki_short_date}</td>
+						<td class="date" title="{$listpages[changes].expireDate|tiki_short_datetime:'':'n'}">{$listpages[changes].expireDate|tiki_short_date}</td>
 					{/if}
 					{if $prefs.art_list_visible eq 'y'}
 						<td class="text">{tr}{$listpages[changes].disp_article}{/tr}</td>
@@ -224,7 +224,7 @@
 							class="tips"
 							title="{tr}Actions{/tr}"
 							href="#"
-							{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.articles_actions|escape:"javascript"|escape:"html"}{/if}
+							{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.articles_actions|escape:"javascript"|escape:"html"}{/if}
 							style="padding:0; margin:0; border:0"
 						>
 							{icon name='wrench'}

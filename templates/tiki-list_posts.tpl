@@ -3,9 +3,9 @@
 {title help="Blogs"}{if isset($blogTitle)}{tr _0=$blogTitle}Blog: %0{/tr}{else}{tr}Blog Posts{/tr}{/if}{/title}
 
 <div class="t_navbar margin-bottom-md">
-	{button href="tiki-edit_blog.php" _type="text" class="btn btn-link" _icon_name="add" _text="{tr}Create Blog{/tr}"}
-	{button href="tiki-blog_post.php" _type="text" class="btn btn-link" _icon_name="create" _text="{tr}New Blog Post{/tr}"}
-	{button href="tiki-list_blogs.php" _type="text" class="btn btn-link" _icon_name="list" _text="{tr}List Blogs{/tr}"}
+	{button href="tiki-edit_blog.php" _type="link" class="btn btn-link" _icon_name="add" _text="{tr}Create Blog{/tr}"}
+	{button href="tiki-blog_post.php" _type="link" class="btn btn-link" _icon_name="create" _text="{tr}New Blog Post{/tr}"}
+	{button href="tiki-list_blogs.php" _type="link" class="btn btn-link" _icon_name="list" _text="{tr}List Blogs{/tr}"}
 	{if $posts or ($find ne '')}
 		<div class="col-md-6 row-sidemargins-zero pull-right">
 			{include file='find.tpl'}
@@ -81,7 +81,7 @@
 						class="tips"
 						title="{tr}Actions{/tr}"
 						href="#"
-						{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.post_actions|escape:"javascript"|escape:"html"}{/if}
+						{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.post_actions|escape:"javascript"|escape:"html"}{/if}
 						style="padding:0; margin:0; border:0"
 					>
 						{icon name='wrench'}

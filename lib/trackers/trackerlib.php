@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -1103,6 +1103,7 @@ class TrackerLib extends TikiLib
 				if ( is_array($filterfield) ) {
 					//multiple filter on an exact value or a like value - each value can be simple or an array
 					$ff = (int) $filterfield[$i];
+					$ff_array = $filterfield[$i]; // Need value as array used below
 					$ev = !empty($exactvalue[$i])? $exactvalue[$i]:'';
 					$fv = !empty($filtervalue[$i])?$filtervalue[$i]:'' ;
 				}
@@ -1117,9 +1118,9 @@ class TrackerLib extends TikiLib
 				$cat_table .= " INNER JOIN `tiki_tracker_item_fields` ttif$i ON (ttif$i.`itemId` = ttif$j.`itemId`)";
 				$last++;
 
-				if (isset($ff['sqlsearch']) && is_array($ff['sqlsearch'])) {
-					$mid .= " AND ttif$i.`fieldId` in (".implode(',', array_fill(0, count($ff['sqlsearch']), '?')).')';
-					$bindvars = array_merge($bindvars, $ff['sqlsearch']);
+				if (isset($ff_array['sqlsearch']) && is_array($ff_array['sqlsearch'])) {
+					$mid .= " AND ttif$i.`fieldId` in (".implode(',', array_fill(0, count($ff_array['sqlsearch']), '?')).')';
+					$bindvars = array_merge($bindvars, $ff_array['sqlsearch']);
 				} elseif ( $ff ) {
 					$mid .= " AND ttif$i.`fieldId`=? ";
 					$bindvars[] = $ff;
@@ -1235,7 +1236,7 @@ class TrackerLib extends TikiLib
 							$mid .= " AND ttif$i.`value` in (".implode(',', array_fill(0, count($ev), '?')).")";
 							$bindvars = array_merge($bindvars, array_values($ev));
 						}
-					} elseif (isset($ff['sqlsearch']) && is_array($ff['sqlsearch'])) {
+					} elseif (isset($ff_array['sqlsearch']) && is_array($ff_array['sqlsearch'])) {
 						$mid .= " AND MATCH(ttif$i.`value`) AGAINST(? IN BOOLEAN MODE)";
 						$bindvars[] = $ev;
 					} else {
@@ -3302,9 +3303,9 @@ class TrackerLib extends TikiLib
 
 	public function get_isMain_value($trackerId, $itemId)
 	{
-			global $prefs;
+		global $prefs;
 
-			$query = "select tif.`value` from `tiki_tracker_item_fields` tif, `tiki_tracker_items` i, `tiki_tracker_fields` tf where i.`itemId`=? and i.`itemId`=tif.`itemId` and tf.`fieldId`=tif.`fieldId` and tf.`isMain`=? ";
+		$query = "select tif.`value` from `tiki_tracker_item_fields` tif, `tiki_tracker_items` i, `tiki_tracker_fields` tf where i.`itemId`=? and i.`itemId`=tif.`itemId` and tf.`fieldId`=tif.`fieldId` and tf.`isMain`=? ORDER BY tf.`position`";
 		$result = $this->getOne($query, array( (int) $itemId, "y"));
 
 		if (is_numeric($result) && $this->get_main_field_type($trackerId) == 'r') {
@@ -5248,17 +5249,18 @@ class TrackerLib extends TikiLib
 		// preset $item = array('itemId' => value). Either from param or empty
 		$item = isset($params['item']) ? $params['item'] : array();
 
-		// check wether we have a value assigned to $fields. 
+		// if we have an itemId, pass it to our new item structure
+		if (isset($params['itemId'])) {
+			$item['itemId'] = $params['itemId'];
+		}
+
+		// check wether we have a value assigned to $fields.
 		// This might be the case if $fields was passed through $params and not from the tracker definition.
 		// Build the $items['fieldId'] = value structure 
 		if (isset($field['value'])) {
 			$item[$field['fieldId']] = $field['value'];
-		}
-
-		
-		// if we have an itemId, pass it to our new item structure
-		if (isset($params['itemId'])) {
-			$item['itemId'] = $params['itemId'];
+		} else if (isset($item['itemId'])) {
+			$item[$field['fieldId']] = $this->get_item_value(null,$item['itemId'],$field['fieldId']);
 		}
 
 		// get the handler for the specific fieldtype.

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -21,7 +21,7 @@ function wikiplugin_perm_info()
 			'perms' => array(
 				'required' => false,
 				'name' => tra('Possible Permissions'),
-				'description' => tra('Pipe separated list of permissions, one of which is needed to view the default
+				'description' => tra('Pipe-separated list of permissions, one of which is needed to view the default
 					text.') . ' ' . tra('Example:') . ' <code>tiki_p_rename|tiki_p_edit</code>',
 				'since' => '5.0',
 				'filter' => 'text',
@@ -31,7 +31,7 @@ function wikiplugin_perm_info()
 			'notperms' => array(
 				'required' => false,
 				'name' => tra('Forbidden Permissions'),
-				'description' => tra('Pipe separated list of permissions, any of which will cause the default text
+				'description' => tra('Pipe-separated list of permissions, any of which will cause the default text
 					not to show.') . ' ' . tra('Example:') . ' <code>tiki_p_rename|tiki_p_edit</code>',
 				'since' => '5.0',
 				'filter' => 'text',

@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -44,7 +44,7 @@ header("Pragma: Public");
 if (strlen($content) > 0) {
 	echo "$content";
 } else if (file_exists($info["dir"] . $info["path"])) {
-    // Check if file was uploaded to file syste
+	// Check if file was uploaded to file syste
 	readfile($info["dir"] . $info["path"]);
 } else {
 	// Something is wrong

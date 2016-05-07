@@ -257,35 +257,33 @@
 			<form method="get" action="tiki-admin.php">
 				<input type="hidden" name="ticket" value="{$ticket|escape}">
 				<h4>{tr}Find Profiles{/tr} <small>{tr}Search by name, types and repository{/tr}</small></h4>
-				<div class="table-responsive">
-					<table class="table">
-						<tr>
-							<td class="col-lg-6">
-								<div class="form-group">
-									<label class="control-label" for="profile">{tr}Profile name{/tr} </label>
-									<input type="text" class="form-control" name="profile" placeholder="{tr}Find{/tr}..." id="profile" value="{if isset($profile)}{$profile|escape}{/if}" /></div>
-								</div>
-								{if isset($category_list) and count($category_list) gt 0}
-									<div class="form-group">
-										<label class="control-label" for="categories">{tr}Profile Types{/tr}</label>
-										<select multiple="multiple" name="categories[]" id="categories" class="form-control" style="min-height: 8em; max-height: 15em">
-											{foreach item=cat from=$category_list}
-												<option value="{$cat|escape}"{if !empty($categories) and in_array($cat, $categories)} selected="selected"{/if}>{$cat|escape}</option>
-											{/foreach}
-										</select>
-									</div>
-								{/if}
-								<div class="form-group">
-									<label class="control-label" for="repository">{tr}Profile Repository{/tr}</label>
-									<select name="repository" id="repository" class="form-control">
-										<option value="">{tr}All{/tr}</option>
-										{foreach item=source from=$sources}
-											<option value="{$source.url|escape}"{if isset($repository) && $repository eq $source.url} selected="selected"{/if}>{$source.short|escape}</option>
+				<div class="row">
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label class="control-label" for="profile">{tr}Profile name{/tr} </label>
+							<input type="text" class="form-control" name="profile" placeholder="{tr}Find{/tr}..." id="profile" value="{if isset($profile)}{$profile|escape}{/if}" />
+						</div>
+						{if isset($category_list) and count($category_list) gt 0}
+							<div class="form-group">
+								<label class="control-label" for="categories">{tr}Profile Types{/tr}</label>
+									<select multiple="multiple" name="categories[]" id="categories" class="form-control" style="min-height: 8em; max-height: 15em">
+										{foreach item=cat from=$category_list}
+											<option value="{$cat|escape}"{if !empty($categories) and in_array($cat, $categories)} selected="selected"{/if}>{$cat|escape}</option>
 										{/foreach}
 									</select>
-								</div>
-								<input type="hidden" name="page" value="profiles"/>
-									{jq}
+							</div>
+						{/if}
+						<div class="form-group">
+							<label class="control-label" for="repository">{tr}Profile Repository{/tr}</label>
+							<select name="repository" id="repository" class="form-control">
+								<option value="">{tr}All{/tr}</option>
+								{foreach item=source from=$sources}
+									<option value="{$source.url|escape}"{if isset($repository) && $repository eq $source.url} selected="selected"{/if}>{$source.short|escape}</option>
+								{/foreach}
+							</select>
+						</div>
+						<input type="hidden" name="page" value="profiles"/>
+								{jq}
 										if ($("#profile-0").length > 0) {
 											$(".quickmode_notes").hide();
 											$(window).scrollTop($("#step2").offset().top);
@@ -300,12 +298,12 @@
 											}
 										});
 									{/jq}
-								</div>
-							<div class="form-group text-center">
-								<input type="submit" class="btn btn-primary" name="list" value="{tr}Find{/tr}" />
-							</div>
-						</td>
-						<td class="col-lg-6">
+
+						<div class="form-group text-center">
+							<input type="submit" class="btn btn-primary" name="list" value="{tr}Find{/tr}" />
+						</div>
+					</div>
+					<div class="col-sm-6">
 							{remarksbox type="info" title="{tr}Suggested Profiles{/tr}" close="n"}
 								{assign var=profilesFilterUrlStart value='tiki-admin.php?profile=&categories%5B%5D='}
 								{assign var=profilesFilterUrlMid value='.x&categories%5B%5D='}
@@ -335,9 +333,8 @@
 									<br>{tr}Learning Profiles will allow you to quickly evaluate specific features in Tiki.{/tr}
 								</p>
 							{/remarksbox}
-						</td>
-					</tr>
-				</table>
+					</div>
+
 				</div>
 			</form>
 			<a id="step2"></a>
@@ -383,7 +380,7 @@
 
 	{tab name="{tr}Export{/tr}"}
 		<h2>{tr}Export{/tr}</h2>
-		<form action="tiki-admin.php?page=profiles" method="post" role="form">
+		<form class="form-horizontal" action="tiki-admin.php?page=profiles" method="post" role="form">
 			<input type="hidden" name="ticket" value="{$ticket|escape}">
 			<fieldset id="export_to_yaml">
 				<legend>{tr}Export YAML{/tr}</legend>
@@ -391,7 +388,8 @@
 					<div class="wikitext">{$export_yaml}</div>
 				{/if}
 				<div class="form-group">
-					<label class="control-label" for="export_type">{tr}Object Type{/tr}</label>
+					<label class="control-label col-sm-2" for="export_type">{tr}Object Type{/tr}</label>
+					<div class="col-sm-5">
 					<select name="export_type" id="export_type" class="form-control">
 						<option value="prefs"{if $export_type eq "prefs"} selected="selected"{/if}>
 							{tr}Preferences{/tr}
@@ -400,6 +398,7 @@
 							{tr}Modules{/tr}
 						</option>
 					</select>
+					</div>
 				</div>
 				<fieldset>
 					<legend>{tr}Export modified preferences as YAML{/tr}</legend>
@@ -413,7 +412,7 @@
 					<ul id="prefs_to_export_list" class="profile_export_list"{if $export_type neq "prefs"} style=display:none;"{/if}>
 
 						{foreach from=$modified_list key="name" item="data"}
-							<li>
+							<li class="checkbox">
 								{if is_array($data.current.expanded)}
 									{assign var=current value=$data.current.expanded|implode:", "}
 									{assign var=current value="[$current]"}
@@ -445,7 +444,7 @@
 					<ul id="modules_to_export_list" class="profile_export_list"{if $export_type neq "modules"} style=display:none;"{/if}>
 
 						{foreach from=$modules_for_export key="name" item="data"}
-							<li>
+							<li class="checkbox">
 								<input type="checkbox" name="modules_to_export[{$name}]" value="{$data.name|escape}"
 									id="modcheckbox_{$name}"{if isset($modules_to_export[$name])} checked="checked"{/if} />
 								<label for="modcheckbox_{$name}">
@@ -511,7 +510,7 @@
 					</tr>
 				{/foreach}
 			</table>
-			<form action="tiki-admin.php?page=profiles" method="post">
+			<form class="form-horizontal" action="tiki-admin.php?page=profiles" method="post">
 				<input type="hidden" name="ticket" value="{$ticket|escape}">
 				{preference name=profile_unapproved}
 				{preference name=profile_sources}
@@ -522,17 +521,20 @@
 			</form>
 		</fieldset>
 		<fieldset><legend>{tr}Profile tester{/tr}</legend>
-			<form action="tiki-admin.php?page=profiles" method="post">
+			<form class="form-horizontal" action="tiki-admin.php?page=profiles" method="post">
 				<input type="hidden" name="ticket" value="{$ticket|escape}">
 				{remarksbox type="warning" title="{tr}Warning{/tr}"}
 					{tr}Paste or type wiki markup and YAML (with or without the {literal}{CODE}{/literal} tags) into the text area below{/tr}<br>
 					<em><strong>{tr}This will run the profile and make potentially unrecoverable changes in your database!{/tr}</strong></em>
 				{/remarksbox}
 				<div class="adminoptionbox">
-					<div class="adminoptionlabel">
-						<label for="profile_tester_name">{tr}Test Profile Name:{/tr} </label>
-						<input type="text" name="profile_tester_name" id="profile_tester_name" value="{if isset($profile_tester_name)}{$profile_tester_name}{else}Test{/if}" />
-						<select name="empty_cache">
+					<div class="adminoptionlabel form-group">
+						<label for="profile_tester_name" class="control-label col-sm-4">{tr}Test Profile Name:{/tr} </label>
+						<div class="col-sm-4 margin-bottom-sm">
+						<input class="form-control" type="text" name="profile_tester_name" id="profile_tester_name" value="{if isset($profile_tester_name)}{$profile_tester_name}{else}Test{/if}" />
+						</div>
+						<div class="col-sm-4">
+							<select class="form-control" name="empty_cache" class="form-control">
 							<option value=""{if isset($empty_cache) and $empty_cache eq ''} checked="checked"{/if}>{tr}None{/tr}</option>
 							<option value="all"{if isset($empty_cache) and $empty_cache eq 'all'} checked="checked"{/if}>{tr}All{/tr}</option>
 							<option value="templates_c"{if isset($empty_cache) and $empty_cache eq 'templates_c'} checked="checked"{/if}>templates_c</option>
@@ -541,9 +543,10 @@
 							<option value="modules_cache"{if isset($empty_cache) and $empty_cache eq 'modules_cache'} checked="checked"{/if}>modules_cache</option>
 							<option value="prefs"{if isset($empty_cache) and $empty_cache eq 'prefs'} checked="checked"{/if}>prefs</option>
 						</select>{$empty_cache}
+							</div>
 					</div>
 					<div>
-						<textarea data-codemirror="true" data-syntax="yaml" id="profile_tester" name="profile_tester" rows="5" cols="40" style="width:95%;">{if isset($test_source)}{$test_source}{/if}</textarea>
+						<textarea data-codemirror="true" data-syntax="yaml" id="profile_tester" name="profile_tester" class="form-control">{if isset($test_source)}{$test_source}{/if}</textarea>
 					</div>
 				</div>
 				<div align="center" style="padding:1em;"><input type="submit" class="btn btn-default" name="test" value="{tr}Test{/tr}" /></div>

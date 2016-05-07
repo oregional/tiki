@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -187,7 +187,7 @@ function wikiplugin_trackerlist_info()
 			 ),
 			 'showlastmodifby' => array(
 				 'required' => false,
-				 'name' => tra('Last Modified By'),
+				 'name' => tra('Last modified by'),
 				 'description' => tra('Last modified by user display is based on tracker settings unless overridden here'),
 				 'since' => '14.0',
 				 'doctype' => 'show',
@@ -319,7 +319,7 @@ function wikiplugin_trackerlist_info()
 			 'filterfield' => array(
 				 'required' => false,
 				 'name' => tra('Filter Field'),
-				 'description' => tra('Colon separated list of fields to allow filtering on.'),
+				 'description' => tra('Colon-separated list of fields to allow filtering on.'),
 				 'since' => '1',
 				 'doctype' => 'filter',
 				 'filter' => 'digits',
@@ -746,7 +746,7 @@ function wikiplugin_trackerlist_info()
 				 'options' => array(
 					 array('text' => '', 'value' => ''),
 					 array('text' => tra('Month'), 'value' => 'month'),
-					 array('text' => tra('Bimester'), 'value' => 'bimester'),
+					 array('text' => tra('Two months'), 'value' => 'bimester'),
 					 array('text' => tra('Trimester'), 'value' => 'trimester'),
 					 array('text' => tra('Quarter'), 'value' => 'quarter'),
 					 array('text' => tra('Semester'), 'value' => 'semester'),
@@ -756,7 +756,7 @@ function wikiplugin_trackerlist_info()
 			 'calendarpopup' => array(
 				 'required' => false,
 				 'name' => tra('Calendar Popup'),
-				 'description' => tr('Calendar items will pop-up, overrides the %0stickypopup%1 parameter if turned off
+				 'description' => tr('Calendar items will popup, overrides the %0stickypopup%1 parameter if turned off
 					(default is to pop up).', '<code>', '</code>'),
 				 'since' => '6.0',
 				 'doctype' => 'calendar',
@@ -771,7 +771,7 @@ function wikiplugin_trackerlist_info()
 			 'calendarstickypopup' => array(
 				 'required' => false,
 				 'name' => tra('Sticky Popup'),
-				 'description' => tra('Calendar item pop-ups will stay open if set to y (Yes). Not sticky by default'),
+				 'description' => tra('Calendar item popups will stay open if set to y (Yes). Not sticky by default'),
 				 'since' => '6.0',
 				 'doctype' => 'calendar',
 				 'filter' => 'alpha',
@@ -832,8 +832,8 @@ function wikiplugin_trackerlist_info()
 					 array('text' => '', 'value' => ''),
 					 array('text' => tra('Plus Month'), 'value' => '+month'),
 					 array('text' => tra('Minus Month'), 'value' => '-month'),
-					 array('text' => tra('Plus Bimester'), 'value' => '+bimester'),
-					 array('text' => tra('Minus Bimester'), 'value' => '-bimester')
+					 array('text' => tra('Plus Two months'), 'value' => '+bimester'),
+					 array('text' => tra('Minus Two months'), 'value' => '-bimester')
 				 )
 			 ),
 			 'displaysheet' => array(
@@ -1976,6 +1976,7 @@ function wikiplugin_trackerlist($data, $params)
 					$GLOBALS['requestUri'],
 					$items['cant'],
 					isset($tstotals) ? $tstotals : null,
+					isset($tstotalformat) ? $tstotalformat : null,
 					isset($tstotaloptions) ? $tstotaloptions : null
 				);
 				//loads the jquery tablesorter code

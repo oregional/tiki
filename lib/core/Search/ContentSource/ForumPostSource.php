@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -73,6 +73,7 @@ class Search_ContentSource_ForumPostSource implements Search_ContentSource_Inter
 		$data = array(
 			'title' => $typeFactory->sortable($comment['title']),
 			'language' => $typeFactory->identifier($forum_language),
+			'creation_date' => $typeFactory->timestamp($comment['commentDate']),
 			'modification_date' => $typeFactory->timestamp($lastModification),
 			'contributors' => $typeFactory->multivalue(array_unique($author)),
 
@@ -80,6 +81,7 @@ class Search_ContentSource_ForumPostSource implements Search_ContentSource_Inter
 			'forum_section' => $typeFactory->identifier($forum_info['section']),
 
 			'post_content' => $typeFactory->wikitext($content),
+			'post_author' => $typeFactory->wikitext($comment['userName']),
 			'post_snippet' => $typeFactory->plaintext($snippet),
 			'parent_thread_id' => $typeFactory->identifier($comment['parentId']),
 
@@ -89,8 +91,8 @@ class Search_ContentSource_ForumPostSource implements Search_ContentSource_Inter
 			'parent_contributors' => $typeFactory->multivalue(array_unique($root_author)),
 			'hits' => $typeFactory->numeric($comment['hits']),
 			'root_thread_id' => $typeFactory->identifier($root_thread_id),
-			'type' => $typeFactory->plaintext($comment['type']),
-			'locked' => $typeFactory->plaintext($comment['locked']),
+			'thread_type' => $typeFactory->identifier($comment['type']),
+			'locked' => $typeFactory->identifier($comment['locked']),
 		);
 
 		$forum_lastPost = $this->getForumLastPostData($objectId, $typeFactory);
@@ -140,10 +142,12 @@ class Search_ContentSource_ForumPostSource implements Search_ContentSource_Inter
 		return array(
 			'title',
 			'language',
+			'creation_date',
 			'modification_date',
 			'contributors',
 
 			'post_content',
+			'post_author',
 			'post_snippet',
 			'forum_id',
 			'forum_section',

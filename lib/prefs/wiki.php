@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -26,8 +26,8 @@ function prefs_wiki_list($partial = false)
 
 	$wiki_sort_columns = array_merge(
 		array(
+			'lastModif' => tra('Last Modified'),
 			'pageName' => tra('Name'),
-			'lastModif' => tra('LastModif'),
 			'created' => tra('Created'),
 			'creator' => tra('Creator'),
 			'hits' => tra('Hits'),
@@ -147,6 +147,12 @@ function prefs_wiki_list($partial = false)
 			),
 			'default' => 'top',
 		),
+		'wiki_sharethis_encourage' => array(
+			'name' => tra('Display ShareThis icon prominently'),
+			'description' => tra('Encourage sharing by showing the ShareThis icon (default is hiding icon in drop-down)'),
+			'type' => 'flag',
+			'default' => 'n',
+		),
 		'wiki_cache' => array(
 			'name' => tra('Cache wiki pages (global)'),
 			'description' => tra('Enable page cache globally for wiki pages.'),
@@ -176,7 +182,7 @@ function prefs_wiki_list($partial = false)
 			'default' => 'n',
 		),
 		'wiki_feature_copyrights' => array(
-			'name' => tra('Wiki'),
+			'name' => tra('Wiki copyright'),
 			'type' => 'flag',
 			'dependencies' => array(
 				'feature_wiki',
@@ -477,7 +483,7 @@ function prefs_wiki_list($partial = false)
 			'name' => tra('Default sort order'),
 			'type' => 'list',
 			'options' => $wiki_sort_columns,
-			'default' => 'lastmodif',
+			'default' => 'lastModif',
 		),
 		'wiki_list_sortdirection' => array(
 			'name' => tra('Sort Direction'),

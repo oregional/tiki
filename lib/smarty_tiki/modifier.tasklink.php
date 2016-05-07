@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -51,13 +51,13 @@ function smarty_modifier_tasklink($taskId, $class_name="link", $offset="0", $sor
 			' <b>' . $info['user'] . '</b>.<br />' . tra("Priority") . ': <b>' . $info['priority'] . '</b>, (<b>' .
 					$info['percentage'] . '%</b>) ' . tra('done') . '.<br />';
 
-		if ($info[start] != 0 ) {
+		if ($info['start'] != 0 ) {
 			$fillin .= tra("Start date:") . " " . $tikilib->date_format("%H:%M -- %d. %e. %Y", $info['start']) . "<br />";
 		} else {
 			$fillin .= tra("Start date:") . " -<br />";
 		}
 
-		if ($info[end]) {
+		if ($info['end']) {
 			$fillin .= tra("End date:") . " " . $tikilib->date_format("%H:%M -- %d. %e. %Y", $info['end']) . "<br />";
 		} else {
 			$fillin .= tra("End date:") . " -<br />";

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -541,7 +541,7 @@ class Services_Tracker_Controller
 	function action_get_item_inputs($input)
 	{
 		$trackerId = $input->trackerId->int();
-		$trackerName = $input->trackerName->string();
+		$trackerName = $input->trackerName->text();
 		$itemId = $input->itemId->int();
 		$byName = $input->byName->bool();
 		$defaults = $input->defaults->array();
@@ -724,7 +724,7 @@ class Services_Tracker_Controller
 		global $prefs;
 		if ($prefs['feature_jquery_validation'] === 'y') {
 			$validationjs = TikiLib::lib('validators')->generateTrackerValidateJS($definition->getFields());
-			TikiLib::lib('header')->add_jq_onready('$("#insertItemForm' . $trackerId . '").validate({' . $validationjs . $this->get_validation_options());
+			TikiLib::lib('header')->add_jq_onready('$("#insertItemForm' . $trackerId . '").validate({' . $validationjs . $this->get_validation_options('#insertItemForm' . $trackerId));
 		}
 
 		$itemId = 0;
@@ -732,6 +732,14 @@ class Services_Tracker_Controller
 			foreach ($forced as $key => $value) {
 				if ($itemObject->canModifyField($key)) {
 					$fields[$key] = $value;
+				}
+			}
+
+			// test if one item per user
+			if ($definition->getConfiguration('oneUserItem', 'n') == 'y') {
+				$tmp = TikiLib::lib('trk')->get_user_item($trackerId, $definition->getInformation());
+				if ($tmp > 0) {
+					throw new Services_Exception(tr('Item could not be created. Only one item per user is allowed.'), 400);
 				}
 			}
 
@@ -761,16 +769,44 @@ class Services_Tracker_Controller
 			}
 		}
 
+		$editableFields = $input->editable->none();
+		if (empty($editableFields)) {
+			//if editable fields, show all fields in the form (except the ones from forced which have been removed).
+			$displayedFields = $processedFields;
+		} else {
+			// if editableFields is set, only add the field if found in the editableFields array
+			$displayedFields = array();
+			foreach ($processedFields as $k => $f) {
+				$permName = $f['permName'];
+				if (in_array($permName, $editableFields)) {
+					$displayedFields[] = $f;
+				}
+			}
+		}
+		$status = $input->status->word();
+		if ( $status === null) { // '=== null' means status was not set. if status is set to "", it skips the status and uses the default
+			$status = $itemObject->getDisplayedStatus();
+		} else {
+			$status = $input->status->word();
+		}
+
+		$title = $input->title->none();
+		if ( empty($title) ) { // '=== null' means status was not set. if status is set to "", it skips the status and uses the default
+			$title = tr('Create Item');
+		} else {
+			$title = $title;
+		}
+
 		return array(
-			'title' => tr('Create Item'),
+			'title' => $title,
 			'trackerId' => $trackerId,
 			'trackerName' => $trackerName,
 			'itemId' => $itemId,
-			'fields' => $processedFields,
+			'fields' => $displayedFields,
 			'forced' => $forced,
 			'trackerLogo' => $definition->getConfiguration('logo'),
 			'modal' => $input->modal->int(),
-			'status' => $itemObject->getDisplayedStatus(),
+			'status' => $status,
 			'format' => $input->format->word(),
 		);
 	}
@@ -882,6 +918,7 @@ class Services_Tracker_Controller
 					'ajaxheading' => tra('Success'),
 					'ajaxmsg' => 'Your item has been updated.',
 					'ajaxdismissible' => 'n',
+					'ajaxtimer' => 5,
 				)
 			);
 		}
@@ -920,7 +957,7 @@ class Services_Tracker_Controller
 
 		/* Allow overriding of default wording in the template */
 		if (empty($input->title->text())) {
-			$title = tr('Update');
+			$title = tr('Update Item');
 		} else {
 			$title = $input->title->text();
 		}
@@ -938,7 +975,7 @@ class Services_Tracker_Controller
 			$button_label = $input->button_label->text();
 		}
 
-		if (empty($input->skip_form->word())) {
+		if ($input->status->word() === null) {
 			$status = $itemObject->getDisplayedStatus();
 		} else {
 			$status = $input->status->word();
@@ -1796,7 +1833,7 @@ class Services_Tracker_Controller
 			$transaction = $tikilib->begin();
 			$installer = new Tiki_Profile_Installer;
 
-			$yaml = $input->yaml->string();
+			$yaml = $input->yaml->text();
 			$name = "tracker_import:" . md5($yaml);
 			$profile = Tiki_Profile::fromString('{CODE(caption="yaml")}' . "\n" . $yaml . "\n" . '{CODE}', $name);
 
@@ -1933,9 +1970,9 @@ class Services_Tracker_Controller
 		];
 	}
 
-	function get_validation_options()
+	function get_validation_options($formId='')
 	{
-		return ',
+		$jsString = ',
 		errorClass: "label label-warning",
 		errorPlacement: function(error,element) {
 			if ($(element).parents(".input-group").length > 0) {
@@ -1954,6 +1991,14 @@ class Services_Tracker_Controller
 		},
 		ignore: ".ignore"
 		});';
+
+		if ($formId){
+			$jsString .= "\n" . '
+				$("' . $formId . '").on("click.validate", ":submit", function(){$("' . $formId . '").find("[name^=other_ins_]").each(function(key, item){$(item).data("tiki_never_visited","")})});
+			';
+		}
+
+		return $jsString;
 	}	
 }
 

@@ -22,11 +22,12 @@ header.container {
 	border-bottom: none;
 }
 
-.page-header .top_modules {
+.top_modules {
 	background: url('@{imagePath}header.jpg') repeat-x bottom;
 //	margin-left: 0;
 //	margin-right: 0;
-	a.btn-link {
+	a,
+	.btn-link {
 		color: #f5f5f5;
 		&:hover {
 			color: darken(#f5f5f5,10%);
@@ -96,6 +97,7 @@ header.container {
 .topbar .cssmenu_horiz > li > a:hover,
 .topbar .cssmenu_horiz > li:hover,
 .topbar .cssmenu_horiz li.sfHover:hover,
+.topbar .cssmenu_horiz li.selected > a,
 .navbar-default .navbar-nav > li > a:hover,
 .navbar-default .navbar-nav > li > a:focus,
 #topbar_modules .navbar-default .navbar-nav > .active > a,
@@ -119,9 +121,20 @@ header.container {
 	border: none;
 }
 
+.middle {
+	background: #fff url('@{imagePath}page.jpg') repeat-x;
+	padding-bottom: 20px;
+}
+
 #col1,
 #col3 {
 	padding-top: 30px;
+	background: #fff url('@{imagePath}page.jpg') repeat-x;
+}
+
+body.fullscreen {
+	background: #fff url('@{imagePath}page.jpg') repeat-x;
+	.container { border: none; }
 }
 
 #col2 {
@@ -145,6 +158,8 @@ header.container {
 	font-size: 1.2em;
 }
 
+.module legend { font-size: 15px; }
+
 .topbar + .row,
 .layout_social > .container {
 	background: #fff url('@{imagePath}page.jpg') repeat-x;
@@ -154,8 +169,8 @@ header.container {
 	border-width: 0 1px;
 }
 
-.footer_liner .container {
-	background: #fff;
+#bottom_modules {
+	background: #A8CCE2;
 	border-top: none;
 }
 

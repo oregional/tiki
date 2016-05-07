@@ -5,7 +5,7 @@
  * this script may only be included, it will die if called directly.
  *
  * @package TikiWiki
- * @copyright (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project. All Rights Reserved. See copyright.txt for details and a complete list of authors.
+ * @copyright (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project. All Rights Reserved. See copyright.txt for details and a complete list of authors.
  * @licence Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
  */
 // $Id$
@@ -170,7 +170,9 @@ require_once ('lib/setup/tikiIndex.php');
 if ($prefs['useGroupHome'] == 'y') {
 	require_once ('lib/setup/default_homepage.php');
 }
-
+if ($prefs['tracker_force_fill'] == 'y') {
+	require_once ('lib/setup/tracker_force_fill.php');
+}
 // change $prefs['tikiIndex'] if feature_sefurl is enabled (e.g. tiki-index.php?page=HomePage becomes HomePage)
 if ($prefs['feature_sefurl'] == 'y' && ! defined('TIKI_CONSOLE')) {
 	//TODO: need a better way to know which is the type of the tikiIndex URL (wiki page, blog, file gallery etc)
@@ -453,6 +455,15 @@ if ( $prefs['feature_jquery_ui'] == 'y' ) {
 		}
 	}
 
+	// restore jquery-ui buttons function, thanks to http://stackoverflow.com/a/23428433/2459703
+	$headerlib->add_js('
+var bootstrapButton;
+if (typeof $.fn.button.noConflict === "function") {
+	bootstrapButton = $.fn.button.noConflict() // return $.fn.button to previously assigned value
+	$.fn.bootstrapBtn = bootstrapButton            // give $().bootstrapBtn the Bootstrap functionality
+}
+');
+
 	if ( $prefs['feature_jquery_ui_theme'] !== 'none' ) {
 		if ( isset($prefs['javascript_cdn']) && $prefs['javascript_cdn'] == 'jquery' ) {
 			// // cdn for css not working - this is the only css from a cdn anyway - so use local version 
@@ -524,7 +535,7 @@ if ($prefs['jquery_timeago'] === 'y') {
 	if (is_readable($timeago_locale)) {
 		$headerlib->add_jsfile($timeago_locale);	// TODO handle zh-CN and zh-TW
 	}
-	$headerlib->add_jq_onready('$("time.timeago").timeago();');
+	$headerlib->add_jq_onready('$("time.timeago").timeago(); jQuery.timeago.settings.allowFuture = true;');
 }
 
 if ( $prefs['feature_jquery_validation'] == 'y' ) {

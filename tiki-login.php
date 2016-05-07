@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -80,6 +80,14 @@ if (isset($_REQUEST['su'])) {
 			$smarty->assign('msg', tra('Username field cannot be empty. Please go back and try again.'));
 			$smarty->display('error.tpl');
 			exit;
+		}
+		if ($prefs['user_show_realnames'] == 'y') {
+			$finalusers = $userlib->find_best_user(array($_REQUEST['username']), '', 'login');
+			if (count($finalusers[0]) === 1 && !empty($finalusers[0])) {
+				$_REQUEST['username'] = $finalusers[0];
+			} else {
+				$_REQUEST['username'] = '';
+			}
 		}
 		if ($userlib->user_exists($_REQUEST['username'])) {
 			$loginlib->switchUser($_REQUEST['username']);

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -18,7 +18,7 @@ function wikiplugin_groupstat_info()
 			'groups' => array(
 				'required' => false,
 				'name' => tra('Groups'),
-				'description' => tra('Groups separated by :. If empty, all groups will be listed.'),
+				'description' => tra('Groups, separated by ":". If empty, all groups will be listed.'),
 				'since' => '4.0',
 			),
 			'percent_of' => array(

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -12,17 +12,17 @@ function wikiplugin_sheet_info()
 		'documentation' => 'PluginSheet',
 		'description' => tra('Display data from a TikiSheet'),
 		'prefs' => array( 'wikiplugin_sheet', 'feature_sheet' ),
-		'body' => tra('Sheet Heading'),
+		'body' => tra('Spreadsheet Heading'),
 		'iconname' => 'table',
 		'introduced' => 1,
 		'tags' => array( 'basic' ),
 		'params' => array(
 			'id' => array(
 				'required' => false,
-				'name' => tra('Sheet ID'),
+				'name' => tra('Spreadsheet ID'),
 				'description' => tr('Internal ID of the TikiSheet. Either %0id%1 or %0url%1 is required.', '<code>', '</code>'),
 				'filter' => 'digits',
-				'accepted' => 'Sheet ID number',
+				'accepted' => 'Spreadsheet ID number',
 				'default' => '',
 				'since' => '1',
 				'profile_reference' => 'sheet',
@@ -53,7 +53,7 @@ function wikiplugin_sheet_info()
 			'width' => array(
 				'required' => false,
 				'name' => tra('Width'),
-				'description' => tr('Width in pixels or percentage. Default value is page width. e.g. %0200px%1 or
+				'description' => tr('Width in pixels or percentage. Default value is page width, for example, %0200px%1 or
 					%0100%%1', '<code>', '</code>'),
 				'filter' => 'text',
 				'accepted' => 'Number of pixels followed by \'px\' or percent followed by %).',

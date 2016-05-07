@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -587,7 +587,7 @@ class ToolbarCkOnly extends Toolbar
 				return null;
 			}
 		case 'autosave':
-			return new self( 'Autosave', 'lib/ckeditor_tiki/plugins/autosave/images/ajaxAutoSaveDirty.gif', 'floppy');
+			return new self( 'autosave', 'lib/ckeditor_tiki/plugins/autosave/images/ajaxAutoSaveDirty.gif', 'floppy');
 		case 'inlinesave':
 			return new self( 'Inline save', 'lib/ckeditor_tiki/plugins/inlinesave/images/ajaxSaveDirty.gif');
 		case 'inlinecancel':
@@ -638,6 +638,8 @@ class ToolbarCkOnly extends Toolbar
 			case 'Format':
 			case 'JustifyLeft':
 			case 'Paste':
+			case 'PasteText':
+			case 'PasteFromWord':
 			case 'Redo':
 			case 'RemoveFormat':
 			case 'ShowBlocks':
@@ -1207,16 +1209,29 @@ class ToolbarDialog extends Toolbar
 			$iconname = 'link-external-alt';
 			$icon = tra('img/icons/page_link.png');
 			$wysiwyg = 'Object Link';
+
+			$smarty = TikiLib::lib('smarty');
+			$smarty->loadPlugin('smarty_function_object_selector');
+			$object_selector = smarty_function_object_selector([
+				'_id' => 'tbOLinkObjectSelector',
+				'_class' => 'ui-widget-content ui-corner-all',
+//				'_format' => '{title}',
+				'_filter' => ['type' => ''],
+				'_parent' => 'tbOLinkObjectType',
+				'_parentkey' => 'type',
+			], $smarty);
+
 			$list = array(tra('Object Link'),
 						'<label for="tbOLinkDesc">' . tra("Show this text") . '</label>',
 						'<input type="text" id="tbOLinkDesc" />',
 						'<label for="tbOLinkObjectType">' . tra("Types of object") . '</label>',
 						'<select id="tbOLinkObjectType" class="ui-widget-content ui-corner-all" style="width: 98%">' .
-							'<option value="">' . tra('All') . '</option>' .
+							'<option value="*">' . tra('All') . '</option>' .
 							$options .
 						'</select>',
 						'<label for="tbOLinkObjectSelector">' . tra("Link to this object") . '</label>',
-						'<input type="text" id="tbOLinkObjectSelector" class="ui-widget-content ui-corner-all" style="width: 98%" />',
+						$object_selector,
+//						'<input type="text" id="tbOLinkObjectSelector" class="ui-widget-content ui-corner-all" style="width: 98%" />',
 						'{"open": function () { dialogObjectLinkOpen(area_id); },
 						"buttons": { "' . tra("Cancel") . '": function() { dialogSharedClose(area_id,this); },'.
 									'"' . tra("Insert") . '": function() { dialogObjectLinkInsert(area_id,this); }}}'

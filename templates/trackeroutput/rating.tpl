@@ -32,7 +32,7 @@
 					{$star = 'display:inline'}
 				{/if}
 			{* showing half stars only works with the default iconset so far *}
-			{elseif $field.rating_options[i] - $field.voteavg <= 0.5}
+			{elseif $field.numvotes && $field.rating_options[i] - $field.voteavg <= 0.5}
 				{if $field.my_rate !== false && $field.my_rate == $field.rating_options[i]}
 					{$starhalfselected = 'display:inline'}
 				{else}
@@ -74,7 +74,7 @@
 			<a
 				href="{$smarty.server.REQUEST_URI}"
 				data-vote="0" onclick="sendVote(this,{$item.itemId},{$field.fieldId},'NULL');return false;"
-				{if empty($field.my_rate) or not in_array($field.my_rate, $field.rating_options)} style="display:none;"{/if}
+				{if $field.my_rate === false or not in_array($field.my_rate, $field.rating_options)} style="display:none;"{/if}
 			>{icon name='delete' iclass='tips unvote' ititle=":{tr}Remove your rating{/tr}"}</a>
 		{/if}
 		</span>

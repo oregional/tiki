@@ -28,7 +28,7 @@
 					<th class="text-center">{tr}Code{/tr}</th>
 					<th class="text-center">{tr}Value{/tr}</th>
 					<th class="text-center">{tr}Created{/tr}</th>
-					<th class="text-center">{tr}Max{/tr}</th>
+					<th class="text-center">{tr}Maximum{/tr}</th>
 					<th class="text-center">{tr}Comment{/tr}</th>
 					<th class="text-center"></th>
 				</tr>
@@ -57,7 +57,7 @@
 							class="tips"
 							title="{tr}Actions{/tr}"
 							href="#"
-							{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.discount_actions|escape:"javascript"|escape:"html"}{/if}
+							{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.discount_actions|escape:"javascript"|escape:"html"}{/if}
 							style="padding:0; margin:0; border:0"
 						>
 							{icon name='wrench'}

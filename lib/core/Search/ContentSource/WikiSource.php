@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2014 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -57,6 +57,7 @@ class Search_ContentSource_WikiSource implements Search_ContentSource_Interface
 		$data = array(
 			'title' => $typeFactory->sortable($info['pageName']),
 			'language' => $typeFactory->identifier(empty($info['lang']) ? 'unknown' : $info['lang']),
+			'creation_date' => $typeFactory->timestamp($info['created']),
 			'modification_date' => $typeFactory->timestamp($info['lastModif']),
 			'description' => $typeFactory->plaintext($info['description']),
 			'contributors' => $typeFactory->multivalue($contributors),
@@ -120,22 +121,26 @@ class Search_ContentSource_WikiSource implements Search_ContentSource_Interface
 	{
 		$fields = array(
 			'title',
-			'hash',
-			'url',
 			'language',
+			'creation_date',
 			'modification_date',
 			'description',
 			'contributors',
 
 			'wiki_content',
 			'wiki_keywords',
-			'wiki_approval_state',
 
 			'view_permission',
+			'hash',
+			'url',
 		);
 
 		if ($this->quantifylib) {
 			$fields[] = 'wiki_uptodateness';
+		}
+
+		if ($this->flaggedrevisionlib) {
+			$fields[] = 'wiki_approval_state';
 		}
 
 		return $fields;

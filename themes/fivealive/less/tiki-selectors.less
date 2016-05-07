@@ -50,7 +50,7 @@
 	background: url('@{imagePath}header_left.png') 0 100% no-repeat;
 }
 
-.header_container {
+.header_container .container {
 	/* inner <header> element that gets .fixedwidth class applied */
 	background: url('@{imagePath}siteheader.jpg') 0 0 no-repeat;
 }
@@ -64,6 +64,11 @@
 .page-header .btn-link,
 .siteloginbar_popup .btn-link {
 	color: #fff;
+}
+
+.siteloginbar_poppedup li > a,
+.siteloginbar_poppedup label {
+	color: @navbar-default-link-color;
 }
 
 .box-quickadmin .cssmenu_horiz ul li {
@@ -121,7 +126,9 @@ textarea,
 	}
 	legend,
 	a,
-	a:visited {
+	a:visited,
+	a.btn-default,
+	a.btn-default:visited {
 		color: #a9a9a9;
 	}
 }
@@ -144,6 +151,13 @@ header.header {
 		color: #fff !important;
 		text-decoration: none;
 	}
+}
+
+.navbar-fixed-top .sitesubtitle,
+.layout_social .topbar_modules .sitesubtitle,
+.layout_social_modules .topbar_modules .sitesubtitle,
+.layout_fixed_top_modules #top_modules .sitesubtitle {
+	color: #fff;
 }
 
 .navbar-default .navbar-nav > li > a {
@@ -172,3 +186,9 @@ header.header {
 .calhighlight {
 	background: #ddf4ef;
 }
+
+.popover {
+	color: @text-color;
+}
+
+.module legend { font-size: 15px; }

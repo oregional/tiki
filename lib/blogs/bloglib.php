@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -774,13 +774,15 @@ class BlogLib extends TikiDb_Bridge
 		$tikilib = TikiLib::lib('tiki');
 		$smarty = TikiLib::lib('smarty');
 
+		if ($is_wysiwyg) {
+			$data = TikiFilter::get('purifier')->filter($data);
+			$excerpt = TikiFilter::get('purifier')->filter($excerpt);
+		}
+		
 		$wysiwyg=$is_wysiwyg==TRUE?'y':'n';
 		if (!$created) {
 			$created = $tikilib->now;
 		}
-
-		$data = TikiFilter::get('purifier')->filter($data);
-		$excerpt = TikiFilter::get('purifier')->filter($excerpt);
 
 		$query = "insert into `tiki_blog_posts`(`blogId`,`data`,`excerpt`,`created`,`user`,`title`,`priv`,`wysiwyg`) values(?,?,?,?,?,?,?,?)";
 		$result = $this->query($query, array((int) $blogId, $data, $excerpt, (int) $created, $user, $title, $priv, $wysiwyg));

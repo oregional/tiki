@@ -305,7 +305,8 @@ table.treetable.objectperms td.removed {
 }
 
 // print mode only - to make sure print templates will use and print on seamless white bg color
-html#print {
+html#print,
+body.print * { // wiki page print view
 	background: #fff;
 	color: #000;
 }
@@ -385,6 +386,17 @@ form.simple label .warning {
 	background: @body-bg;
 	color: @text-color;
 }
+
+.cssmenu_horiz ul li.selected a,
+.cssmenu_vert ul li.selected a,
+.cssmenu_horiz ul li a:hover,
+.cssmenu_vert ul li a:hover {
+	text-decoration: none;
+	color: @dropdown-link-hover-color;
+	background-color: @dropdown-link-hover-bg;
+}
+
+
 
 // tiki-modules.less
 .box-quickadmin .cssmenu_horiz ul li {
@@ -712,8 +724,8 @@ ul.all_languages > li {
 
 .autotoc .nav > li > a:hover,
 .autotoc .nav .nav > li > a:hover {
-	color: @navbar-default-link-color;
-	background: @navbar-default-link-hover-bg;
+	color: @link-hover-color;
+//	background: @navbar-default-link-hover-bg;
 }
 
 .plugin-form-float {
@@ -906,26 +918,36 @@ h6 a.tiki_anchor:hover {
 	color: lighten(@state-success-text, 10%);
 }
 
+.searchresults blockquote em.hlt1,
+.searchresults blockquote em.hlt6,
 .highlight_word_0 {
 	color: @panel-success-text;
 	background: @panel-success-heading-bg;
 }
 
+.searchresults blockquote em.hlt2,
+.searchresults blockquote em.hlt7,
 .highlight_word_1 {
 	color: @panel-info-text;
 	background: @panel-info-heading-bg;
 }
 
+.searchresults blockquote em.hlt3,
+.searchresults blockquote em.hlt8,
 .highlight_word_2 {
 	color: @panel-warning-text;
 	background: @panel-warning-heading-bg;
 }
 
+.searchresults blockquote em.hlt4,
+.searchresults blockquote em.hlt9,
 .highlight_word_3 {
 	color: @panel-danger-text;
 	background: @panel-danger-heading-bg;
 }
 
+.searchresults blockquote em.hlt5,
+.searchresults blockquote em.hlt10,
 .highlight_word_4 {
 	color: spin(@panel-danger-text, 20);
 	background: spin(@panel-danger-heading-bg, 20);
@@ -1035,4 +1057,33 @@ a.admbox {
 .tiki .ui-widget button {
 	background: @btn-default-bg;
 	color: @btn-default-color;
+}
+
+
+// To correct login dropdown color
+.dropdown-menu { color: @dropdown-link-color; }
+
+.tiki .col1 .table-responsive {
+	border: 1px solid @panel-default-border;
+}
+
+//
+
+code,
+pre.codelisting {
+	color: @code-color;
+	background: @code-bg;
+	border: 1px solid lighten(@code-color, 60%);
+	border-radius: 1px;
+}
+
+.edit-menu {
+  position: absolute;
+  top: 6px;
+  right: 2px;
+  z-index: 1000;
+}
+
+@media (max-width: @screen-xs-max) {
+  .navbar-collapse .edit-menu { top: 48px; }
 }

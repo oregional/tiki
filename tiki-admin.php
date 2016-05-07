@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -28,10 +28,10 @@ $logslib = TikiLib::lib('logs');
 /**
  * Display feedback on prefs changed
  *
- * @param $name		Name of feature
- * @param $message	Other message
- * @param $st		Type of change (0=disabled, 1=enabled, 2=changed, 3=info, 4=reset)
- * @param $num		unknown
+ * @param string $name		Name of feature
+ * @param string $message	Other message
+ * @param int $st		    Type of change (0=disabled, 1=enabled, 2=changed, 3=info, 4=reset)
+ * @param int $num		    unknown
  * @return void
  */
 function add_feedback( $name, $message, $st, $num = null )
@@ -552,6 +552,15 @@ if (isset($_REQUEST['page'])) {
 	$helpDescription = tr("Help on %0 Config", $admintitle);
 
 	$smarty->assign('include', $adminPage);
+	if ( substr($adminPage, 0, 3) == 'ta_' && !file_exists("admin/include_$adminPage.tpl")) {
+		$addonadmintplfile = $utilities->getAddonFilePath("templates/admin/include_$adminPage.tpl");
+		if (!file_exists($addonadmintplfile)) {
+			$smarty->assign('include', 'missing_addon_page');
+		}
+		if (!$utilities->checkAddonActivated(substr($adminPage, 3))) {
+			$smarty->assign('include', 'addon_inactive');
+		}
+	}
 
 	if (!empty($changes) && key_check(null, false)) {
 		$access->redirect($_SERVER['REQUEST_URI'], '', 200);
@@ -611,16 +620,6 @@ if ($prefs['feature_version_checks'] == 'y' || $forcecheck) {
 			},
 			$upgrades
 		)
-	);
-}
-
-if (isset($_REQUEST['lm_criteria']) && isset($_REQUEST['exact'])) {
-	$headerlib = TikiLib::lib('header');
-	$headerlib->add_jq_onready(
-		"$('body,html')
-			.animate({scrollTop: $('." . htmlspecialchars($_REQUEST['lm_criteria']). "')
-					.addClass('ui-state-highlight')
-					.offset().top - 10}, 1);"
 	);
 }
 

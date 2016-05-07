@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -45,7 +45,6 @@ class Search_Formatter_Plugin_SmartyTemplate implements Search_Formatter_Plugin_
 
 	function renderEntries(Search_ResultSet $entries)
 	{
-		global $tikipath;
 		$smarty = new Smarty_Tiki;
 
 		if ( $this->changeDelimiters ) {
@@ -81,6 +80,11 @@ class Search_Formatter_Plugin_SmartyTemplate implements Search_Formatter_Plugin_
 		$smarty->assign('maxRecords', $entries->getMaxRecords());
 		$smarty->assign('id', $entries->getId());
 		$smarty->assign('tsOn', $entries->getTsOn());
+		$tsettings = $entries->getTsSettings();
+		if (is_array($tsettings)) {
+			$smarty->assign('tstotals', $tsettings['math']['totals']);
+			$smarty->assign('tscols', $tsettings['columns']);
+		}
 
 		return $smarty->fetch($this->templateFile);
 	}

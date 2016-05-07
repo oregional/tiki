@@ -2,10 +2,10 @@
 <form class="form-horizontal" action="tiki-admin.php?page=community" method="post">
 	<input type="hidden" name="ticket" value="{$ticket|escape}">
 	<div class="t_navbar margin-bottom-md">
-		{button href="tiki-admingroups.php" _class="btn btn-link tips" _icon_name="group" _text="{tr}Groups{/tr}" _title=":{tr}Group Administration{/tr}"}
-		{button href="tiki-adminusers.php" _class="btn btn-link tips" _icon_name="user" _text="{tr}Users{/tr}" _title=":{tr}User Administration{/tr}"}
-		{permission_link mode=text label="{tr}Permissions{/tr}"}
-		<a href="{service controller=managestream action=list}" class="btn btn-link">{tr}Activity Rules{/tr}</a>
+		{button href="tiki-admingroups.php" _class="btn-link tips" _type="text" _icon_name="group" _text="{tr}Groups{/tr}" _title=":{tr}Group Administration{/tr}"}
+		{button href="tiki-adminusers.php" _class="btn-link tips" _type="text" _icon_name="user" _text="{tr}Users{/tr}" _title=":{tr}User Administration{/tr}"}
+		{permission_link addclass="btn btn-link" _type="text" mode=text label="{tr}Permissions{/tr}"}
+		<a href="{service controller=managestream action=list}" class="btn btn-link tips">{tr}Activity Rules{/tr}</a>
 		<div class="pull-right">
 			<input type="submit" class="btn btn-primary btn-sm tips" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
 		</div>
@@ -100,7 +100,7 @@
 					{preference name=activity_basic_user_friend_add}
 				</div>
 				{preference name=activity_custom_events}
-                {preference name=activity_notifications}
+				{preference name=activity_notifications}
 			</fieldset>
 			<fieldset>
 				<legend>{tr}Goal, Recognition and Rewards{/tr}</legend>
@@ -139,16 +139,18 @@
 			{preference name=highlight_group}
 			{preference name=feature_display_my_to_others}
 			{preference name=user_tracker_infos}
-			{preference name=user_use_gravatar}
 			{preference name=user_who_viewed_my_stuff}
 			{preference name=user_who_viewed_my_stuff_days}
 			{preference name=user_who_viewed_my_stuff_show_others}
-			{preference name=user_store_file_gallery_picture}
-			{preference name=user_small_avatar_size}
-			{preference name=user_small_avatar_square_crop}
-			{preference name=user_picture_gallery_id}
-			{preference name=user_default_picture_id}
-			<input type="hidden" name="userfeatures" />
+			<fieldset>
+				<legend>{tr}Profile picture{/tr}</legend>
+					{preference name=user_use_gravatar}
+					{preference name=user_store_file_gallery_picture}
+					{preference name=user_small_avatar_size}
+					{preference name=user_small_avatar_square_crop}
+					{preference name=user_picture_gallery_id}
+					{preference name=user_default_picture_id}
+			</fieldset>
 			<fieldset>
 				<legend>{tr}Community{/tr}{help url="Community"}</legend>
 				{preference name=feature_community_gender}
@@ -214,6 +216,7 @@
 		{/tab}
 	{/tabset}
 	<div class="t_navbar margin-bottom-md text-center">
+		<input type="hidden" name="userfeatures" />
 		<input type="submit" class="btn btn-primary btn-sm tips" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
 	</div>
 </form>

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -145,8 +145,8 @@ function prefs_site_list()
 			'options' => $available_admin_layouts,
 		),
 		'site_layout_per_object' => array(
-			'name' => tr('Allow per-object layout'),
-			'description' => tr('Allows objects to define an alternate layout for their rendering.'),
+			'name' => tr('Enable layout per page, etc.'),
+			'description' => tr('Specify an alternate layout for a particular wiki page, etc.'),
 			'tags' => array('experimental'),
 			'type' => 'flag',
 			'default' => 'n',

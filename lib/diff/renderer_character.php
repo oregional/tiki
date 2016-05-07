@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -17,7 +17,7 @@ class Text_Diff_Renderer_character extends Tiki_Text_Diff_Renderer
     var $orig;
     var $final;
 
-    function Text_Diff_Renderer_character($context_lines = 0)
+    function __construct($context_lines = 0)
     {
         $this->_leading_context_lines = $context_lines;
         $this->_trailing_context_lines = $context_lines;
@@ -60,13 +60,13 @@ class Text_Diff_Renderer_character extends Tiki_Text_Diff_Renderer
 				$l .= htmlspecialchars($line);
 			}
 			if (!empty($l))
-				$this->final .= '<ins class="diffchar inserted" style="color: blue; text-decoration: none"><strong>'.$l."</strong></ins>";
+				$this->final .= '<ins class="diffchar inserted"><strong>'.$l."</strong></ins>";
 		} elseif ($type == 'deleted' || $type == 'change-deleted') {
 			$l = "";
 			foreach ($lines as $line)
 				$l .= htmlspecialchars($line);
 			if (!empty($l))
-				$this->orig .= '<del class="diffchar deleted" style="color: red; text-decoration: none"><strong>'.$l."</strong></del>";
+				$this->orig .= '<del class="diffchar deleted"><strong>'.$l."</strong></del>";
 		}
 	}
 

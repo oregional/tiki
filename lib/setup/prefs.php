@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -89,7 +89,7 @@ function get_default_prefs()
 			'fgal_root_wiki_attachments_id' => 3, // Ancestor of wiki "attachments" type galleries (feature_use_fgal_for_wiki_attachments).
 																						// For old installs, overriden by 20101210_fgal_add_wiki_attachments_tiki.php
 
-			'fgal_enable_auto_indexing' => 'y',
+			'fgal_enable_auto_indexing' => 'n',
 			'fgal_asynchronous_indexing' => 'y',
 			'fgal_sort_mode' => '',
 			'fgal_list_id' => 'o',

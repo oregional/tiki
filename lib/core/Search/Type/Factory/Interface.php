@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -19,6 +19,10 @@ interface Search_Type_Factory_Interface
 	function numeric($value);
 	// tokenized - indexed - unstored in database
 	function multivalue($values);
+	// tokenized - indexed - unstored in database
+	function object($values);
+	// tokenized - indexed - unstored in database
+	function nested($values);
 	// tokenized - indexed - stored in database
 	function sortable($value);
 }

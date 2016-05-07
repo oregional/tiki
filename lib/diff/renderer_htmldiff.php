@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -14,7 +14,7 @@ include_once("Renderer.php");
 
 class Text_Diff_Renderer_htmldiff extends Tiki_Text_Diff_Renderer
 {
-	function Text_Diff_Renderer_htmldiff($context_lines = 0, $words = 0)
+	function __construct($context_lines = 0, $words = 0)
 	{
 		$this->_leading_context_lines = $context_lines;
 		$this->_trailing_context_lines = $context_lines;

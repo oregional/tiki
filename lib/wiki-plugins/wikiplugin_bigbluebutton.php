@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -62,7 +62,7 @@ function wikiplugin_bigbluebutton_info()
 			'logout' => array(
 				'required' => false,
 				'name' => tra('Log-out URL'),
-				'description' => tra('URL to which the user will be redirected when logging out from BigBlueButton.'),
+				'description' => tra('URL to which the user will be redirected after logging out of BigBlueButton.'),
 				'since' => '5.0',
 				'filter' => 'url',
 				'default' => '',
@@ -151,6 +151,6 @@ function wikiplugin_bigbluebutton( $data, $params )
 		// Won't display anything if recordings were not loaded
 		return $smarty->fetch('wiki-plugins/wikiplugin_bigbluebutton_view_recordings.tpl');
 	} catch (Exception $e) {
-		return WikiParser_PluginOutput::internalError(tr('BigBlueButton misconfigured or unaccessible.'));
+		return WikiParser_PluginOutput::internalError(tr('BigBlueButton is misconfigured or inaccessible.'));
 	}
 }

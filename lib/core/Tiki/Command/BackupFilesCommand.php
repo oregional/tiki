@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -107,7 +107,9 @@ class BackupFilesCommand extends Command
 			return;
 		}
 
-		$tarLocation = $path . '/' . $dbs_tiki . '_' . date( 'Y-m-d_H:i:s' ) . '.tar.bz2';
+		$windows = strtoupper(substr(PHP_OS, 0, 3)) == 'WIN';
+		$dateFormat = $windows ? 'Y-m-d_His' : 'Y-m-d_H:i:s';
+		$tarLocation = $path . '/' . $dbs_tiki . '_' . date( $dateFormat ) . '.tar.bz2';
 		$tar = escapeshellarg( $tarLocation );
 		$command = "tar -cjf $tar $source";
 		exec( $command );

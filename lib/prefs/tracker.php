@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -116,6 +116,48 @@ function prefs_tracker_list()
 			'type' => 'flag',
 			'default' => 'y',
 			'dependencies' => ['feature_trackers'],
+		),
+		'tracker_force_fill' => array(
+			'name' => tr('Force users to fill tracker information.'),
+			'description' => tr("Forces a user to fill in a tracker form if they haven't already by prompting them with a module  "),
+			'help' => 'Force+Fill+Tracker',
+			'type' => 'flag',
+			'tags' => array('advanced'),
+			'default' => 'n',
+			'dependencies' => ['feature_trackers'],
+		),
+		'tracker_force_tracker_id' => array(
+			'name' => tr('Tracker ID of tracker for force-filling'),
+			'description' => tr('The tracker that is for articles must contain an "Articles" field'),
+			'type' => 'text',
+			'tags' => array('advanced'),
+			'size' => '3',
+			'filter' => 'digits',
+			'default' => '',
+			'dependencies' => ['tracker_force_fill'],
+		),
+		'tracker_force_mandatory_field' => array(
+			'name' => tr('Mandatory tracker field to check for force-filling'),
+			'description' => tr('The permname of field that is checked to see if user has completed the form. If field is empty, user has not completed it.'),
+			'type' => 'text',
+			'tags' => array('advanced'),
+			'default' => '',
+			'dependencies' => ['tracker_force_fill'],
+		),
+		'tracker_force_tracker_fields' => array(
+			'name' => tr('Fields that are asked for in the modal for force-filling'),
+			'description' => tr('Comma-separated permnames of fields that are asked for in the modal for force-filling. If empty, all fields are asked for'),
+			'type' => 'text',
+			'tags' => array('advanced'),
+			'default' => '',
+			'dependencies' => ['tracker_force_fill'],
+		),
+		'tracker_prefixalias_on_links' => array(
+			'name' => tr('Tracker item links use prefix alias'),
+			'description' => tr('Links for tracker items will use the prefix alias automatically everywhere.'),
+			'type' => 'flag',
+			'default' => 'y',
+			'dependencies' => ['feature_trackers','feature_sefurl', 'feature_sefurl_tracker_prefixalias'],
 		),
 	);
 }

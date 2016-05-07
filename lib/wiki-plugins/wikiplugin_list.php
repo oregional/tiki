@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -32,6 +32,8 @@ function wikiplugin_list_info()
 
 function wikiplugin_list($data, $params)
 {
+	global $prefs;
+
 	static $i;
 	$i++;
 
@@ -49,8 +51,9 @@ function wikiplugin_list($data, $params)
 
 	$builder = new Search_Query_WikiBuilder($query);
 	$builder->enableAggregate();
-	if ($tsret['max']) {
-		$builder->wpquery_pagination_max($query, $tsret['max']);
+	if (!empty($tsret['max']) || !empty($_GET['numrows'])) {
+		$max = !empty($_GET['numrows']) ? $_GET['numrows'] : $tsret['max'];
+		$builder->wpquery_pagination_max($query, $max);
 	}
 	$builder->apply($matches);
 	$paginationArguments = $builder->getPaginationArguments();
@@ -78,6 +81,8 @@ function wikiplugin_list($data, $params)
 	$builder->setTsOn($tsret['tsOn']);
 	$builder->apply($matches);
 
+	$result->setTsSettings($builder->getTsSettings());
+
 	$formatter = $builder->getFormatter();
 
 	$result->setTsOn($tsret['tsOn']);
@@ -104,6 +109,7 @@ function applyTablesorter(WikiParser_PluginMatcher $matches, Search_Query $query
 			$ajax = !empty($tsargs['server']) && $tsargs['server'] === 'y';
 			$ret['tsOn'] = Table_Check::isEnabled($ajax);
 			if (!$ret['tsOn']) {
+				TikiLib::lib('errorreport')->report(tra('List plugin: Feature "jQuery Sortable Tables" (tablesorter) is not enabled'));
 				return $ret;
 			}
 			if (isset($tsargs['tsortcolumns'])) {

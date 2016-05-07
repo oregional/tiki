@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -524,7 +524,7 @@ if (empty($s) || ! is_writable($s)) {
 }
 
 // test session work
-session_start();
+@session_start();
 
 if (empty($_SESSION['tiki-check'])) {
 	$php_properties['session'] = array(
@@ -788,9 +788,9 @@ if ($s) {
 	);
 } else {
 	$php_properties['intl'] = array(
-		'fitness' => tra('bad'),
+		'fitness' => tra('ugly'),
 		'setting' => 'Not available',
-		'message' => tra("intl extension is required for Tiki 15 onwards.")
+		'message' => tra("intl extension is preferred for Tiki 15 onwards.")
 	);
 }
 
@@ -1648,6 +1648,7 @@ if ($s == 1) {
 	);
 }
 
+if ($standalone || (!empty($prefs) && $prefs['fgal_enable_auto_indexing'] === 'y')) {
 	// adapted from \FileGalLib::get_file_handlers
 	$fh_possibilities = array(
 		'application/ms-excel' => array('xls2csv %1'),
@@ -1694,7 +1695,7 @@ if ($s == 1) {
 				break;
 			}
 		}
-		if (! $file_handler['fitness']) {
+		if (!$file_handler['fitness']) {
 			$file_handler['fitness'] = 'ugly';
 			$fh_commands = '';
 			foreach ($options as $opt) {
@@ -1705,7 +1706,7 @@ if ($s == 1) {
 		}
 		$file_handlers[$type] = $file_handler;
 	}
-
+}
 
 
 if (!$standalone) {
@@ -1942,15 +1943,15 @@ if ($standalone && !$nagios) {
 	update_overall_status($security, "PHP Security");
 	$return = json_encode($monitoring_info);
 	echo $return;
-} else {
+} else {	// not stand-alone
 	if (isset($_REQUEST['acknowledge']) || empty($last_state)) {
 		$tiki_check_status = array();
 		function process_acks(&$check_group, $check_group_name) {
 			global $tiki_check_status;
 			foreach($check_group as $key => $value) {
 				$formkey = str_replace(array('.',' '), '_', $key);
-				if (isset($check_group["$key"]['fitness']) &&
-					($check_group["$key"]['fitness'] === 'good' || $check_group["$key"]['fitness'] === 'safe') || $_REQUEST["$formkey"] === "on")
+				if (isset($check_group["$key"]['fitness']) && ($check_group["$key"]['fitness'] === 'good' || $check_group["$key"]['fitness'] === 'safe') ||
+					(isset($_REQUEST["$formkey"]) && $_REQUEST["$formkey"] === "on"))
 				{
 					$check_group["$key"]['ack'] = true;
 				} else {
@@ -1991,7 +1992,9 @@ if ($standalone && !$nagios) {
 	$smarty->assign_by_ref('security', $security);
 	$smarty->assign_by_ref('mysql_variables', $mysql_variables);
 	$smarty->assign_by_ref('mysql_crashed_tables', $mysql_crashed_tables);
-	$smarty->assign_by_ref('file_handlers', $file_handlers);
+	if ($prefs['fgal_enable_auto_indexing'] === 'y') {
+		$smarty->assign_by_ref('file_handlers', $file_handlers);
+	}
 	// disallow robots to index page:
 
 	$fmap = array(
@@ -2031,7 +2034,7 @@ function createPage($title, $content)
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<link type="text/css" rel="stylesheet" href="http://dev.tiki.org/styles/fivealive-lite.css" />
+		<link type="text/css" rel="stylesheet" href="//dev.tiki.org/vendor/twitter/bootstrap/dist/css/bootstrap.css" />
 		<title>$title</title>
 		<style type="text/css">
 			table { border-collapse: collapse;}

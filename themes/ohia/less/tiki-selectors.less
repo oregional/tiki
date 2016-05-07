@@ -58,7 +58,9 @@ header.container,
 .navbar-default.navbar-fixed-top {
 	background: url('@{imagePath}header.png');
 //	background-size: cover;
-	a, a:visited {
+	a,
+	a:visited,
+	.btn-link {
 		color: #f4f4f4;
 	}
 }
@@ -151,5 +153,12 @@ footer.footer .modules {
 		text-decoration: none;
 		color: @dropdown-link-hover-color;
 		background-color: @dropdown-link-hover-bg;
+	}
+}
+
+body.fullscreen {
+	background: @body-bg;
+	.container {
+		border: none;
 	}
 }

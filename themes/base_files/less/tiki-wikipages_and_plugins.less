@@ -73,6 +73,10 @@
 	margin-bottom: 0;
 }
 
+.versioncontent {
+	margin-top: 10px;
+}
+
 #tiki-center .versioncontent {
 	padding: 1em;
 }
@@ -298,6 +302,10 @@ div.tiki_plugin {
   border-left: 1px solid @btn-default-border;
 }
 
+.autotoc > .nav > li > .nav > li {
+  padding-bottom: 5px;
+}
+
 .autotoc .nav > .active:focus > a,
 .autotoc .nav > .active:hover > a,
 .autotoc .nav > .active > a {
@@ -312,6 +320,10 @@ div.tiki_plugin {
   //display: none;  TODO
   padding-bottom: 0;
   list-style: none;
+}
+
+.autotoc .nav .nav .nav {
+  display: none;
 }
 
 .autotoc .nav .nav > li > a {
@@ -338,6 +350,15 @@ div.tiki_plugin {
   padding-left: 29px
 }
 
+.autotoc .nav .nav .nav > li > a:focus,
+.autotoc .nav .nav .nav > li > a:hover {
+  padding-left: 40px;
+}
+
+.autotoc .nav .nav > .active > ul {
+  display: block;
+}
+
 .autotoc .nav .nav > .active:focus > a, .autotoc .nav .nav > .active:hover > a,
 .autotoc .nav .nav > .active > a {
   padding-left: 28px;
@@ -345,14 +366,15 @@ div.tiki_plugin {
 }
 
 /* reset tabs styling */
-.autotoc .nav-tabs > li.active > a,
-.autotoc .nav-tabs > li.active > a:hover,
-.autotoc .nav-tabs > li.active > a:focus {
+.autotoc > ul > li.active > a,
+.autotoc > ul > li.active > a:hover,
+.autotoc > ul > li.active > a:focus {
   color: inherit;
   background-color: inherit;
-  border: inherit;
+//  border: inherit;
   border-bottom-color: transparent;
   cursor: default;
+  border-radius:0px;
 }
 
 .back-to-top {
@@ -367,6 +389,10 @@ div.tiki_plugin {
 .back-to-top:hover, .bs-docs-theme-toggle:hover {
   color: #563d7c;
   text-decoration: none
+}
+
+@media (max-width:@screen-xs-max) {
+	.autotoc > .nav { display:none !important; }
 }
 
 /* end autotoc */
@@ -514,10 +540,6 @@ div.tiki_plugin {
 	z-index: 100 !important;
 }
 
-.TextArea-fullscreen #editwiki_toolbar {
-	width: 100% !important;
-}
-
 .TextArea-fullscreen .ui-wrapper {
 	width: auto !important;
 	height: 100% !important;
@@ -530,6 +552,10 @@ div.tiki_plugin {
 .TextArea-fullscreen .ui-wrapper #editwiki {
 	position: absolute !important;
 	width: 100% !important;
+}
+
+.TextArea-fullscreen .edit-zone-footer {
+	background: @body-bg;
 }
 
 .TextArea-fullscreen .actions,
@@ -574,6 +600,8 @@ div.tiki_plugin {
 	top: 0;
 	right: 0;
 	opacity: 1;
+	background: @state-info-bg;
+	height: 100% !important;
 }
 
 #diff_history {
@@ -890,13 +918,6 @@ body.tiki_wiki #comments {
 //   color: @state-success-text;
 // }
 
-.diffdeleted,
-	//{
-	//   background: @state-danger-bg;
-	//   color: @state-danger-text;
-	//  text-decoration: line-through;
-	//}
-
 .diffinldel {
 	//  background: @state-warning-bg;
 	text-decoration: line-through;
@@ -952,4 +973,26 @@ div.drillshow {
 
 .titlebar {
 	border-bottom: 2px solid;
+}
+
+.wp-annotation {
+	position:relative;
+}
+
+.wp-annotation .editor {
+	display: none;
+	width: 400px;
+	position: absolute;
+}
+
+.wp-annotation .annotation {
+	border: dashed 1px rgba(255, 255, 255, 0.5);
+	background: rgba(255, 200, 40, 0.1);
+	position: absolute;
+	cursor: pointer;
+}
+
+.wp-annotation .annotation.selected {
+	border: dashed 1px rgba(69, 255, 97, 0.68);
+	background: rgba(85, 255, 68, 0.25);
 }

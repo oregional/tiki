@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -65,7 +65,7 @@ function wikiplugin_invite( $data, $params)
 	$feedbacks = array();
 	if (isset($_REQUEST['invite'])) {
 		if (empty($_REQUEST['email'])) {
-			$errors[] = tra('Following mandatory fields are missing').' '.tra('Email address');
+			$errors[] = tra('The following mandatory fields are missing').' '.tra('Email address');
 		}
 		if (!validate_email($_REQUEST['email'])) {
 			$errors[] = tra('Invalid Email').' '.$_REQUEST['email'];

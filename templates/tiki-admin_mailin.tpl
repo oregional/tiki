@@ -73,7 +73,7 @@
 						class="tips"
 						title="{tr}Actions{/tr}"
 						href="#"
-						{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.mailin_actions|escape:"javascript"|escape:"html"}{/if}
+						{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.mailin_actions|escape:"javascript"|escape:"html"}{/if}
 						style="padding:0; margin:0; border:0"
 					>
 						{icon name='wrench'}
@@ -85,8 +85,8 @@
 			</tr>
 		{/foreach}
 	</table>
-	{button _icon_name="cog" _text="{tr}Admin Mail-in Routes{/tr}" href="tiki-admin_mailin_routes.php"}
 	<a href="{bootstrap_modal controller=mailin action=replace_account}" class="btn btn-default">{icon name="add"} {tr}Add Account{/tr}</a>
+	{button _icon_name="cog" _text="{tr}Admin Mail-in Routes{/tr}" _type="link" href="tiki-admin_mailin_routes.php"}
 	{if $tikifeedback}
 		{section name=n loop=$tikifeedback}<div class="alert {if $tikifeedback[n].num > 0} alert-warning{/if}">{$tikifeedback[n].mes}</div>{/section}
 	{/if}

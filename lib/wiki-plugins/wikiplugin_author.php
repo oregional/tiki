@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -10,7 +10,7 @@ function wikiplugin_author_info()
 	return array(
 		'name' => tra('Author'),
 		'documentation' => 'PluginAuthor',
-		'description' => tra('Add pop-ups and color coding that identifies authors'),
+		'description' => tra('Add popups and color coding that identifies authors'),
 		'prefs' => array('wikiplugin_author'),
 		'body' => tra('text'),
 		'iconname' => 'pencil',
@@ -19,7 +19,7 @@ function wikiplugin_author_info()
 			'author' => array(
 				'required' => true,
 				'name' => tra('Username'),
-				'description' => tra('User name of the user who wrote the text.'),
+				'description' => tra('Username of the author of the text.'),
 				'since' => '6.0',
 				'default' => '',
 				'filter' => 'username',
@@ -27,7 +27,7 @@ function wikiplugin_author_info()
 			'deleted_by' => array(
 				'required' => false,
 				'name' => tra('Deleted by User'),
-				'description' => tra('User name of the user who deleted the text.'),
+				'description' => tra('Username of the person who deleted the text.'),
 				'since' => '6.0',
 				'default' => '',
 				'filter' => 'username',

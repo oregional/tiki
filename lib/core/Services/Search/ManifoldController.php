@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -81,7 +81,7 @@ class Services_Search_ManifoldController
 				];
 			} catch (Search_Elastic_MappingException $e) {
 				if ($e->getType() == 'attachment') {
-					throw new Services_Exception_NotAvailable('Attachment field plugin not installed on ElasticSearch server.');
+					throw new Services_Exception_NotAvailable('Attachment field plugin not installed on Elasticsearch server.');
 				} else {
 					throw $e;
 				}

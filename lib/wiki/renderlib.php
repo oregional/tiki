@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -141,7 +141,9 @@ class WikiRenderer
 			}
 		}
 		if ($tikilib->user_has_perm_on_object($this->user, $navigation_info['home']['pageName'], 'wiki page', 'tiki_p_edit', 'tiki_p_edit_structures'))
-			$this->smartyassign('struct_editable', 'y');
+			$this->smartyassign('struct_editable', 'a'); # a stands for both perms: tiki_p_edit and tiki_p_edit_structures
+		else if ($tikilib->user_has_perm_on_object($this->user, $navigation_info['home']['pageName'], 'wiki page', 'tiki_p_edit_structures'))
+			$this->smartyassign('struct_editable', 'y'); # y stands for only tiki_p_edit_structures perm (but not tiki_p_edit)
 		else
 			$this->smartyassign('struct_editable', 'n');
 		// To show position

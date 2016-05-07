@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -32,7 +32,7 @@ class Table_Totals
 				$smarty = TikiLib::lib('smarty');
 				$smarty->assign('fieldcount', $count);
 				$smarty->assign('tstotals', $s['math']['totals']);
-				$smarty->assign('tsignore', $s['math']['ignore']);
+				$smarty->assign('tscols', $s['columns']);
 				return $smarty->fetch('tablesorter/totals.tpl');
 			}
 		} else {
@@ -49,7 +49,7 @@ class Table_Totals
 			if (!empty($s['math'])) {
 				$smarty = TikiLib::lib('smarty');
 				$smarty->assign('tstotals', $s['math']['totals']);
-				$smarty->assign('tsignore', $s['math']['ignore']);
+				$smarty->assign('tscols', $s['columns']);
 			}
 		}
 	}

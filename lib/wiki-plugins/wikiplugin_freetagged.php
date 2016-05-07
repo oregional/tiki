@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -57,7 +57,7 @@ function wikiplugin_freetagged_info()
 			),
 			'maxRecords' => array(
 				'required' => false,
-				'name' => tra('Max Records'),
+				'name' => tra('Maximum Records'),
 				'description' => tra('Default -1 (all)'),
 				'since' => '5.0',
 				'filter' => 'int',
@@ -297,8 +297,7 @@ function wikiplugin_freetagged($data, $params)
 					$obj['description'] = $info['description'];
 					$obj['date'] = $info['lastModif'];
 					include_once 'lib/wiki-plugins/wikiplugin_img.php';
-					$imgparams = array('fileId' => $obj['itemId'], 'rel' => 'box[g]');
-					$imgparams['thumb'] = 'y';
+					$imgparams = array('fileId' => $obj['itemId'], 'thumb' => 'box');
 					if ($max_image_size > 0) {
 						$imgparams['max'] = $max_image_size;
 					}

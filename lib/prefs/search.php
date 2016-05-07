@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -53,16 +53,25 @@ function prefs_search_list()
 			'name' => tra('Category filter'),
 			'type' => 'flag',
 			'default' => 'n',
+			'dependencies' => array(
+				'feature_categories',
+			),
+			'tags' => array('basic'),
 		),
 		'search_show_tag_filter' => array(
 			'name' => tra('Tag filter'),
 			'type' => 'flag',
 			'default' => 'n',
+			'dependencies' => array(
+				'feature_freetags',
+			),
+			'tags' => array('basic'),
 		),
 		'search_show_sort_order' => array(
 			'name' => tra('Sort order'),
 			'type' => 'flag',
 			'default' => 'n',
+			'tags' => array('basic'),
 		),
 		'search_use_facets' => array(
 			'name' => tra('Use facets for default search interface'),

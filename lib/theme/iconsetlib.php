@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -23,7 +23,7 @@ class IconsetLib
 		$iconset = new Iconset($this->loadFile('themes/base_files/iconsets/default.php'));
 		
 		//override the default icons with theme specific icons or with site icon set setting
-		if ($prefs['theme_iconset'] === 'theme_specific_iconset') {
+		if (isset($prefs['theme_iconset']) && $prefs['theme_iconset'] === 'theme_specific_iconset') {
 			$filename = $themelib->get_theme_path($theme, '', str_replace('-', '_', $theme) . '.php');
 			if ($filename) {
 				$iconset1 = new Iconset($this->loadFile($filename));
@@ -34,7 +34,7 @@ class IconsetLib
 				$iconset1 = new Iconset($this->loadFile($filename));
 				$iconset->merge($iconset1);
 			}
-		} else if ($prefs['theme_iconset'] !== 'default') {
+		} else if (isset($prefs['theme_iconset']) && $prefs['theme_iconset'] !== 'default') {
 			$filename = "themes/base_files/iconsets/{$prefs['theme_iconset']}.php";
 			$iconset1 = new Iconset($this->loadFile($filename));
 			$iconset->merge($iconset1);
@@ -242,8 +242,8 @@ class Iconset
 				} else {
 					TikiLib::lib('errorreport')->report(tr('Icon set: Class not defined for icon %0', $name));
 				}
-				if ((!empty($sizeuser) && $sizeuser != 1)) {
-					$styleparams[] = 'font-size:' . ($sizeuser * 100) . '%';
+				if ((!empty($size) && $size != 1)) {
+					$styleparams[] = 'font-size:' . ($size * 100) . '%';
 				}
 				$style = $this->setStyle($styleparams);
 				$html = "<$tag class=\"icon icon-$name $icon_class $custom_class\" $style $title $id></$tag>";

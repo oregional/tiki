@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -1208,6 +1208,13 @@ class MultilingualLib extends TikiLib
         global $tracer;
 
         $default_lang = '';
+		//make sure $user_langs is an array
+		if(isset($user_langs) && is_array($user_langs)){
+			$user_langs = $user_langs;
+		}
+		else {
+			$user_langs = $this->preferredLangs(null, null);
+		}
 
         foreach ($user_langs as $a_user_lang)
         {

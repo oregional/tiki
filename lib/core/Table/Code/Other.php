@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -187,7 +187,6 @@ class Table_Code_Other extends Table_Code_Manager
 		//add math total column if set
 		if (!empty(parent::$s['math']['totals']['row'])) {
 			foreach(parent::$s['math']['totals']['row'] as $total) {
-				$label = $total['label'] ? $total['label'] : tr('Total');
 				$class = parent::$s['ajax']['type'] !== false ? ' class="sorter-false filter-false"' : '';
 				$jq[] = $this->nt . '$(\'' . parent::$tid . '\').find(\'thead tr\').append(\'<th' . $class . '>'
 					. $total['label'] . '</th>\');'

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -37,6 +37,7 @@ function smarty_block_title($params, $content, $template, &$repeat)
 
 	if ( ! isset($params['help']) ) $params['help'] = '';
 	if ( ! isset($params['admpage']) ) $params['admpage'] = '';
+	if ( ! isset($params['actions']) ) $params['actions'] = '';
 
 	// Set the variable for the HTML title tag
 	$template->smarty->assign('headtitle', $content);
@@ -92,6 +93,9 @@ function smarty_block_title($params, $content, $template, &$repeat)
 			$html .= $params['admpage'] . '" title="' . htmlspecialchars($content) . '|' . tra('Settings') . '">'
 			. smarty_function_icon(array('name' => 'settings'), $template)
 			. "</a>\n";
+		}
+		if ($params['actions'] != '') {
+			$html .= $params['actions'];
 		}
 	}
 

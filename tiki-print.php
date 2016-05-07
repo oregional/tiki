@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -101,7 +101,7 @@ if (isset($_REQUEST['display']) && $_REQUEST['display'] == 'pdf') {
 	$generator = new PdfGenerator();
 	$pdf = $generator->getPdf('tiki-print.php', array('page' => $page));
 	if (empty($pdf)) {
-		echo "Unable to generate PDF";
+		$access->display_error($page, "Unable to generate PDF");
 	} else {
 		$length = strlen($pdf);
 		header('Cache-Control: private, must-revalidate');

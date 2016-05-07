@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -99,6 +99,10 @@ class AdminWizardLookAndFeel extends Wizard
 					}
 				}
 			}
+			//encode $theme_layouts into json to allow js below to fetch layouts based on theme selected by user
+			$theme_layouts_js = json_encode($theme_layouts);
+			$js .= $theme_layouts_js . ";";
+
 			// JS to handle theme/option changes client-side
 			// the var (theme_options) has to be declared in the same block for AJAX call scope
 			$none = json_encode(tr('None'));

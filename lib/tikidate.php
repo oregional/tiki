@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -92,6 +92,7 @@ class TikiDate
 		'Libya',
 		'localtime',	// because PHP Fatal error was observed in Apache2 logfile
 				// not mentioned here: https://bugs.php.net/bug.php?id=66985
+		'leap-seconds.list', // same here
 		'MST7MDT',
 		'Navajo',
 		'NZ-CHAT',

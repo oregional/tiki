@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -94,25 +94,30 @@ class Search_MySql_Index implements Search_Index_Interface
 				$this->table->expr($condition),
 			);
 
-			$scoreField = null;
+			$scoreFields = [];
 			$indexes = $this->builder->getRequiredIndexes();
 			foreach ($indexes as $index) {
 				$this->table->ensureHasIndex($index['field'], $index['type']);
 
-				if (! $scoreField && $index['type'] == 'fulltext') {
-					$scoreField = $index['field'];
+				if (! in_array($index, $scoreFields) && $index['type'] == 'fulltext') {
+					$scoreFields[] = $index;
 				}
 			}
 
 			$this->table->flush();
 
-			$order = $this->getOrderClause($query, (bool) $scoreField);
+			$order = $this->getOrderClause($query, (bool) $scoreFields);
 
 			$selectFields = $this->table->all();
 
-			if ($scoreField) {
+			if ($scoreFields) {
 				$str = $this->db->qstr(implode(' ', $words));
-				$selectFields['score'] = $this->table->expr("ROUND(MATCH(`$scoreField`) AGAINST ($str),2)");
+				$scoreCalc = '';
+				foreach($scoreFields as $field) {
+					$scoreCalc .= $scoreCalc ? ' + ' : '';
+					$scoreCalc .= "ROUND(MATCH(`{$field['field']}`) AGAINST ($str),2) * {$field['weight']}";
+				}
+				$selectFields['score'] = $this->table->expr($scoreCalc);
 			}
 			$count = $this->table->fetchCount($conditions);
 			$entries = $this->table->fetchAll($selectFields, $conditions, $resultCount, $resultStart, $order);
@@ -169,7 +174,7 @@ class Search_MySql_Index implements Search_Index_Interface
 			function ($node) use (& $words, $factory) {
 				if ($node instanceof Search_Expr_Token && $node->getField() !== 'searchable') {
 					$word = $node->getValue($factory)->getValue();
-					if (is_string($word)) {
+					if (is_string($word) && !in_array($word, $words)) {
 						$words[] = $word;
 					}
 				}

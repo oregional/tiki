@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -15,7 +15,7 @@
  * @package		Tiki
  * @subpackage		Parser
  * @author		Robert Plummer
- * @copyright (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+ * @copyright (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
  * 			See copyright.txt for details and a complete list of authors.
  * @licence Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
  * @version		SVN $Rev$
@@ -1071,7 +1071,7 @@ if ( \$('#$id') ) {
 					$arg_str .= $argKey.'='.implode($sep, $argValue).'&';
 				} else {
 					// even though args are now decoded we still need to escape double quotes
-					$argValue =  addslashes($argValue);
+					$argValue =  addcslashes($argValue, '"');
 
 					$ck_editor_plugin .= $argKey.'="'.$argValue.'" ';
 					$arg_str .= $argKey.'='.$argValue.'&';
@@ -2477,13 +2477,13 @@ if ( \$('#$id') ) {
 				$id = 'dyn_'.$dvar;
 
 				if (isset($tiki_p_edit_dynvar)&& $tiki_p_edit_dynvar=='y') {
-					$span1 = "<span  style='display:inline;' id='dyn_".$dvar."_display'><a class='dynavar' onclick='javascript:toggle_dynamic_var(\"$dvar\");' title='".tra('Click to edit dynamic variable', '', true).": $dvar'>$value</a></span>";
-					$span2 = "<span style='display:none;' id='dyn_".$dvar."_edit'><input type='text' name='dyn_".$dvar."' value='".$value."' />".'<input type="submit" class="btn btn-default btn-sm" name="_dyn_update" value="'.tra('Update variable', '', true).'"/></span>';
+					$span1 = "<span style='display:inline;' id='dyn_".$dvar."_display'><a class='dynavar' onclick='javascript:toggle_dynamic_var(\"$dvar\");' title='".tra('Click to edit dynamic variable', '', true).": $dvar'>$value</a></span>";
+					$span2 = "<span style='display:none;' id='dyn_".$dvar."_edit'><input type='text' class='input-sm' name='dyn_".$dvar."' value='".$value."' />".'<input type="submit" class="btn btn-default btn-sm" name="_dyn_update" value="'.tra('Update variable', '', true).'"/></span>';
 				} else {
 					$span1 = "<span class='dynavar' style='display:inline;' id='dyn_".$dvar."_display'>$value</span>";
 					$span2 = '';
 				}
-				$html = '<form method="post" name="dyn_vars">' . $span1 . $span2 . '</form>';
+				$html = $span1 . $span2;
 				//It's important to replace only once
 				$dvar_preg = preg_quote($dvar);
 				$data = preg_replace("+$enclose$dvar_preg$enclose+", $html, $data, 1);
@@ -2933,8 +2933,8 @@ if ( \$('#$id') ) {
 						$do_center = 0;
 						$title_text = preg_replace('/<div style="text-align: center;">(.*)<\/div>/', '\1', $title_text, 1, $do_center);
 
-						// prevent widow words on headings - thanks http://davidwalsh.name/prevent-widows-php-javascript
-						$title_text = preg_replace( '/([^\s])\s+([^\s]+)\s*$/', '$1&nbsp;$2', $title_text);
+						// prevent widow words on headings - originally from http://davidwalsh.name/prevent-widows-php-javascript
+						$title_text = preg_replace( '/^\s*(.+\s+\S+)\s+(\S+)\s*$/sumU', '$1&nbsp;$2', $title_text);
 
 						$style = $do_center ? ' style="text-align: center;"' : '';
 

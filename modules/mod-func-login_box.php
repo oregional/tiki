@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -46,9 +46,14 @@ function module_login_box_info()
 				'description' => tra('Show the "Remember me" checkbox') . ' (y/n)',
 				'filter' => 'alpha',
 			),
+			'show_user_avatar' => array(
+				'name' => tra('Show user avatar'),
+				'description' => tra('Show the user avatar when in popup mode') . ' (y/n)',
+				'filter' => 'alpha',
+			),
 			'show_user_name' => array(
 				'name' => tra('Show user name'),
-				'description' => tra('Show the user name when in pop-up mode') . ' (y/n)',
+				'description' => tra('Show the user name when in popup mode') . ' (y/n)',
 				'filter' => 'alpha',
 			),
 		)

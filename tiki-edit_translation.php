@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -108,7 +108,10 @@ if (count($languages) == 1) {
    $smarty->assign('only_one_language_left', 'y');
 }
 
-smarty_assign_default_target_lang($langpage, $_REQUEST['target_lang'], $trads, $prefs['language']);
+if(isset($_REQUEST['target_lang'])){
+	smarty_assign_default_target_lang($langpage, $_REQUEST['target_lang'], $trads, $prefs['read_language']);
+}
+
 smarty_assign_translation_name();
 
 ask_ticket('edit-translation');
@@ -125,7 +128,7 @@ function execute_module_translation()
 	$smarty = TikiLib::lib('smarty');
 	$module_reference = array(
 		'name' => 'translation',
-		'params' => '',
+		'params' => array('show_language' => 'n'),
 		'position' => 'r',
 		'ord' => 1,
 		'moduleId' => 0

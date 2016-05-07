@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -58,7 +58,7 @@ function wikiplugin_gdgraph_info()
 /*			'bg' => array(
 				'required' => false,
 				'name' => tra('Background color'),
-				'description' => tra('As defined by CSS, name or Hex code - not used yet'),
+				'description' => tra('As defined by CSS, name, or color hex code - not used yet'),
 				'filter' => 'text',
 				'default' => '',
 			),*/

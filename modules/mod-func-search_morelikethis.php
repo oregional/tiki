@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -24,14 +24,28 @@ function module_search_morelikethis_info()
 			'typefilters' => array(
 				'required' => false,
 				'name' => tra('Object Type Filters'),
-				'description' => tra('Comma separated types to allow.'),
+				'description' => tra('Comma-separated types to allow.'),
 				'filter' => 'text',
 			),
 			'textfilters' => array(
 				'required' => false,
 				'name' => tra('Text Search Filters'),
-				'description' => tra('Comma separated text search filters to use. Use = to separate field and value.'),
+				'description' => tra('Comma-separated text search filters to use. Use "=" to separate field and value.'),
 				'filter' => 'text',
+			),
+			'object' => array(
+				'required' => false,
+				'name' => tra('Object id of item you want to get similar items to'),
+				'description' => tra('The object id of the item. If none is provided, Tiki will attempt to resolve the current object.'),
+				'filter' => 'text',
+				'since' => '16'
+			),
+			'type' => array(
+				'required' => false,
+				'name' => tra('Object type of item you want to get similar items to'),
+				'description' => tra('The object type of the item (eg. "trackeritem"). If none is provided, Tiki will attempt to resolve the current object.'),
+				'filter' => 'text',
+				'since' => '16'
 			),
 		),
 		'common_params' => array('nonums', 'rows')
@@ -65,7 +79,15 @@ function module_search_morelikethis($mod_reference, $module_params)
 		$typefilters = array_map('trim', $typefilters);
 	}
 
-	if ($object = current_object()) {
+	$object = array();
+	if ($module_params['object'] && $module_params['type']) {
+		$object['object'] = $module_params['object'];
+		$object['type'] = $module_params['type'];
+	} else {
+		$object = current_object();
+	}
+
+	if (!empty($object)) {
 		$unifiedsearchlib = TikiLib::lib('unifiedsearch');
 
 		$query = $unifiedsearchlib->buildQuery(array());

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -42,6 +42,7 @@ function prefs_user_list($partial = false)
 		'user_assigned_modules' => array(
 			'name' => tra('Users can configure modules'),
 			'help' => 'Users+Configure+Modules',
+			'tags' => array('experimental'),	// This feature seems broken and will mess the display of the adventurous user. See https://dev.tiki.org/item5871
 			'type' => 'flag',
 			'default' => 'n',
 		),	
@@ -304,7 +305,8 @@ function prefs_user_list($partial = false)
 		),
 		'user_multilike_config' => array(
 			'name' => tr('Configuration for multilike'),
-			'description' => tr('Separate configurations by a blank line. E.g. relation_prefix=tiki.multilike values=1,3,5 labels=Good,Great,Excellent)'),
+			'description' => tr('Separate configurations by a blank line. E.g. relation_prefix=tiki.multilike ids=1,2,3 values=1,3,5 labels=Good,Great,Excellent)'),
+			'help' => 'Multilike',
 			'type' => 'textarea',
 			'size' => 5,
 			'default' => ''

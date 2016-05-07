@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -45,7 +45,7 @@ function smarty_function_icon($params, $smarty)
 	$cachelib = TikiLib::lib('cache');
 
 	if (empty($tc_theme)) {
-		$current_theme = $prefs['theme'];
+		$current_theme = !empty($prefs['theme']) ? $prefs['theme'] : '';
 		$current_theme_option = isset($prefs['theme_option']) ? $prefs['theme_option'] : '';
 	} else {
 		$current_theme = $tc_theme;

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -34,16 +34,13 @@ class Table_Code_WidgetOptionsMath extends Table_Code_WidgetOptions
 			//page totals by default
 			$m[] = 'math_rowFilter : \':not(.filtered):visible\'';
 			//ignore
-			if (isset(parent::$s['math']['ignore'])) {
-				$ignore = [];
-				foreach(parent::$s['math']['ignore'] as $col) {
-					if (is_numeric($col)) {
-						$ignore[] = (int) $col;
-					}
+			foreach (parent::$s['columns'] as $col => $info) {
+				if (isset($info['math']['ignore']) && $info['math']['ignore']) {
+					$ignore[] = $col;
 				}
-				if (count($ignore) > 0) {
-					$m[] = $this->iterate($ignore, 'math_ignore : [', ']', '', '', ',');
-				}
+			}
+			if (isset($ignore) && count($ignore) > 0) {
+				$m[] = $this->iterate($ignore, 'math_ignore : [', ']', '', '', ',');
 			} else {
 				$m[] = 'math_ignore : [0]';
 			}

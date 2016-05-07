@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -213,7 +213,7 @@ default:
 	// Fix $_SERVER['REQUEST_URI', which is ASCII encoded on IIS
 	//	Convert the SERVER variable itself, to fix $_SERVER['REQUEST_URI'] access everywhere
 	//	route.php comes first in the processing.  Avoid dependencies.
-	if (strpos($_SERVER['SERVER_SOFTWARE'],'IIS') !== false) {
+	if (isset($_SERVER['SERVER_SOFTWARE']) && strpos($_SERVER['SERVER_SOFTWARE'],'IIS') !== false) {
 		if (mb_detect_encoding($_SERVER['REQUEST_URI'], 'UTF-8', true) == false) {
 			$_SERVER['REQUEST_URI'] = utf8_encode($_SERVER['REQUEST_URI']);
 		}
@@ -253,7 +253,8 @@ if (is_null($base) || is_null($path)) {
 tiki_route($path);
 
 if ($inclusion) {
-	$_SERVER['PHP_SELF'] = $inclusion;
+	$_SERVER['PHP_SELF'] = $base . $inclusion;
+	$_SERVER['SCRIPT_NAME'] = $base . basename($inclusion);
 	include __DIR__ . '/' . $inclusion;
 } else {
 	error_log("No route found - full:$full query:{$_SERVER['QUERY_STRING']}");

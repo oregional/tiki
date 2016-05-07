@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -230,7 +230,6 @@ class SocialNetworksLib extends LogsLib
 			if (empty($fb_profile->id)) {
 				return false;
 			}
-			// echo '<!-- $ret=' . var_export($fb_profile, true) . '-->';
 			if (!$user) {
 				if ($prefs['socialnetworks_facebook_login'] != 'y') {
 					return false;
@@ -243,6 +242,8 @@ class SocialNetworksLib extends LogsLib
 					$email = $prefs['socialnetworks_facebook_email'] === 'y' ? $fb_profile->email : '';
 					if ($prefs['login_is_email'] == 'y' && $email) {
 						$user = $email;
+					} else if ($prefs['login_autogenerate'] == 'y') {
+						$user = '';
 					} else {
 						$user = 'fb_' . $fb_profile->id;
 					}
@@ -259,7 +260,7 @@ class SocialNetworksLib extends LogsLib
 					$ret = $userlib->get_usertrackerid("Registered");
 					$userTracker = $ret['usersTrackerId'];
 					$userField = $ret['usersFieldId'];
-					if ($userTracker && $userField) {
+					if ($prefs['socialnetworks_facebook_create_user_trackeritem'] == 'y' && $userTracker && $userField) {
 						$definition = Tracker_Definition::get($userTracker);
 						$utilities = new Services_Tracker_Utilities();
 						$fields = array('ins_'.$userField => $user);
@@ -272,6 +273,7 @@ class SocialNetworksLib extends LogsLib
 							array(
 								'status' => '',
 								'fields' => $fields,
+								'validate' => false,
 							)
 						);
 					}
@@ -443,6 +445,8 @@ class SocialNetworksLib extends LogsLib
 				$email = $prefs['socialnetworks_linkedin_email'] === 'y' ? $linkedin_info->emailAddress : '';
 				if ($prefs['login_is_email'] == 'y' && $email) {
 					$user = $email;
+				} else if ($prefs['login_autogenerate'] == 'y') {
+						$user = '';
 				} else {
 					$user = 'li_' . $linkedin_info->id;
 				}
@@ -459,7 +463,7 @@ class SocialNetworksLib extends LogsLib
 				$ret = $userlib->get_usertrackerid("Registered");
 				$userTracker = $ret['usersTrackerId'];
 				$userField = $ret['usersFieldId'];
-				if ($userTracker && $userField) {
+				if ($prefs['socialnetworks_linkedin_create_user_trackeritem'] == 'y' && $userTracker && $userField) {
 					$definition = Tracker_Definition::get($userTracker);
 					$utilities = new Services_Tracker_Utilities();
 					$fields = array('ins_'.$userField => $user);
@@ -472,6 +476,7 @@ class SocialNetworksLib extends LogsLib
 						array(
 							'status' => '',
 							'fields' => $fields,
+							'validate' => false,
 						)
 					);
 				}

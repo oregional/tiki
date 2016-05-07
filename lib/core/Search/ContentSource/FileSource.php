@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -44,11 +44,13 @@ class Search_ContentSource_FileSource implements Search_ContentSource_Interface,
 		$data = array(
 			'title' => $typeFactory->sortable(empty($file['name'])?$file['filename']:$file['name']),
 			'language' => $typeFactory->identifier('unknown'),
+			'creation_date' => $typeFactory->timestamp($file['created']),
 			'modification_date' => $typeFactory->timestamp($file['lastModif']),
 			'contributors' => $typeFactory->multivalue(array_unique(array($file['author'], $file['user'], $file['lastModifUser']))),
 			'description' => $typeFactory->plaintext($file['description']),
 			'filename' => $typeFactory->identifier($file['filename']),
 			'filetype' => $typeFactory->sortable(preg_replace('/^([\w-]+)\/([\w-]+).*$/', '$1/$2', $file['filetype'])),
+			'filesize' => $typeFactory->plaintext($file['filesize']),
 
 			'gallery_id' => $typeFactory->identifier($file['galleryId']),
 			'file_comment' => $typeFactory->plaintext($file['comment']),
@@ -67,11 +69,13 @@ class Search_ContentSource_FileSource implements Search_ContentSource_Interface,
 		return array(
 			'title',
 			'language',
+			'creation_date',
 			'modification_date',
 			'contributors',
 			'description',
 			'filename',
 			'filetype',
+			'filesize',
 
 			'gallery_id',
 			'file_comment',

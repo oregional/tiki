@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -38,7 +38,7 @@ function wikiplugin_together($data, $params)
 	if (!isset($params['buttonname'])) {
 		$params['buttonname'] = tra('CoWrite with TogetherJS');
 	}
-	TikiLib::lib('header')->add_jsfile('https://togetherjs.com/togetherjs-min.js')
+	TikiLib::lib('header')->add_jsfile('https://togetherjs.com/togetherjs-min.js', true)
 		->add_jq_onready('
 TogetherJS.on("ready", function () {
 	$(".page_actions a[href^=\'tiki-editpage.php?page=\'], #page-bar a[href^=\'tiki-editpage.php?page=\']").each(function () {

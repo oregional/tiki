@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -696,7 +696,7 @@ class StructLib extends TikiLib
 			$perms = Perms::get('wiki page', $structure_info["pageName"]);
 
 			if ($prefs['lock_wiki_structures'] === 'y') {
-				$lockedby = TikiLib::lib('attribute')->get_attribute('wiki structure', $_REQUEST['page_ref_id'], 'tiki.object.lock');
+				$lockedby = TikiLib::lib('attribute')->get_attribute('wiki structure', $structure_info['pageName'], 'tiki.object.lock');
 				if ($lockedby && $lockedby === $user && $perms->lock_structures || ! $lockedby || $perms->admin_structures) {
 					$editable = $perms->edit_structures;
 				} else {
@@ -977,7 +977,7 @@ class StructLib extends TikiLib
 		if ( empty( $this->displayLanguageOrder ) ) {
 			$query = 'select `page_ref_id` ';
 			$query .= 'from `tiki_structures` ts, `tiki_pages` tp ';
-			$query .= 'where ts.`page_id`=tp.`page_id` and `pageName`=?';
+			$query .= 'where ts.`page_id`=tp.`page_id` and (tp.`pageName`=? OR tp.`pageSlug`=?)';
 		} else {
 			$query = "
 				SELECT DISTINCT
@@ -988,10 +988,10 @@ class StructLib extends TikiLib
 					LEFT JOIN tiki_translated_objects b ON a.traId = b.traId AND b.type = 'wiki page'
 					LEFT JOIN tiki_pages tp ON ts.page_id = tp.page_id OR b.objId = tp.page_id
 				WHERE
-					pageName = ?";
+					tp.`pageName`=? OR tp.`pageSlug`=?";
 		}
 
-		$result = $this->query($query, array($pageName));
+		$result = $this->query($query, array($pageName,$pageName));
 		while ($res = $result->fetchRow()) {
 			$next_page = $this->s_get_structure_info($res['page_ref_id']);
 			//Add each structure head only once
@@ -1128,6 +1128,16 @@ class StructLib extends TikiLib
 					$res['editable']='y';
 				} else {
 					$res['editable']='n';
+				}
+				if ( $this->user_has_perm_on_object($user, $res['pageName'], 'wiki page', 'tiki_p_edit_structures') ) {
+					$res['edit_structure'] = 'y';
+				} else {
+					$res['edit_structure'] = 'n';
+				}
+				if ( $this->user_has_perm_on_object($user, $res['pageName'], 'wiki page', 'tiki_p_admin_structures') ) {
+					$res['admin_structure'] = 'y';
+				} else {
+					$res['admin_structure'] = 'n';
 				}
 				$ret[] = $res;
 

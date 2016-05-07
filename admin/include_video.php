@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -15,6 +15,13 @@ if ($prefs['feature_kaltura'] === 'y') {
 	$kalturaadminlib = TikiLib::lib('kalturaadmin');
 
 	if ($kalturaadminlib->getSessionKey()) {
+
+		// make sure service url ends in a slash
+		if (substr($prefs['kaltura_kServiceUrl'], -1) != '/') {
+			$prefs['kaltura_kServiceUrl'] = $prefs['kaltura_kServiceUrl'] . '/';
+			TikiLib::lib('tiki')->set_preference('kaltura_kServiceUrl', $prefs['kaltura_kServiceUrl']);
+		}
+
 		// contribution wizard
 		$kcwDefault = $prefs['kaltura_kcwUIConf'];
 		if (empty($kcwDefault) || !empty($_REQUEST['kcw_rebuild'])) {

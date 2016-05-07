@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -111,6 +111,12 @@ class Tracker_field_Image extends Tracker_Field_File
 				die;
 			}
 		}
+
+		// "Blank" means remove image
+		if (!empty($requestData[$ins_id]) && $requestData[$ins_id] == 'blank') {
+			return array( 'value' => 'blank' );
+		}
+
 		if (!empty($requestData)) {
 			return parent::getFieldData($requestData);
 		} else {

@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -90,7 +90,7 @@ if (empty($_REQUEST['report']) || $_REQUEST['report'] != 'y') {
 } else {
 	$report='y';
 }
-$smarty->assign('report', $_REQUEST['report']);
+$smarty->assign('report', isset($_REQUEST['report']) ? $_REQUEST['report'] : '');
 
 $errors = array();
 $ok = true;
@@ -140,6 +140,7 @@ if ($report != 'y') {
 $smarty->assign('url', $_REQUEST['url']);
 $smarty->assign('prefix', $tikilib->httpPrefix(true));
 $smarty->assign_by_ref('url_for_friend', $url_for_friend);
+$smarty->assign('back_url', isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
 
 if (!empty($_REQUEST['subject'])) {
 	$subject = $_REQUEST['subject'];
@@ -316,6 +317,7 @@ if (isset($_REQUEST['send'])) {
 			$access->redirect($_REQUEST['url'], tra('Your link was sent.'));
 		}
 		$smarty->assign('sent', true);
+		$smarty->assign('back_url', $_REQUEST['back_url']);
 	}
 	$smarty->assign_by_ref('errors', $errors);
 } else {

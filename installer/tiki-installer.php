@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -919,6 +919,9 @@ if ($dbcon) {
 	$smarty->assign('tikidb_oldPerms', $oldPerms);
 
 	if ($install_step == '6' && $has_tiki_db) {
+		if (isset($_POST['install_type']) && $_POST['install_type'] === 'scratch') {
+			require_once('lib/setup/prefs.php');
+		}
 		update_preferences($prefs);
 		$smarty->assign('admin_email', get_admin_email());
 		$smarty->assign('upgradefix', (empty($dbversion_tiki) || $dbversion_tiki[0] < 4) ? 'y' : 'n');

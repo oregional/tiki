@@ -1,4 +1,4 @@
-{title help="Dynamic+Content"}{tr}Dynamic Content System{/tr}{/title}
+{title help="Dynamic Content"}{tr}Dynamic Content System{/tr}{/title}
 
 {remarksbox type="tip" title="{tr}Tip{/tr}"}{tr}To use content blocks in a text area (Wiki page, etc), a <a class="rbox-link" href="tiki-admin_modules.php">module</a> or a template, use {literal}{content id=x}{/literal}, where x is the ID of the content block.{/tr} {tr}You can also use {literal}{content label=x}{/literal}, where x is the label of the content block.{/tr}{/remarksbox}
 {tabset}
@@ -64,7 +64,7 @@
 								class="tips"
 								title="{tr}Actions{/tr}"
 								href="#"
-								{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.content_actions|escape:"javascript"|escape:"html"}{/if}
+								{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.content_actions|escape:"javascript"|escape:"html"}{/if}
 								style="padding:0; margin:0; border:0"
 							>
 								{icon name='wrench'}

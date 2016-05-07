@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -18,7 +18,7 @@ function wikiplugin_category_info()
 			'id' => array(
 				'required' => false,
 				'name' => tra('Category IDs'),
-				'description' => tr('List of category IDs separated by + signs. ex: %0. Default will use category
+				'description' => tr('List of category IDs separated by "+", for example, %0. Default will use category
 					of the current page.', '<code>1+2+3</code>'),
 				'since' => '1',
 				'filter' => 'digits',
@@ -29,7 +29,7 @@ function wikiplugin_category_info()
 			'types' => array(
 				'required' => false,
 				'name' => tra('Types'),
-				'description' => tra('List of object types to include in the list separated by plus signs. Example: ')
+				'description' => tra('List of object types to include in the list, separated by "+", for example, ')
 					. '<code>article+blog+blog post+fgal</code>',
 				'since' => '1',
 				'accepted' => 'article, blog, blog post, fgal, forum, igal, newsletter, event, poll, quiz, survey,
@@ -181,7 +181,7 @@ function wikiplugin_category_info()
 			),		
 			'maxRecords' => array(
 				'required' => false,
-				'name' => tra('Max Records'),
+				'name' => tra('Maximum Records'),
 				'description' => tr('Maximum number of objects to list (default is %0)', '<code>50</code>'),
 				'since' => '6.1',
 				'default' => '50',

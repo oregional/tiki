@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -18,7 +18,7 @@ function module_since_last_visit_info()
 {
 	return array(
 		'name' => tra('Since Last Visit (Simple)'),
-		'description' => tra('Displays to logged in users the number of new or updated objects since their last login date and time.')
+		'description' => tra('Displays to logged-in users the number of new or updated objects since their last login date and time.')
 	);
 }
 

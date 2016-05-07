@@ -21,7 +21,7 @@
 		<div class="form-group col-lg-12 clearfix">
 			{if $prefs.feature_search eq 'y'}
 				<a role="link" href="tiki-searchindex.php" class="btn btn-link">{icon name="search"} {tr}Search{/tr}</a>
-				<a role="link" href="{bootstrap_modal controller=search action=rebuild}" class="btn btn-link">{icon name="cog"} {tr}Rebuild Index{/tr}</a>
+				<a role="link" href="{bootstrap_modal controller=search action=rebuild}" class="btn btn-default">{icon name="cog"} {tr}Rebuild Index{/tr}</a>
 			{/if}
 			<div class="pull-right">
 				<input type="submit" class="btn btn-primary btn-sm" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
@@ -34,16 +34,16 @@
 
 			<fieldset>
 				<legend>
-					{tr}Advanced Search{/tr}
+					{tr}Search{/tr}
 				</legend>
+				{remarksbox type=tip title="{tr}About the Unified Index{/tr}"}
+				{tr}The Unified Index provides many underlying features for Tiki, including object selectors for translations amongst other things.{/tr}
+				{tr}Disabling this will cause some parts of Tiki to be unavailable.{/tr}<br>
+					<a href="http://doc.tiki.org/Unified+Index">{tr}Find out more about it here.{/tr}</a>
+				{/remarksbox}
 
 				{preference name=feature_search visible="always"}
 				<div class="adminoptionboxchild" id="feature_search_childcontainer">
-					{remarksbox type=tip title="{tr}About the Unified Index{/tr}"}
-						{tr}The Unified Index provides many underlying features for Tiki, including object selectors for translations amongst other things.{/tr}
-						{tr}Disabling this will cause some parts of Tiki to be unavailable.{/tr}<br>
-						<a href="http://doc.tiki.org/Unified+Index">{tr}Find out more about it here.{/tr}</a>
-					{/remarksbox}
 
 					{preference name=feature_search_stats}
 					{preference name=user_in_search_result}
@@ -54,20 +54,9 @@
 
 					{preference name="unified_engine"}
 
-					{remarksbox type=tip title="{tr}About Unified search engines{/tr}"}
-						<b>{tr}MySQL full-text search{/tr}: </b><br>
-						{tr}Advantages{/tr}: {tr}Fast performance. Works out of the box with Tiki and even on most basic server setups{/tr}.<br>
-						{tr}Disadvantages{/tr}: {tr}Many common words (such as "first", "second", and "third" are not searchable unless MySQL configuration is modified). Only the first 65,535 characters (about 8000 words) of long pieces of content are searchable{/tr}(See this <a class='alert-link' href='http://dev.mysql.com/doc/refman/5.7/en/fulltext-stopwords.html'>{tr}link{/tr}</a> {tr} for full list) {/tr}<br>
-						<b>{tr}Lucene (PHP implementation){/tr}: </b><br>
-						{tr}Advantages{/tr}: {tr}Overcomes limitations of MySQL search mentioned above. Comes built in with Tiki{/tr}.<br>
-						{tr}Disadvantages{/tr}: {tr}Slower performance. May not work well with the most basic server setups and because the index is stored on disk it is more prone to file permissions problems and other server configuration issues{/tr}.<br>
-						<b>{tr}ElasticSearch{/tr}: </b><br>
-						{tr}Advantages{/tr}: {tr}Most advanced, fast and scalable search engine. Enables some very advanced/new features of Tiki{/tr}.<br>
-						{tr}Disadvantages{/tr}: {tr}Needs to be separately installed from Tiki and requires more configuration{/tr} (See this <a class='alert-link' href='http://doc.tiki.org/ElasticSearch'>{tr}link{/tr}</a> {tr}for more information) {/tr}<br>
-					{/remarksbox}
-
 					{if ! empty($engine_info)}
-						<div class="adminoptionboxchild">
+
+						<div class="adminoptionbox preference advanced">
 							<ul>
 								{foreach from=$engine_info key=property item=value}
 									<li><strong>{$property|escape}:</strong> {$value|escape}</li>
@@ -91,10 +80,25 @@
 						</fieldset>
 					</div>
 
+					<div class="adminoptionbox preference advanced">{* pretend this remarks box is an advanced pref so it only shows when advanced irefs are enabled *}
+						{remarksbox type=tip title="{tr}About Unified search engines{/tr}"}
+							<b>{tr}MySQL full-text search{/tr}: </b><br>
+							{tr}Advantages{/tr}: {tr}Fast performance. Works out of the box with Tiki and even on most basic server setups{/tr}.<br>
+							{tr}Disadvantages{/tr}: {tr}Many common words (such as "first", "second", and "third" are not searchable unless MySQL configuration is modified). Only the first 65,535 characters (about 8000 words) of long pieces of content are searchable{/tr}(See this <a class='alert-link' href='http://dev.mysql.com/doc/refman/5.7/en/fulltext-stopwords.html'>{tr}link{/tr}</a> {tr} for full list) {/tr}<br>
+							<b>{tr}Lucene (PHP implementation){/tr}: </b><br>
+							{tr}Advantages{/tr}: {tr}Overcomes limitations of MySQL search mentioned above. Comes built in with Tiki{/tr}.<br>
+							{tr}Disadvantages{/tr}: {tr}Slower performance. May not work well with the most basic server setups and because the index is stored on disk it is more prone to file permissions problems and other server configuration issues{/tr}.<br>
+							<b>{tr}Elasticsearch{/tr}: </b><br>
+							{tr}Advantages{/tr}: {tr}Most advanced, fast and scalable search engine. Enables some very advanced/new features of Tiki{/tr}.<br>
+							{tr}Disadvantages{/tr}: {tr}Needs to be separately installed from Tiki and requires more configuration{/tr} (See this <a class='alert-link' href='http://doc.tiki.org/Elasticsearch'>{tr}link{/tr}</a> {tr}for more information) {/tr}<br>
+						{/remarksbox}
+					</div>
+
 					<div class="adminoptionboxchild unified_engine_childcontainer elastic">
 						{preference name="unified_elastic_url"}
 						{preference name="unified_elastic_index_prefix"}
 						{preference name="unified_elastic_index_current"}
+						{preference name="unified_relation_object_indexing"}
 					</div>
 
 					{preference name="unified_lucene_default_operator"}
@@ -129,7 +133,7 @@
 
 			<fieldset>
 				<legend>
-					{tr}Basic Search{/tr} {help url="Search"}
+					{tr}Legacy Search{/tr} {help url="Search"}
 				</legend>
 				{preference name=feature_search_fulltext}
 				<div class="adminoptionboxchild" id="feature_search_fulltext_childcontainer">
@@ -181,6 +185,7 @@
 				{preference name=feature_search_show_object_type}
 				{preference name=feature_search_show_last_modification}
 				{preference name=search_parsed_snippet}
+				{preference name=unified_highlight_results}
 			</fieldset>
 		{/tab}
 

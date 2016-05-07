@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -170,7 +170,9 @@ class Table_Code_MainOptions extends Table_Code_Manager
 		}
 
 		//Sort list
-		if (parent::$sorts && parent::$sortcol) {
+		if (!empty(parent::$s['sorts']['sortlist'])) {
+			$mo[] = 'sortList : [[' . parent::$s['sorts']['sortlist']['col'] . ',' . parent::$s['sorts']['sortlist']['dir']. ']]';
+		} elseif (parent::$sorts && parent::$sortcol) {
 			$sl = '';
 			$i = 0;
 			foreach (parent::$s['columns'] as $col => $info) {

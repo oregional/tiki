@@ -15,9 +15,9 @@
 
 		<div class="container">
 
-			<div class="row">
+			<div class="row" id="row-middle">
 
-				<div class="{if	zone_is_empty('left') and zone_is_empty('right')}col-md-12 {elseif 
+				<div class="{if	zone_is_empty('left') and zone_is_empty('right')}col-md-12 {elseif
 						zone_is_empty('left')}col-md-9 {elseif 
 						zone_is_empty('right')}col-md-9 col-md-push-3 {else}col-md-8 col-md-push-2 {/if}col1" id="col1">
 	{if $prefs.module_zones_pagetop eq 'fixed' or ($prefs.module_zones_pagetop ne 'n' && ! zone_is_empty('pagetop'))}
@@ -63,7 +63,7 @@
 			</div>
 		</footer>
 
-		<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+		<nav class="navbar navbar-default navbar-fixed-top" role="navigation" id="navbar-fixed-top">
 			<div class="container">
 				<div class="navbar-header">
 					<button type="button" class="navbar-toggle" data-toggle="collapse"
@@ -77,7 +77,7 @@
 				</div> {* navbar-header *}
 
 				<div class="collapse navbar-collapse" id="navbar-collapse-social">
-						{modulelist zone="topbar" class="navbar-left" id="topbar_modules_social"}
+						{modulelist zone="topbar" id="topbar_modules_social"}
 
 						<ul class="nav navbar-nav navbar-right">
 {if $user}

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -498,7 +498,11 @@ class Services_Forum_Controller
 	{
 		foreach ($topicIds as $id) {
 			$info = $this->lib->get_comment($id);
-			$ret[(int) $id] = $info['title'];
+			if (!empty($info['title'])){
+				$ret[(int) $id] = $info['title'];
+			} else {
+				$ret[(int) $id] = $tikilib->get_snippet($info['data'], "", false, "", 60);
+			}
 		}
 		return $ret;
 	}

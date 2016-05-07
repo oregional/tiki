@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -35,7 +35,13 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 
 	function exists()
 	{
-		return (bool) $this->connection->getIndexStatus($this->index);
+		$indexStatus = $this->connection->getIndexStatus($this->index);
+
+		if (is_object($indexStatus)) {
+			return !empty($indexStatus->indices->{$this->index});
+		} else {
+			return (bool) $indexStatus;
+		}
 	}
 
 	function addDocument(array $data)
@@ -106,6 +112,15 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 							),
 						),
 					);
+				} elseif ($entry instanceof Search_Type_Object) {
+					return array(
+						"type" => "object",
+					);
+				} elseif ($entry instanceof Search_Type_Nested) {
+					return array(
+						"type" => "nested",
+						"dynamic" =>  true,
+					);
 				} elseif ($entry instanceof Search_Type_DateTime) {
 					return array(
 						"type" => "date",
@@ -121,6 +136,7 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 				} else {
 					return array(
 						"type" => "string",
+						"term_vector" => "with_positions_offsets",
 						"fields" => array(
 							"sort" => array(
 								"type" => "string",
@@ -165,7 +181,7 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 					],
 					'sortable' => [
 						'tokenizer' => 'keyword',
-						'filter' => ['lowercase'],
+						'filter' => ['lowercase', 'asciifolding'],
 					],
 				],
 				'filter' => [
@@ -273,6 +289,7 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 				"from" => $resultStart,
 				"size" => $resultCount,
 				"highlight" => array(
+					"tags_schema" => "styled",
 					"fields" => array(
 						'contents' => array(
 							"number_of_fragments" => 5,

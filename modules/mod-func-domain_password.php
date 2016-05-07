@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -27,7 +27,7 @@ function module_domain_password_info()
 			),
 			'use_currentuser' => array(
 				'name' => tra('Use current user'),
-				'description' => tra('Use the currently logged in user. The username is not editable. (y/n) Default: y'),
+				'description' => tra('Use the currently logged-in user. The username is not editable. (y/n) Default: y'),
 			),
 			'can_update' => array(
 				'name' => tra('Can Update'),

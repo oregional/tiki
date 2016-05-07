@@ -3,7 +3,7 @@
  * Tiki's entry point.
  *
  * @package Tiki
- * @copyright (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project. All Rights Reserved. See copyright.txt for details and a complete list of authors.
+ * @copyright (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project. All Rights Reserved. See copyright.txt for details and a complete list of authors.
  * @licence Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
  */
 // $Id$
@@ -311,7 +311,6 @@ if (empty($info) && !($user && $prefs['feature_wiki_userpage'] == 'y' && strcase
 
 	/* if we have exactly one match, redirect to it */
 	if (isset($newPage) && !$isUserPage) {
-		$url = $wikilib->sefurl($newPage);
 
 		// Process prefix alias with itemId append for pretty tracker pages
 		$prefixes = explode(',', $prefs['wiki_prefixalias_tokens']);
@@ -335,30 +334,41 @@ if (empty($info) && !($user && $prefs['feature_wiki_userpage'] == 'y' && strcase
 					} else if (count($items)) {
 						$suffix = $items[0];
 					} else {
-						$msg = tra('There are no items in the tracker with this title');
-						$smarty->assign('msg', $msg);
-						$smarty->display('error.tpl');
-						die;
+						// check for a number then the item title
+						$suffix = preg_replace('/(\d+).*/', '$1', $suffix);
+
+						if (!$suffix) {
+							$msg = tra('There are no items in the tracker with this title');
+							$smarty->assign('msg', $msg);
+							$smarty->display('error.tpl');
+							die;
+						}
 					}
 				}
 				if (ctype_digit($suffix)) {
-					if ($prefs['feature_sefurl'] == 'y') {
-						$url = $url . '?itemId=' . $suffix;
-					} else {
-						$url = $url . '&itemId=' . $suffix;
-					}
+					$_REQUEST['itemId'] = $suffix;
+					$_REQUEST['page'] = $newPage;
+					$_GET['itemId'] = $suffix;	// \ParserLib::parse_wiki_argvariable uses $_GET
+					$_GET['page'] = $newPage;
+					$smarty->assign('canonical_ending', urlencode(trim(substr($page, strlen($newPage)))));
+					$page = $newPage;
+					$info = $tikilib->get_page_info($_REQUEST['page']);
 				}
 			}
 		}
-		$access->redirect($url);
+		// $info not found in prefixes but $newPage and $url was found so just a plain alias
+		if (!$info) {
+			$url = $wikilib->sefurl($newPage);
+			$access->redirect($base_url . $url, '', 301);	// permanent redirect
+		}
 	} else {
 		$likepages = array_unique(array_merge($likepages, $referencedPages));
-	}
 
-	$smarty->assign_by_ref('likepages', $likepages);
-	$smarty->assign('create', $isUserPage? 'n': 'y');
-	$smarty->assign('filter', array('content' => $page,));
-	$access->display_error($page, tra('Page cannot be found'), '404');
+		$smarty->assign_by_ref('likepages', $likepages);
+		$smarty->assign('create', $isUserPage? 'n': 'y');
+		$smarty->assign('filter', array('content' => $page,));
+		$access->display_error($page, tra('Page cannot be found'), '404');
+	}
 }
 
 if ( empty($info)

@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -143,7 +143,7 @@ if ($tiki_p_edit_structures == 'y') {
 		// Locking: only needed on new structures, ajax locks existing ones
 		if ($prefs['lock_wiki_structures'] === 'y') {
 			if (!empty($_REQUEST['locked'])) {
-				TikiLib::lib('attribute')->set_attribute('wiki structure', $structure_id, 'tiki.object.lock', $_REQUEST['locked']);
+				TikiLib::lib('attribute')->set_attribute('wiki structure', $_REQUEST['name'], 'tiki.object.lock', $_REQUEST['locked']);
 			}
 		}
 

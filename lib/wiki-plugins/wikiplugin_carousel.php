@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -23,7 +23,7 @@ function wikiplugin_carousel_info()
 				'default' => 'fgalId',
 				'options' => array(
 					array('text' => tra('Select an option'), 'value' => ''),
-					array('text' => tra('All the images in a File Gallery'), 'value' => 'fgalId'),
+					array('text' => tra('All the images in a file gallery'), 'value' => 'fgalId'),
 					array('text' => tra('A list of file IDs'), 'value' => 'fileIds'),
 				),
 			),
@@ -61,7 +61,7 @@ function wikiplugin_carousel_info()
 			'transitionSpeed' => array(
 				'required' => false,
 				'name' => tra('Transition Time'),
-				'description' => tra('The time (in milliseconds) it will take to transition between two images.'),
+				'description' => tra('The time (in milliseconds) for the transition between two images.'),
 				'since' => '8.0',
 				'filter' => 'digits',
 				'accepted' => tra('number'),
@@ -134,7 +134,7 @@ function wikiplugin_carousel_info()
 			'autoPilot' => array(
 				'required' => false,
 				'name' => tra('Start Automatically'),
-				'description' => tra('Move the carousel automatically when the page loads (default Yes).'),
+				'description' => tra('Start the carousel automatically when the page loads (default: Yes).'),
 				'since' => '8.0',
 				'filter' => 'digits',
 				'options' => array(
@@ -316,7 +316,7 @@ function carousel_callback(){ };
 	);
 
 	TikiLib::lib('header')->add_jq_onready('setTimeout( function() { $("#' . $unique . '").tiki("carousel", "", '. json_encode($params).'); carousel_callback();}, 1000);');
-
+	$size = '';
 	if (empty($params['displaySize'])) {
 		$size = 'width: 1px; height: 1px;';
 	} else if ($params['displaySize'] > 10) {

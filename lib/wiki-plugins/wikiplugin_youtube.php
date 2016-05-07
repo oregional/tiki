@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -19,7 +19,7 @@ function wikiplugin_youtube_info()
 			'movie' => array(
 				'required' => true,
 				'name' => tra('Movie'),
-				'description' => tr('Entire URL to the YouTube video or last part (after %0www.youtube.com/v/%1 and
+				'description' => tr('Complete URL to the YouTube video or last part (after %0www.youtube.com/v/%1 and
 					before the first question mark)', '<code>', '</code>'),
 				'since' => '2.0',
 				'filter' => 'url',
@@ -77,7 +77,7 @@ function wikiplugin_youtube_info()
 			),
 			'allowFullScreen' => array(
 				'required' => false,
-				'name' => tra('Allow Fullscreen'),
+				'name' => tra('Allow full-screen'),
 				'description' => tra('Enlarge video to full screen size'),
 				'since' => '5.0',
 				'default' => '',

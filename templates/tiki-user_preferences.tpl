@@ -1,8 +1,8 @@
 {* $Id$ *}
 {if $userwatch ne $user}
-	{title help="User+Preferences"}{tr}User Preferences:{/tr} {$userwatch}{/title}
+	{title help="User Preferences"}{tr}User Preferences:{/tr} {$userwatch}{/title}
 {else}
-	{title help="User+Preferences"}{tr}User Preferences{/tr}{/title}
+	{title help="User Preferences"}{tr}User Preferences{/tr}{/title}
 {/if}
 {if $userwatch eq $user or $userwatch eq ""}
 	{include file='tiki-mytiki_bar.tpl'}
@@ -109,6 +109,14 @@
 					</div>
 					<input type="hidden" name="location" id="location" value="{$location|escape}">
 				</div>
+				<div class="form-group">
+					<label class="control-label col-md-4" for="homePage">
+						{tr}Homepage URL{/tr}
+					</label>
+					<div class="col-md-8">
+						<input type="text" class="form-control" name="homePage" value="{$user_prefs.homePage|escape}">
+					</div>
+				</div>
 				{if $prefs.feature_wiki eq 'y' and $prefs.feature_wiki_userpage eq 'y'}
 					<div class="form-group">
 						<label class="control-label col-md-4">
@@ -133,23 +141,21 @@
 				{/if}
 				{if $prefs.userTracker eq 'y' && $usertrackerId}
 					<div class="form-group">
-						<div class="col-md-12">
-							{if $tiki_p_admin eq 'y' and !empty($userwatch) and $userwatch neq $user}
-								<label class="control-label">{tr}User's personal tracker information{/tr}</label>
-								<div class="col-md-12">
-									<a class="link" href="tiki-view_tracker_item.php?trackerId={$usertrackerId}&user={$userwatch|escape:url}&view=+user">
-										{tr}View extra information{/tr}
-									</a>
-								</div>
-							{else}
-								<label class="control-label">{tr}Your personal tracker information{/tr}</label>
-								<div class="col-md-12">
-									<a class="link" href="tiki-view_tracker_item.php?view=+user">
-										{tr}View extra information{/tr}
-									</a>
-								</div>
-							{/if}
-						</div>
+						{if $tiki_p_admin eq 'y' and !empty($userwatch) and $userwatch neq $user}
+							<label class="control-label col-md-4">{tr}User's personal tracker information{/tr}</label>
+							<div class="col-md-8">
+								<a class="link" href="tiki-view_tracker_item.php?trackerId={$usertrackerId}&user={$userwatch|escape:url}&view=+user">
+									{tr}View extra information{/tr}
+								</a>
+							</div>
+						{else}
+							<label class="control-label col-md-4">{tr}Your personal tracker information{/tr}</label>
+							<div class="col-md-8">
+								<a class="link" href="tiki-view_tracker_item.php?view=+user">
+									{tr}View extra information{/tr}
+								</a>
+							</div>
+						{/if}
 					</div>
 				{/if}
 				{* Custom fields *}
@@ -182,12 +188,12 @@
 		{/tab}
 		{tab name="{tr}Preferences{/tr}"}
 			<h2>{tr}Preferences{/tr}</h2>
-			<h3>{tr}General settings{/tr}</h3>
+			<legend>{tr}General settings{/tr}</legend>
 			<form role="form" action="tiki-user_preferences.php" method="post" class="form-horizontal">
 				<input type="hidden" name="view_user" value="{$userwatch|escape}">
 				<div class="form-group">
 					<label class="control-label col-md-4" for="email_isPublic">
-						{tr}Is email public? (uses scrambling to prevent spam){/tr}
+						{tr}Is email public?{/tr}
 					</label>
 					<div class="col-md-8">
 						{if $userinfo.email}
@@ -198,6 +204,7 @@
 									</option>
 								{/section}
 							</select>
+							<span class="help-block">If email is public, select a scrambling method to prevent spam</span>
 						{else}
 							<p class="form-control-static">{tr}Unavailable - please set your email below{/tr}</p>
 						{/if}
@@ -205,7 +212,7 @@
 				</div>
 				<div class="form-group">
 					<label class="control-label col-md-4" for="mailCharset">
-						{tr}Does your email application need a special character set?{/tr}
+						{tr}Email character set{/tr}
 					</label>
 					<div class="col-md-8">
 						<select id="mailCharset" name="mailCharset" class="form-control">
@@ -215,6 +222,7 @@
 								</option>
 							{/section}
 						</select>
+						<span class="help-block">Special character set for your email application</span>
 					</div>
 				</div>
 				{if $prefs.change_theme eq 'y' && empty($group_theme)}
@@ -236,7 +244,7 @@
 				{if $prefs.change_language eq 'y'}
 					<div class="form-group clearfix">
 						<label class="control-label col-md-4" for="language">
-							{tr}Preferred Language{/tr}
+							{tr}Language{/tr}
 						</label>
 						<div class="col-md-8">
 							<select id="language" name="language" class="form-control">
@@ -256,15 +264,16 @@
 					{if $user_prefs.read_language}
 						<div id="read-lang-div" class="form-group clearfix">
 					{else}
-						<a href="javascript:void(0)" onclick="document.getElementById('read-lang-div').style.display='block';this.style.display='none';">
-							{tr}Can you read more languages?{/tr}
-						</a>
-						<br/>
-						<div id="read-lang-div" style="display: none" class="form-group">
+						<div class="form-group clearfix">
+							<div class="col-md-8 col-md-push-4">
+								<a href="javascript:void(0)" onclick="document.getElementById('read-lang-div').style.display='block';this.style.display='none';">
+									{tr}Can you read more languages?{/tr}
+								</a>
+							</div>
+						</div>
+						<div id="read-lang-div" style="display: none" class="form-group clearfix">
 					{/if}
-					<label class="control-label col-md-4" for="read-language">
-						{tr}Other languages you can read (select from the dropdown to add to the field below){/tr}
-					</label>
+					<label class="control-label col-md-4" for="read-language">{tr}Other languages you can read{/tr}</label>
 					<div class="col-md-8">
 						<select class="form-control" id="read-language" name="_blank" onchange="document.getElementById('read-language-input').value+=' '+this.options[this.selectedIndex].value+' '">
 							<option value="">{tr}Select language...{/tr}</option>
@@ -274,9 +283,11 @@
 								</option>
 							{/section}
 						</select>
+						<div class="help-block">{tr}Select from the dropdown to add automatically to the list below{/tr}</div>
 					</div>
-
-					<label for="read-language-input"><input class="form-control" id="read-language-input" type="text" name="read_language" value="{$user_prefs.read_language}"></label>
+					<label for="read-language-input" class="col-md-8 col-md-push-4">
+						<input class="form-control" id="read-language-input" type="text" name="read_language" value="{$user_prefs.read_language}">
+					</label>
 					</div>
 				{/if}
 				<div class="form-group clearfix">
@@ -342,7 +353,7 @@
 					{/if}
 				</div>
 				{if $prefs.feature_messages eq 'y' and $tiki_p_messages eq 'y'}
-					<h4>{tr}User Messages{/tr}</h4>
+					<legend>{tr}User Messages{/tr}</legend>
 					<div class="form-group clearfix">
 						<label class="control-label col-md-4" for="mess_maxRecords">
 							{tr}Messages per page{/tr}
@@ -377,7 +388,7 @@
 					</div>
 					<div class="form-group clearfix">
 						<label class="control-label col-md-4" for="minPrio">
-							{tr}Send me an email for messages with priority equal to or greater than:{/tr}
+							{tr}Message priority notification{/tr}
 						</label>
 						<div class="col-md-8">
 							<select class="form-control" id="minPrio" name="minPrio">
@@ -388,11 +399,12 @@
 								<option value="5" {if $user_prefs.minPrio eq 5}selected="selected"{/if}>5 -{tr}Very High{/tr}-</option>
 								<option value="6" {if $user_prefs.minPrio eq 6}selected="selected"{/if}>{tr}none{/tr}</option>
 							</select>
+							<span class="help-block">{tr}Send me an email for messages with priority equal to or greater than{/tr}</span>
 						</div>
 					</div>
 					<div class="form-group clearfix">
 						<label class="control-label col-md-4" for="mess_archiveAfter" >
-							{tr}Auto-archive read messages after x days{/tr}
+							{tr}Read message auto-archiving{/tr}
 						</label>
 						<div class="col-md-8">
 							<select id="mess_archiveAfter" name="mess_archiveAfter" class="form-control">
@@ -407,11 +419,12 @@
 								<option value="50" {if $user_prefs.mess_archiveAfter eq 50}selected="selected"{/if}>50</option>
 								<option value="60" {if $user_prefs.mess_archiveAfter eq 60}selected="selected"{/if}>60</option>
 							</select>
+							<span class="help-block">{tr}Auto-archive read messages after selected days{/tr}</span>
 						</div>
 					</div>
 				{/if}
 				{if $prefs.feature_tasks eq 'y' and $tiki_p_tasks eq 'y'}
-					<h4>{tr}User Tasks{/tr}</h4>
+					<legend>{tr}User Tasks{/tr}</legend>
 					<div class="form-group">
 						<label class="control-label col-md-4" for="tasks_maxRecords">
 							{tr}Tasks per page{/tr}
@@ -429,7 +442,7 @@
 						</div>
 					</div>
 				{/if}
-				<h4>{tr}My Account{/tr}</h4>
+				<legend>{tr}My Account{/tr}</legend>
 				<div class="clearfix">
 					{if $prefs.feature_wiki eq 'y'}
 						<div class="checkbox col-md-8 col-md-push-4">
@@ -488,7 +501,7 @@
 					{if $prefs.feature_articles eq 'y'}
 						<div class="checkbox col-md-8 col-md-push-4">
 							<label>
-								<input type="checkbox" name="mytiki_articles" {if $user_prefs.mytiki_articles eq 'y'}checked="checked"{/if}>{tr}My Articles{/tr}
+								<input type="checkbox" name="mytiki_articles" {if $user_prefs.mytiki_articles eq 'y'}checked="checked"{/if}>{tr}My articles{/tr}
 							</label>
 						</div>
 					{/if}

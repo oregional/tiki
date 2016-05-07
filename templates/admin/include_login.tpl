@@ -15,8 +15,8 @@
 	<input type="hidden" name="ticket" value="{$ticket|escape}">
 	<input type="hidden" name="loginprefs" />
 	<div class="t_navbar margin-bottom-md">
-		{button href="tiki-admingroups.php" _class="btn btn-link tips" _icon_name="group" _text="{tr}Groups{/tr}" _title=":{tr}Group Administration{/tr}"}
-		{button href="tiki-adminusers.php" _class="btn btn-link tips" _icon_name="user" _text="{tr}Users{/tr}" _title=":{tr}User Administration{/tr}"}
+		{button href="tiki-admingroups.php" _type="text" _class="btn btn-link tips" _icon_name="group" _text="{tr}Groups{/tr}" _title=":{tr}Group Administration{/tr}"}
+		{button href="tiki-adminusers.php" _type="text" _class="btn btn-link tips" _icon_name="user" _text="{tr}Users{/tr}" _title=":{tr}User Administration{/tr}"}
 		{permission_link mode=text label="{tr}Permissions{/tr}"}
 		<div class="pull-right">
 			<input type="submit" class="btn btn-primary btn-sm tips" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
@@ -31,6 +31,12 @@
 				<legend>{tr}Registration{/tr} &amp; {tr}Log in{/tr}</legend>
 				{preference name=allowRegister}
 				<div class="adminoptionboxchild" id="allowRegister_childcontainer">
+					<div class="col-sm-8 col-sm-offset-4">
+						{remarksbox type="note" title="{tr}Note{/tr}" close="n"}
+							{tr}By default anonymous must enter anti-bot code (CAPTCHA).{/tr}
+							{tr}You can change this setting in the Admin, <a href="tiki-admin.php?page=security#content_admin1-2">Security section</a>{/tr}
+						{/remarksbox}
+					</div>
 					{preference name=validateUsers}
 					{preference name=validateEmail}
 					{preference name=validateRegistration}
@@ -226,7 +232,9 @@
 			</fieldset>
 			<fieldset>
 				<legend>{tr}LDAP Admin{/tr}</legend>
+				<input type="password" style="display:none" name="auth_ldap_adminuser_autocomplete_off"> {* This is now required so the browser don't store the user's login here *}
 				{preference name=auth_ldap_adminuser}
+				<input type="password" style="display:none" name="auth_ldap_adminpass_autocomplete_off"> {* This is now required so the browser don't store the user's password here *}
 				{preference name=auth_ldap_adminpass}
 			</fieldset>
 		{/tab}

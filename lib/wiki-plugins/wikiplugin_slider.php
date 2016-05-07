@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -12,7 +12,7 @@ function wikiplugin_slider_info()
 		'documentation' => 'PluginSlider',
 		'description' => tra('Embed a mini-slideshow of content on a page'),
 		'prefs' => array( 'wikiplugin_slider' ),
-		'body' => tra('Content separated by /////'),
+		'body' => tra('Content separated by "/////"'),
 		'iconname' => 'tv',
 		'introduced' => 8,
 		'tags' => array( 'basic' ),
@@ -20,7 +20,7 @@ function wikiplugin_slider_info()
 			'titles' => array(
 				'required' => false,
 				'name' => tra('Slider Titles'),
-				'description' => tr('Pipe separated list of slider titles. Example:')
+				'description' => tr('Pipe-separated list of slider titles. Example:')
 					. '<code>slider 1|slider 2|slider 3</code>',
 				'since' => '8.0',
 				'filter' => 'text',
@@ -30,7 +30,7 @@ function wikiplugin_slider_info()
 			'width' => array(
 				'required' => false,
 				'name' => tra('Width'),
-				'description' => tr('Width in pixels or percentage. Default value is page width. e.g. %0 or %1',
+				'description' => tr('Width in pixels or percentage. Default value is page width, for example, %0 or %1',
 					'<code>200px</code>', '<code>100%</code>'),
 				'since' => '8.0',
 				'filter' => 'text',
@@ -357,6 +357,14 @@ function wikiplugin_slider($data, $params)
 {
 	$tikilib = TikiLib::lib('tiki');
 	$headerlib = TikiLib::lib('header');
+	
+	// set default params
+	$plugininfo = wikiplugin_slider_info();
+	$default = array();
+	foreach ($plugininfo['params'] as $key => $param) {
+		$default["$key"] = $param['default'];
+	}
+	$params = array_merge($default, $params);
 	extract($params, EXTR_SKIP);
 
 	$headerlib->add_jsfile('vendor/jquery/plugins/anythingslider/js/swfobject.js');

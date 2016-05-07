@@ -71,7 +71,7 @@
 							class="tips"
 							title="{tr}Actions{/tr}"
 							href="#"
-							{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.question_actions|escape:"javascript"|escape:"html"}{/if}
+							{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.question_actions|escape:"javascript"|escape:"html"}{/if}
 							style="padding:0; margin:0; border:0"
 						>
 							{icon name='wrench'}
@@ -136,7 +136,7 @@
                     </div>
                     <div class="col-sm-6">
                         <div class="col-sm-3">
-                            <label class="control-label">{tr}Max{/tr}</label>
+                            <label class="control-label">{tr}Maximum{/tr}</label>
                         </div>
                         <div class="col-sm-9">
                             <input type="text" name="max_answers" maxlength="4" value="{$info.max_answers}" class="form-control">

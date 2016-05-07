@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -41,9 +41,8 @@ class Comments extends TikiLib
 
 		if ($find) {
 			$findesc = '%' . $find . '%';
-
-			$mid = " and `reason` like ? or `user` like ?";
-			$bindvars=array($forumId, $findesc, $findesc);
+			$mid = " and (`reason` like ? or `user` like ? or tfr.`threadId` = ?)";
+			$bindvars=array($forumId, $findesc, $findesc, $find);
 		} else {
 			$mid = "";
 			$bindvars=array($forumId);
@@ -383,7 +382,7 @@ class Comments extends TikiLib
 			}
 			// Check permissions
 			if ($prefs['forum_inbound_mail_ignores_perms'] !== 'y') {
-			 	// store currently logged in user to restore later as setting the Perms_Context overwrites the global $user
+			 	// store currently logged-in user to restore later as setting the Perms_Context overwrites the global $user
 				$currentUser = $user;
 				// N.B. Perms_Context needs to be assigned to a variable or it gets destructed immediately and does nothing
 				/** @noinspection PhpUnusedLocalVariableInspection */
@@ -2571,7 +2570,7 @@ class Comments extends TikiLib
 			'object' => $object[1],
 		);
 		$this->table('tiki_comments')->update($data, array('threadId' => $threadId));
-		$this->table('tiki_comments')->update($data, array('parentId' => $threadId));
+		$this->table('tiki_comments')->updateMultiple($data, array('parentId' => $threadId));
 	}
 
     /**
@@ -2936,7 +2935,7 @@ class Comments extends TikiLib
 					($parentId == 0)? 'Posted': 'Replied',
 					$object[1],
 					'comment',
-					'type='.$object[0].'&amp;add='.$l.'#threadId'.$threadId,
+					'type='.$object[0].'&amp;add='.$l.'#threadId='.$threadId,
 					'',
 					'',
 					'',
@@ -3754,12 +3753,12 @@ class Comments extends TikiLib
 	 */
 	function get_comment_position($comment_id, $parent_id, $sort_mode, $max_per_page, $show_approved='y'){
 
-		$bindvars = array($parent_id, $sort_mode);
+		$bindvars = array($parent_id);
 		$query = "SELECT `threadId` FROM `tiki_comments` tc WHERE (tc.`parentId`=?)";
 		if ($show_approved == "y") {
 			$query .= " AND tc.`approved` = 'y'";
 		}
-		$query .= " ORDER BY ?";
+		$query .= " ORDER BY " . $this->convertSortMode($sort_mode);
 		$results = $this->fetchAll($query, $bindvars);
 
 		$position = 0;
@@ -3883,7 +3882,7 @@ class Comments extends TikiLib
 		$query = "select * from tiki_comments where parentId=? order by commentDate desc limit 1";
 		$ret = $this->fetchAll($query, array($threadId));
 
-		if(is_array($ret)) {
+		if(is_array($ret) && isset($ret[0])) {
 			return $ret[0];
 		}
 	}

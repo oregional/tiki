@@ -67,6 +67,7 @@
 		{remarksbox type="info" title="Accessing the Tiki instance that demonstrates this bug" close="n"}
 			<p>The URL for the show.tiki.org instance that demonstrates this bug is at: <a class="showurl{$field.fieldId}_{$item.itemId}" href="http://{$field.showurl|escape}" target="_blank">http://{$field.showurl|escape}</a>. <strong>Note that if you get a popup asking for a username/password, please just enter "show" and "show". This is different from the initial login and password for a new Tiki which is "admin" and "admin".</strong></p>
 			<p>The install log is at <a class="showlogurl{$field.fieldId}_{$item.itemId}" href="http://{$field.showlogurl|escape}" target="_blank">http://{$field.showlogurl|escape}</a></p>
+			<p><strong>Note that if you see PHP errors or a Tiki claiming to be missing third party software, the instance creation is probably not finished. Please wait 1 minute and reload.</strong></p>
 		{/remarksbox}
 		{remarksbox type="info" title="Snapshots" close="n"}
 			<p>Snapshots are database dumps of the configuration that developers can download for debugging. Once you have reproduced your bug on the show.tiki.org instance, create a snapshot that can then be downloaded by developers for further investigation.</p>
@@ -77,7 +78,9 @@
 			{button href="#showtikiorg{$field.fieldId}_{$item.itemId}{if isset($context.list_mode)}_view{/if}" _onclick="showtikiorg_process{$field.fieldId}_{$item.itemId}('destroy');" _text="{tr}Destroy this show.tiki.org instance{/tr}"}
 			{button href="#showtikiorg{$field.fieldId}_{$item.itemId}{if isset($context.list_mode)}_view{/if}" _onclick="showtikiorg_process{$field.fieldId}_{$item.itemId}('reset');" _text="{tr}Reset password to 12345{/tr}"}
 		{/if}
-		<span class="buttonupdate{$field.fieldId}_{$item.itemId}" {if $field.version != 'trunk' && $field.version != '14.x' && $field.version != '13.x' && $field.version != '12.x'}style="display: none;"{/if}>{button href="#showtikiorg{$field.fieldId}_{$item.itemId}{if isset($context.list_mode)}_view{/if}" _onclick="showtikiorg_process{$field.fieldId}_{$item.itemId}('update');" _text="{tr}SVN update{/tr}"}</span>
+		<span class="buttonupdate{$field.fieldId}_{$item.itemId}" {if $field.version != 'trunk' && $field.version != '15.x' && $field.version != '14.x' && $field.version != '12.x'}style="display: none;"{/if}>
+			{button href="#showtikiorg{$field.fieldId}_{$item.itemId}{if isset($context.list_mode)}_view{/if}" _onclick="showtikiorg_process{$field.fieldId}_{$item.itemId}('update');" _text="{tr}SVN update{/tr}"}
+		</span>
 	</div>
 
 	{if $field.debugmode}
@@ -106,7 +109,7 @@
 				var debugoutput = data.debugoutput;
 				//$('#testingstatus').html(data.status);
 				$('.showdebugoutput{{$field.fieldId}}_{{$item.itemId}}').html(data.debugoutput);
-				if (data.version == '12.x' || data.version == '13.x' || data.version == '14.x' || data.version == 'trunk') {
+				if (data.version == '12.x' || data.version == '14.x' || data.version == '15.x' || data.version == 'trunk') {
 					$('.buttonupdate{{$field.fieldId}}_{{$item.itemId}}').show();
 				}
 				if (data.status == 'DISCO') {

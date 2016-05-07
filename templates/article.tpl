@@ -4,9 +4,9 @@
 		<div class="articletopline">{$topline|escape}</div>
 	{/if}
 	<header class="articletitle">
-		<h2>
+		<h1>
 			{object_link type=article id=$articleId title=$arttitle}
-		</h2>
+		</h1>
 		{if $show_subtitle eq 'y' and $subtitle}
 			<div class="articlesubtitle">{$subtitle|escape}</div>
 		{/if}
@@ -172,7 +172,7 @@
 	{/if}
 
 	{capture name='copyright_section'}
-		{include file='show_copyright.tpl'}
+		{include file='show_copyright.tpl' copyright_context="article"}
 	{/capture}
 
 	{* When copyright section is not empty show it *}

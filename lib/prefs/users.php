@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -63,7 +63,7 @@ function prefs_users_list()
 			'default' => 'n',
 		),
 		'users_prefs_diff_versions' => array(
-			'name' => tra('Use new diff any version interface'),
+			'name' => tra('Use interface that shows differences in any versions'),
 			'type' => 'flag',
 			'dependencies' => array(
 				'feature_wiki',

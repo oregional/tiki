@@ -12,9 +12,9 @@
 
 
 .middle_outer {
-	-webkit-box-shadow: inset 0 24px 0 0 @navbar-default-bg;
-	-moz-box-shadow: inset 0 24px 0 0 @navbar-default-bg;
-	box-shadow: inset 0 24px 0 0 @navbar-default-bg;
+	-webkit-box-shadow: inset 0 27px 0 0 @navbar-default-bg;
+	-moz-box-shadow: inset 0 27px 0 0 @navbar-default-bg;
+	box-shadow: inset 0 27px 0 0 @navbar-default-bg;
 }
 
 .topbar,
@@ -60,6 +60,9 @@
 		background: @dropdown-bg;
 	}
 }
+
+.topbar .cssmenu_horiz li.selected a,
+.cssmenu_horiz ul li.selected a { background: @dropdown-link-hover-bg; }
 
 // Hover/Focus state
 .cssmenu_horiz > li > a,
@@ -172,14 +175,12 @@ textarea,
 }
 
 #col2 .panel,
-#col3 .panel,
-#bottom_modules .panel {
+#col3 .panel {
 	border: @side-column-border; // none;
 }
 
 #col2 .panel-default > .panel-heading,
-#col3 .panel-default > .panel-heading,
-#bottom_modules .panel-heading {
+#col3 .panel-default > .panel-heading {
 	background: @side-column-panel-heading-background; // #e1d518 url('@{imagePath}siteheader.png') no-repeat -1000px -200px;
 	border-width: @side-column-panel-heading-border-width;
 	border-style: solid;
@@ -187,7 +188,10 @@ textarea,
 }
 
 #col2 .panel-title,
-#col3 .panel-title {
+#col3 .panel-title,
+a.flipmoduletitle,
+#col2 .panel-default > .panel-heading a,
+#col3 .panel-default > .panel-heading a {
 	color: @side-column-panel-title-color;
 }
 
@@ -204,9 +208,19 @@ textarea,
 }
 
 .footer_liner {
-	.panel-title {
+	.panel,
+	.panel-default,
+	.panel-heading {
+		background: transparent;
+	}
+	h3.panel-title {
 		color: #fff;
 		border-bottom: 1px dotted @footer-border-color;
+
+	}
+	a.btn-default,
+	a.btn-default:visited {
+		color: @footer-link-color;
 	}
 }
 
@@ -215,8 +229,13 @@ textarea,
 	color: @postbody-title-color;
 }
 
-.postbody-title .title > .panel-title a.link {
+.postbody-title .title > .panel-title a.link,
+.panel-default > .panel-heading a {
 	color: @postbody-title-color;
+}
+
+.blog-postbody-title h2.panel-title {
+	font-size: 20px;
 }
 
 .siteloginbar_popup .dropdown-menu > li > a {
@@ -224,16 +243,19 @@ textarea,
 }
 
 // This comes last to enable site title color of theme options under FiveAlive-lite to have priority over the default set by FiveAlive.
+.layout_basic .page-header > .top_modules,
 header.header {
-	.sitetitle,
-	.sitesubtitle {
-		color: @brand-primary;
-		text-shadow: none;
-	}
-	//  a,
-	//  a:visited {color: @brand-primary;
-	//  }
-}
+	a,
+	.btn-link,
+	 .sitetitle,
+	 .sitesubtitle {
+		 color: @header-color;
+		 text-shadow: none;
+	 }
+	 //  a,
+	 //  a:visited {color: @brand-primary;
+	 //  }
+ }
 
 .searchresults blockquote em,
 .highlight,
@@ -277,6 +299,7 @@ header.header {
 .autotoc > .nav {
 	background: @panel-bg;
 //	border-radius: @panel-border-radius;
+	border-color: @footer-border-color;
 }
 
 .autotoc * {

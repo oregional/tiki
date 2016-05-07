@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -7,8 +7,8 @@
 
 /**
  * Class JitFilter_Element
- * @method Zend\I18n\Filter\Alpha alpha
- * @method Zend\I18n\Filter\Alnum alnum
+ * @method Zend\I18n\Filter\Alpha|TikiFilter_Alpha alpha
+ * @method Zend\I18n\Filter\Alnum|TikiFilter_Alnum alnum
  * @method Zend\Filter\Digits digits
  * @method Zend\Filter\ToInt int
  * @method Zend\Filter\StripTags username

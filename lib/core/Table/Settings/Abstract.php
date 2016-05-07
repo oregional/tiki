@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -35,6 +35,10 @@ abstract class Table_Settings_Abstract
 			'type' => 'reset',				//choices: boolean true, boolean false, save, reset, savereset.
 			'group' => true,				//overall switch to allow or disallow group headings
 //			'multisort' => false,			//multisort on by default - set to false to disable
+//			'sortlist' => [					//to set initial sort icons in standard tables since sortList doesn't use selectors yet
+//				'col' => 0,					//id of the th element that the table is sorted by on server side
+//				'dir' => 'asc'				//direction of the default initial server-side sort
+//			]
 		),
 		//overall filter settings for the table or external filters - individual column settings are under columns below
 		'filters' => array(

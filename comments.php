@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -176,25 +176,26 @@ if ( isset($_REQUEST['comments_objectId']) && $_REQUEST['comments_objectId'] == 
 	$forum_info = $commentslib->get_forum($_REQUEST['forumId']);
 	$threadId = $commentslib->post_in_forum($forum_info, $_REQUEST, $feedbacks, $errors);
 	if (!empty($threadId) && empty($errors)) {
-		$url = "tiki-view_forum_thread.php?forumId=" . $_REQUEST['forumId'] . "&comments_parentId=" . $_REQUEST['comments_parentId'];
+		$url = "tiki-view_forum_thread.php?forumId=" . $_REQUEST['forumId'] . "&comments_parentId=" . $_REQUEST['comments_parentId'] . "&threadId=" . $threadId;
 		if (!empty($_REQUEST['comments_threshold'])) {
-			$url .= "&amp;comments_threshold=".$_REQUEST['comments_threshold'];
+			$url .= "&comments_threshold=".$_REQUEST['comments_threshold'];
 		}
 		if (!empty($_REQUEST['comments_offset'])) {
-			$url .= "&amp;comments_offset=".$_REQUEST['comments_offset'];
+			$url .= "&comments_offset=".$_REQUEST['comments_offset'];
 		}
 		if (!empty($_REQUEST['comments_per_page'])) {
-			$url .= "&amp;comments_per_page=".$_REQUEST['comments_per_page'];
+			$url .= "&comments_per_page=".$_REQUEST['comments_per_page'];
 		}
 		if (!empty($_REQUEST['thread_style'])) {
-			$url .= "&amp;thread_style=".$_REQUEST['thread_style'];
+			$url .= "&thread_style=".$_REQUEST['thread_style'];
 		}
 		if (!empty($_REQUEST['thread_sort_mode'])) {
-			$url .= "&amp;thread_sort_mode=".$_REQUEST['thread_sort_mode'];
+			$url .= "&thread_sort_mode=".$_REQUEST['thread_sort_mode'];
 		}
 		if (!empty($feedbacks)) {
 			$_SESSION['feedbacks'] = $feedbacks;
 		}
+		$url .= "#threadId=".$threadId; //place anchor on newly created message
 
 		//Watches
 		if ( $prefs['feature_user_watches'] == 'y') {
@@ -250,7 +251,10 @@ if ($_REQUEST["comments_threadId"] > 0) {
 
 	if ( $comment_info["data"] != ''  ) {
 		if ( ($prefs['feature_forum_parse'] == 'y' || $prefs['section_comments_parse'] == 'y') && $prefs['feature_use_quoteplugin'] == 'y' ) {
-			$comment_info["data"] = "\n{QUOTE(replyto=>" . $comment_info["userName"] . ")}" . $comment_info["data"] . '{QUOTE}';
+			if ($prefs['forum_quote_prevent_nesting'] == 'y') {
+				$comment_info["data"] = trim(preg_replace("/{QUOTE\(.*?\)}(.|\n)*?{QUOTE}/", "", $comment_info["data"])); //strip quotes to prevent nesting
+			}
+			$comment_info["data"] = "\n{QUOTE(thread_id=>" . $_REQUEST["comments_reply_threadId"] . ")}" . $comment_info["data"] . '{QUOTE}';
 		} else {
 			$comment_info["data"] = preg_replace('/\n/', "\n> ", $comment_info["data"]);
 			$comment_info["data"] = "\n> " . $comment_info["data"];

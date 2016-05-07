@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -117,9 +117,9 @@ class HeaderLib
 	public $forceJsRankLate;
 
 
-	public $jquery_version = '2.2.0';
+	public $jquery_version = '2.2.2';
 	public $jqueryui_version = '1.11.4';
-	public $jquerymigrate_version = '1.3.0';
+	public $jquerymigrate_version = '1.4.0';
 
 
 	function __construct()
@@ -1141,7 +1141,7 @@ var script = document.createElement("script");
 
 window.onload = loadScript;');
 			} else {
-				$this->add_jsfile($url, 'external');
+				$this->add_jsfile_external($url, true);
 			}
 		}
 

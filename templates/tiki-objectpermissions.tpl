@@ -3,17 +3,17 @@
 {title help="Permissions"}{if $objectType eq 'global'}{tr}Assign global permissions{/tr}{else}{tr}Assign permissions to {/tr}{$objectType}: {$objectName}{/if}{/title}
 
 <div class="t_navbar margin-bottom-md">
-	{if !empty($referer)}{button href="$referer" _class="btn btn-warning" _icon_name="back" _text="{tr}Back{/tr}"}{/if}
+	{if !empty($referer)}{button href="$referer" _class="btn btn-link" _type="link" _icon_name="back" _text="{tr}Back{/tr}"}{/if}
 	{if $tiki_p_admin eq 'y'} {* only full admins can manage groups, not tiki_p_admin_users *}
-		{button href="tiki-admingroups.php" class="btn btn-default" _icon_name="group" _text="{tr}Admin Groups{/tr}"}
+		{button href="tiki-admingroups.php" class="btn btn-link" _type="link" _icon_name="group" _text="{tr}Admin Groups{/tr}"}
 	{/if}
 	{if $tiki_p_admin_users eq 'y'}
-		{button href="tiki-adminusers.php" class="btn btn-default" _icon_name="user" _text="{tr}Admin users{/tr}"}
+		{button href="tiki-adminusers.php" class="btn btn-link" _type="link" _icon_name="user" _text="{tr}Admin users{/tr}"}
 	{/if}
 	{if $tiki_p_admin_categories eq 'y'}
-		{button href="tiki-admin_categories.php" class="btn btn-default" _icon_name="admin_category" _text="{tr}Admin Categories{/tr}"}
+		{button href="tiki-admin_categories.php" class="btn btn-link" _type="link" _icon_name="admin_category" _text="{tr}Admin Categories{/tr}"}
 	{/if}
-	{button href="tiki-list_object_permissions.php" class="btn btn-default" _icon_name="permission" _text="{tr}Object Permissions List{/tr}"}
+	{button href="tiki-list_object_permissions.php" class="btn btn-link" _type="link" _icon_name="permission" _text="{tr}Object Permissions List{/tr}"}
 </div>
 
 {tabset name='tabs_objectpermissions'}
@@ -46,7 +46,7 @@
 							{if $tiki_p_admin eq 'y'}{tr}To edit category permissions{/tr} {self_link _script='tiki-admin_categories.php'}{tr}click here{/tr}{/self_link}.{/if}
 						{/remarksbox}
 					{elseif $permissions_displayed eq 'parent'}
-						{remarksbox type="note" title="{tr}Note{/tr}"}
+						{remarksbox type="warning" title="{tr}Warning{/tr}" highlight="y"}
 							{tr}No direct permissions yet applied to this object. Global permissions apply.{/tr}<br>
 							{if $tiki_p_admin eq 'y'}{tr}To edit global permissions{/tr} {self_link objectType='global' permType=$permType}{tr}click here{/tr}{/self_link}.{/if}
 							<br><br>

@@ -19,6 +19,11 @@ body:not(.fixed_width) .container {
 //  margin-top: 0 !important;
 //}
 
+.row.row-sidemargins-zero {
+	margin-left: 0;
+	margin-right: 0;
+}
+
 //legend + p,
 //legend + .form-group,
 //legend + input[type="hidden"] + .form-group,
@@ -58,6 +63,12 @@ body.tiki.navbar-padding {
 	max-width: inherit;
 }
 
+.tiki .popover.tour-tour { max-width: 276px; }
+
+.tiki .popover p:last-child {
+	margin-bottom: 0;
+}
+
 .tiki .media-overflow-visible,
 .tiki .media-overflow-visible .media-body {
 	overflow: visible;
@@ -76,7 +87,7 @@ body.tiki.navbar-padding {
 	overflow-y: hidden;
 	overflow-x: auto;
 	-ms-overflow-style: -ms-autohiding-scrollbar;
-	border: 1px solid @panel-default-border;
+
 	-webkit-overflow-scrolling: touch;
 }
 
@@ -93,6 +104,11 @@ body.tiki.navbar-padding {
 			}
 		}
 	}
+}
+
+// columns with action icons in shouldn't wrap
+.tiki .table-responsive > .table td.action {
+  white-space: nowrap;
 }
 
 //}
@@ -159,5 +175,22 @@ body.tiki.navbar-padding {
 }
 
 // Needed to align checkbox with label, which has a top margin (admin forms with labels on left of input)
-.tiki .form-horizontal input[type="checkbox"] { margin-top: .8em;}
+.tiki .form-horizontal .form-group label + div > input[type="checkbox"] { margin-top: .8em; }
 .tiki .form-horizontal .checkbox input[type="checkbox"] {margin-top: .4em;}
+
+
+.control-label.text-left {
+	text-align: left;
+}
+
+.form-horizontal .control-label.text-left {
+	text-align: left;
+}
+
+.affix-top {position: static; }
+.affix { position: fixed; top: 20px; }
+.affix-bottom { position: absolute; }
+
+// default width "auto" causes the input to overflow outside of narrow divs.
+.col-sm-2 .form-inline .form-control,
+.col-md-2 .form-inline .form-control { width: 100%; }

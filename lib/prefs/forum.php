@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -143,6 +143,13 @@ function prefs_forum_list()
 			'description' => tra('Present an empty title input form and require it to be filled in before the forum post is submitted.'),
 			'type' => 'flag',
 			'default' => 'n',
+		),
+		'forum_quote_prevent_nesting' => array(
+			'name' => tra('Prevent Nesting of Quote wikiplugins when replying'),
+			'description' => tra('Strips quote plugin in reply to prevent quote wikiplugin nesting'),
+			'type' => 'flag',
+			'default' => 'n',
+			'dependencies' => array('feature_use_quoteplugin'),
 		),
 		'forum_available_categories' => array(
 			'name' => tr('Forum post categories'),

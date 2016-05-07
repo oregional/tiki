@@ -10,13 +10,13 @@
 			{button class="btn btn-default" href="tiki-admin_forums.php?dup_mode=y" _icon_name="copy" _text="{tr}Duplicate{/tr}"}
 		{/if}
 		{if $forumId > 0}
-			{button _type="text" class="btn btn-link" href="tiki-view_forum.php?forumId=$forumId" _icon_name="view" _text="{tr}View{/tr}"}
+			{button _type="link" class="btn btn-link" href="tiki-view_forum.php?forumId=$forumId" _icon_name="view" _text="{tr}View{/tr}"}
 		{/if}
 		{if $tiki_p_admin_forum eq 'y'}
-			{button _type="text" class="btn btn-link" href="tiki-forum_import.php" _icon_name="import" _text="{tr}Import{/tr}"}
+			{button _type="link" class="btn btn-link" href="tiki-forum_import.php" _icon_name="import" _text="{tr}Import{/tr}"}
 		{/if}
 		{if $tiki_p_forum_read eq 'y'}
-			{button _type="text" class="btn btn-link" href="tiki-forums.php" _icon_name="list" _text="{tr}List{/tr}"}
+			{button _type="link" class="btn btn-link" href="tiki-forums.php" _icon_name="list" _text="{tr}List{/tr}"}
 		{/if}
 	</div>
 {/if}
@@ -131,7 +131,7 @@
 										class="tips"
 										title="{tr}Actions{/tr}"
 										href="#"
-										{if $js === 'y'}{popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.admin_forum_actions|escape:"javascript"|escape:"html"}{/if}
+										{if $js === 'y'}{popup fullhtml="1" center=true text=$smarty.capture.admin_forum_actions|escape:"javascript"|escape:"html"}{/if}
 										style="padding:0; margin:0; border:0"
 									>
 										{icon name='wrench'}

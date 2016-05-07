@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -53,7 +53,8 @@ class BackupDBCommand extends Command
 
 		$dateFormat = $input->getArgument('dateFormat');
 		if (! $dateFormat) {
-			$dateFormat = 'Y-m-d_H:i:s';
+			$windows = strtoupper(substr(PHP_OS, 0, 3)) == 'WIN';
+			$dateFormat = $windows ? 'Y-m-d_His' : 'Y-m-d_H:i:s';
 		}
 
 		$user_tiki = $pass_tiki = $host_tiki = $dbs_tiki = '';

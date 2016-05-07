@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -38,7 +38,7 @@ function wikiplugin_contributionsdashboard_info()
 			'types' => array(
 				'required' => true,
 				'name' => tra('Dashboard Types'),
-				'description' => tra('The type of charts that will be rendered separated by comma'),
+				'description' => tra('The types of charts that will be rendered, separated by commas'),
 				'since' => '9.0',
 				'filter' => 'text',
 				'default' => 'trackeritems',

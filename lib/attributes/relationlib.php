@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -197,7 +197,7 @@ class RelationLib extends TikiDb_Bridge
 		$ids = array();
 		if ( $relation_prefix ) {
 			$ids = $this->table->fetchAll(
-				"*",
+				[],
 				array(
 					'relation' => $this->table->like($relation_prefix.".%"),
 					'source_type' => $src_type,

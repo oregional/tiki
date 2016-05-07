@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -1026,7 +1026,7 @@ $subGalleries = $filegallib->getSubGalleries(( isset($_REQUEST['parentId']) && $
 $smarty->assign('treeRootId', $subGalleries['parentId']);
 
 if ($prefs['fgal_show_explorer'] == 'y' || $prefs['fgal_show_path'] == 'y'
-	|| $_REQUEST['fgal_actions'] === 'movesel_x' || isset($_REQUEST["edit_mode"]))
+	|| $_REQUEST['fgal_actions'] === 'movesel_x' || isset($_REQUEST["edit_mode"]) || isset($_REQUEST['dup_mode']))
 {
 	$gals = array();
 	foreach ($subGalleries['data'] as $gal) {
@@ -1078,12 +1078,12 @@ include_once ('fgal_listing_conf.php');
 
 $find_durations = array();
 if (isset($_REQUEST['view']) && $_REQUEST['view'] == 'admin') {
-	$find_durations[] = array('label' => tra('Not modified since')
+	$find_durations[] = array('label' => tra('Not modified for')
 													, 'prefix' => 'find_lastModif'
 													, 'default' => empty($_REQUEST['find_lastModif'])?'':$_REQUEST['find_lastModif']
 													, 'default_unit' => empty($_REQUEST['find_lastModif_unit']) ? 'week' : $_REQUEST['find_lastModif_unit']
 													);
-	$find_durations[] = array('label' => tra('Not downloaded since')
+	$find_durations[] = array('label' => tra('Not downloaded for')
 													, 'prefix' => 'find_lastDownload'
 													, 'default' => empty($_REQUEST['find_lastDownload']) ? '' : $_REQUEST['find_lastDownload']
 													, 'default_unit' => empty($_REQUEST['find_lastDownload_unit']) ? 'week' : $_REQUEST['find_lastDownload_unit']

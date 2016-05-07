@@ -1,5 +1,5 @@
  <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -125,11 +125,7 @@ function smarty_block_pagination_links($params, $url, $smarty, &$repeat)
 	if ( $nb_pages == 0 || ( $nb_pages == 1 && $prefs['pagination_hide_if_one_page'] == 'y' ) ) return '';
 
 	if ( empty($url) || preg_match('/^\s*$/', $url) ) {
-		$query_filter = array('_type' => $default_type);
-		if(isset($params['_keepall'])) {
-			$query_filter['_keepall'] = $params['_keepall'];
-		}
-		$url = smarty_function_query($query_filter, $smarty);
+		$url = smarty_function_query(array('_type' => $default_type), $smarty);
 	}
 
 	// remove empty url arguments (done by default)

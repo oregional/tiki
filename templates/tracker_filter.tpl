@@ -7,7 +7,7 @@
 			{foreach key=st item=stdata from=$status_types}
 				<div style="display:inline-block;">
 					<div class="{$stdata.class}">
-						<a href="{$trackerId|sefurl:tracker}?status={$stdata.statuslink}{if $filtervalue and !$filtervalue|is_array}&amp;filtervalue={$filtervalue|escape:"url"}{/if}{if $filtervalue|is_array}{$filtervalueencoded}{/if}{if $filterfield}&amp;filterfield={$filterfield|escape:"url"}{/if}{if $sort_mode}&amp;sort_mode={$sort_mode}{/if}">
+						<a href="{$trackerId|sefurl:tracker}&amp;status={$stdata.statuslink}{if $filtervalue and !$filtervalue|is_array}&amp;filtervalue={$filtervalue|escape:"url"}{/if}{if $filtervalue|is_array}{$filtervalueencoded}{/if}{if $filterfield}&amp;filterfield={$filterfield|escape:"url"}{/if}{if $sort_mode}&amp;sort_mode={$sort_mode}{/if}">
 							{icon name="{$stdata.iconname}" ititle=":{tr}Toggle{/tr} {$stdata.label}" iclass='tips'}
 						</a>
 					</div>
@@ -55,9 +55,9 @@
 								<div style="display:{if $filterfield eq $fid}block{else}none{/if};" id="fid{$fid}">
 									<select name="filtervalue[{$fid}]" class="form-control">
 										{if $field.type eq 'D'}<option value="" />{/if}
-										{section name=jx loop=$field.options_array}
-											<option value="{$field.options_array[jx]|escape}" {if $fid == $filterfield}{if $filtervalue eq $field.options_array[jx]}{assign var=gotit value=y}selected="selected"{/if}{/if}>{$field.options_array[jx]|tr_if}</option>
-										{/section}
+										{foreach from=$field.possibilities key=dropdown_key item=dropdown_value}
+											<option value="{$dropdown_key|escape}" {if $fid == $filterfield}{if $filtervalue eq $dropdown_key}{assign var=gotit value=y}selected="selected"{/if}{/if}>{$dropdown_value|tr_if}</option>
+										{/foreach}
 									</select>
 									{if $field.type eq 'D'}
 										<input class="form-control" type="text" name="filtervalue_other"{if $gotit ne 'y'} value="{if $fid == $filterfield}{$filtervalue}{/if}"{/if}>
@@ -66,9 +66,9 @@
 
 							{elseif $field.type eq 'R'}
 								<div style="display:{if $filterfield eq $fid}block{else}none{/if};" id="fid{$fid}">
-									{section name=jx loop=$field.options_array}
-										<input type="radio" name="filtervalue[{$fid}]" value="{$field.options_array[jx]|escape}" {if $fid == $filterfield}{if $filtervalue eq $field.options_array[jx]}checked="checked"{/if}{/if}>{$field.options_array[jx]|escape}
-									{/section}
+									{foreach from=$field.possibilities key=radio_key item=radio_value}
+										<input type="radio" name="filtervalue[{$fid}]" value="{$radio_key|escape}" {if $fid == $filterfield}{if $filtervalue eq $radio_key}checked="checked"{/if}{/if}>{$radio_value|escape}
+									{/foreach}
 								</div>
 
 							{elseif $field.type eq 'M'}

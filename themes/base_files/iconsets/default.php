@@ -1,5 +1,5 @@
 <?php 
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -241,6 +241,9 @@ function iconset_default()
 			),
 			'contacts' => array(
 				'id' => 'group',
+			),
+			'content-template' => array(
+				'id' => 'file-o',
 			),
 			//copy in defaults
 			'create' => array(
@@ -536,6 +539,9 @@ function iconset_default()
 			),
 			//thumbs-down in defaults
 			//thumbs-up in defaults
+			'time' => array(
+				'id' => 'clock-o',
+			),
 			'title' => array(
 				'id' => 'text-width',
 			),
@@ -583,6 +589,9 @@ function iconset_default()
 			'watch-group' => array(
 				'id' => 'group',
 			),
+			'wiki' => array(
+				'id' => 'file-text-o',
+			),
 			'wizard' => array(
 				'id' => 'magic',
 			),
@@ -590,7 +599,7 @@ function iconset_default()
 				'id' => 'file-word-o',
 			),
 			'wysiwyg' => array(
-				'id' => 'file-text-o',
+				'id' => 'file-text',
 			),
 			'zip' => array(
 				'id' => 'file-zip-o',

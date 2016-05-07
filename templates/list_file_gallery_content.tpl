@@ -131,7 +131,7 @@
 				{assign var=nbCols value=$nbCols+1}
 				<th style="width:1%">
 					{if !empty($other_columns)}
-						<a href='#' {popup delay="0|2000" fullhtml="1" text=$smarty.capture.over_other_columns|escape:"javascript"|escape:"html"} title="{tr}Other Sorts{/tr}">
+						<a href='#' {popup fullhtml="1" text=$smarty.capture.over_other_columns|escape:"javascript"|escape:"html"} title="{tr}Other Sorts{/tr}">
 					{/if}
 					{icon name='ranking' alt="{tr}Other Sorts{/tr}" title=''}
 					{if !empty($other_columns)}
@@ -260,7 +260,7 @@
 				{if ( $prefs.use_context_menu_icon eq 'y' or $prefs.use_context_menu_text eq 'y' )
 					and (!isset($gal_info.show_action) or $gal_info.show_action neq 'n') and $prefs.javascript_enabled eq 'y'}
 					<td style="white-space: nowrap">
-						<a class="fgalname tips" title="{tr}Actions{/tr}" href="#" {popup delay="0|2000" fullhtml="1" center=true text=$smarty.capture.over_actions|escape:"javascript"|escape:"html"} style="padding:0; margin:0; border:0">
+						<a class="fgalname tips" title="{tr}Actions{/tr}" href="#" {popup fullhtml="1" center=true text=$smarty.capture.over_actions|escape:"javascript"|escape:"html"} style="padding:0; margin:0; border:0">
 							{icon name='wrench' alt="{tr}Actions{/tr}"}
 						</a>
 					</td>
@@ -299,7 +299,16 @@
 						{capture assign=link}
 							{strip}
 								{if $files[changes].isgal eq 1}
-									href="{$files[changes].id|sefurl:'filegallery'}{if !empty($filegals_manager)}&amp;filegals_manager={$filegals_manager|escape}{/if}{if !empty($insertion_syntax)}&amp;insertion_syntax={$insertion_syntax|escape}{/if}"
+									{if empty($filegals_manager)}
+										{$query = ''}
+									{else}
+										{$query = 'filegals_manager='|cat:$filegals_manager}
+									{/if}
+									{if not empty($insertion_syntax)}
+										{if $query}{$query = $query|cat:'&'}{/if}
+										{$query = $query|cat:'insertion_syntax=':cat:$insertion_syntax}
+									{/if}
+									href="{$files[changes].id|sefurl:'filegallery'}{if $query}{if $prefs.feature_sefurl eq 'y'}?{else}&amp;{/if}{$query|escape}{/if}"
 								{else}
 
 									{if !empty($filegals_manager)}

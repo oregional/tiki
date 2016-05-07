@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -930,7 +930,25 @@ class EditLib
 
 					switch ($c[$i]["data"]["name"]) {
 						// Tags we don't want at all.
-						case "meta": $c[$i]["content"] = '';
+						case "meta":
+						case 'link':
+							$c[$i]["content"] = '';
+							break;
+						case 'script':
+							$c[$i]['content'] = '';
+							if (!isset($c[$i]['pars']['src'])) {
+								$i++;
+								while ($c[$i]['data']['name'] !== 'script' && $c[$i]['data']['type'] !== 'close' && $i <= $c['contentpos']) {
+									$i++;    // skip contents of script tag
+								}
+							}
+							break;
+						case 'style':
+							$c[$i]['content'] = '';
+							$i++;
+							while ($c[$i]['data']['name'] !== 'style' && $c[$i]['data']['type'] !== 'close' && $i <= $c['contentpos']) {
+								$i++;    // skip contents of script tag
+							}
 							break;
 
 						// others we do want

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -51,7 +51,7 @@ if (isset($_REQUEST['new_prefs'])) {
 
 $smarty->assign('now', $tikilib->now);
 
-if (!empty($_REQUEST['testMail'])) {
+if (!empty($_REQUEST['testMail']) && key_check(null, false)) {
 	include_once('lib/webmail/tikimaillib.php');
 	$mail = new TikiMail();
 	$mail->setSubject(tra('Tiki Email Test'));
@@ -60,7 +60,7 @@ if (!empty($_REQUEST['testMail'])) {
 		$msg = tra('Unable to send mail');
 		if ($tiki_p_admin == 'y') {
 			$mailerrors = print_r($mail->errors, true);
-			$msg .= $mailerrors;
+			$msg .= '<br>' . $mailerrors;
 		}
 		$smarty->assign('error_msg', $msg);
 	} else {

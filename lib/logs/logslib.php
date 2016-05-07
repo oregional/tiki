@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -152,7 +152,10 @@ class LogsLib extends TikiLib
 			$logObject = $this->action_must_be_logged($action, $objectType);
 		}
 
-		$logCateg = $prefs['feature_categories'] == 'y'? $this->action_must_be_logged('*', 'category'): false;
+        $logCateg = false;
+        if (isset($prefs['feature_categories']))
+            $logCateg = $prefs['feature_categories'] == 'y'? $this->action_must_be_logged('*', 'category'): false;
+
 		if (!$logObject && !$logCateg) {
 			return 0;
 		}
@@ -270,9 +273,11 @@ class LogsLib extends TikiLib
 
 		// for previous compatibility
 		// the new action are added with a if ($feature..)
-		if ($prefs['feature_actionlog'] != 'y') {
-			return true;
-		}
+        if (isset($prefs['feature_actionlog']))
+            if ($prefs['feature_actionlog'] != 'y') {
+                return true;
+        }
+
 
 		if ( !isset($is_viewed) ) {
 			$logActions = $this->get_all_actionlog_conf();
@@ -622,7 +627,7 @@ class LogsLib extends TikiLib
 	{
 		if (preg_match('/comments_parentId=([0-9\-+]+)/', $action['comment'], $matches)) {
 			return $matches[1];
-		} elseif (preg_match('/#threadId([0-9\-+]+)/', $action['comment'], $matches)) {
+		} elseif (preg_match('/#threadId=?([0-9\-+]+)/', $action['comment'], $matches)) {
 			return $matches[1];
 		} elseif (preg_match('/sheetId=([0-9]+)/', $action['comment'], $matches)) {
 			return $matches[1];

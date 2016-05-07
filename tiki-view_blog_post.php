@@ -2,7 +2,7 @@
 /**
  * @package tikiwiki
  */
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -90,10 +90,6 @@ if(($user && $ownsblog == 'y') || $tiki_p_blog_admin == 'y') {
 }
 $post_info['adjacent'] = $bloglib->_get_adjacent_posts($blogId, $post_info['created'], $tiki_p_blog_admin == 'y'? null: $tikilib->now, $user, $allowprivate);
 
-if (isset($post_info['priv']) && ($post_info['priv'] == 'y')) {
-	$post_info['title'] .= ' (' . tra("private") . ')';
-}
-
 if ($prefs['feature_freetags'] == 'y') {
 	// Get Tags
 	$freetaglib = TikiLib::lib('freetag');
@@ -159,9 +155,6 @@ if ($prefs['feature_categories'] == 'y') {
 	require_once('categorize_list.php');
 }
 $smarty->assign('ownsblog', $ownsblog);
-if ($post_info['wysiwyg'] !== 'y') {
-	$post_info['data'] = TikiLib::htmldecode($post_info['data']);
-}
 $smarty->assign('postId', $postId);
 $smarty->assign('blog_data', $blog_data);
 $smarty->assign('blogId', $blogId);

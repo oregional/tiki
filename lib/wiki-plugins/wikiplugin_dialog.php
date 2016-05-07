@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -11,7 +11,7 @@ function wikiplugin_dialog_info()
 		'name' => tra('Dialog'),
 		'documentation' => 'PluginDialog',
 		'validate' => 'all',
-		'description' => tra('Create a custom pop-up dialog box'),
+		'description' => tra('Create a custom popup dialog box'),
 		'prefs' => array( 'wikiplugin_dialog', 'feature_jquery_ui' ),
 		'iconname' => 'link-external',
 		'introduced' => 8,
@@ -37,7 +37,7 @@ function wikiplugin_dialog_info()
 			'actions' => array(
 				'required' => false,
 				'name' => tra('Button Actions'),
-				'description' => tra('JS to perform on 1st button click.'),
+				'description' => tra('JavaScript to perform on first button click.'),
 				'since' => '8.0',
 				'filter' => 'rawhtml_unsafe',
 				'separator' => ',',
@@ -114,7 +114,7 @@ function wikiplugin_dialog_info()
 			'openAction' => array(
 				'required' => false,
 				'name' => tra('Open Action'),
-				'description' => tra('JS to execute when dialog opens.'),
+				'description' => tra('JavaScript to execute when dialog opens.'),
 				'since' => '8.0',
 				'filter' => 'rawhtml_unsafe',
 				'default' => '',

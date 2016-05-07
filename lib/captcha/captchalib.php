@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -175,7 +175,7 @@ class Captcha
 		if ($access->is_xml_http_request()) {
 			if ($this->type == 'recaptcha20') {
 				return $this->captcha->renderAjax();
-			} else {
+			} else if ($this->type == 'recaptcha') {
 				$params = json_encode($this->captcha->getService()->getOptions());
 				$id = 1;
 				TikiLib::lib('header')->add_js('
@@ -184,12 +184,18 @@ Recaptcha.create("' . $this->captcha->getPubKey() . '",
   );
 ', 100);
 				return '<div id="captcha' . $id . '"></div>';
+			} else {
+				return $this->captcha->render();
 			}
 		} else {
 			if ($this->captcha instanceof Captcha_ReCaptcha20) {
 				return $this->captcha->render();
 			} else if ($this->captcha instanceof Zend\Captcha\ReCaptcha){
 				return $this->captcha->getService()->getHtml();
+			} else if ($this->captcha instanceof Zend\Captcha\Dumb){
+				return $this->captcha->getLabel() . ': <b>'
+				. strrev($this->captcha->getWord())
+				. '</b>';
 			}
 			return $this->captcha->render();
 		}

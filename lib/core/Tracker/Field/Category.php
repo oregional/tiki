@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -57,7 +57,7 @@ class Tracker_Field_Category extends Tracker_Field_Abstract implements Tracker_F
 					),
 					'descendants' => array(
 						'name' => tr('All descendants'),
-						'description' => tr('"Display all descendants instead of only first-level descendants'),
+						'description' => tr('Display all descendants instead of only first-level descendants'),
 						'filter' => 'int',
 						'options' => array(
 							0 => tr('First level only'),

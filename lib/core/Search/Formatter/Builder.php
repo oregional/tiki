@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -16,6 +16,7 @@ class Search_Formatter_Builder
 	private $id;
 	private $count;
 	private $tsOn;
+	private $tsettings;
 
 	function __construct()
 	{
@@ -166,11 +167,15 @@ class Search_Formatter_Builder
 				isset($args['tspaginate']) ? $args['tspaginate'] : null,
 				isset($args['tscolselect']) ? $args['tscolselect'] : null,
 				$GLOBALS['requestUri'],
-				$this->count
+				$this->count,
+				isset($args['tstotals']) ? $args['tstotals'] : null,
+				isset($args['tstotalformat']) ? $args['tstotalformat'] : null,
+				isset($args['tstotaloptions']) ? $args['tstotaloptions'] : null
 			);
 			if (is_array($ts->settings)) {
 				$ts->settings['ajax']['offset'] = 'offset';
 				Table_Factory::build('PluginWithAjax', $ts->settings);
+				$this->setTsSettings($ts->settings);
 			}
 		}
 	}
@@ -208,6 +213,16 @@ class Search_Formatter_Builder
 	public function setTsOn($tsOn)
 	{
 		$this->tsOn = $tsOn;
+	}
+
+	private function setTsSettings($tsettings)
+	{
+		$this->tsettings = $tsettings;
+	}
+
+	public function getTsSettings()
+	{
+		return $this->tsettings;
 	}
 }
 

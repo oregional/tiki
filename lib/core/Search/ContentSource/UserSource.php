@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -89,7 +89,9 @@ class Search_ContentSource_UserSource implements Search_ContentSource_Interface
 
 		$data = array(
 			'title' => $typeFactory->sortable($name),
+			'creation_date' => $typeFactory->timestamp($detail['info']['created']),
 			'wiki_content' => $typeFactory->wikitext($content),
+
 			'user_country' => $typeFactory->sortable($country),
 			'user_gender' => $typeFactory->sortable($gender),
 			'user_homepage' => $typeFactory->sortable($homePage),
@@ -98,11 +100,15 @@ class Search_ContentSource_UserSource implements Search_ContentSource_Interface
 			'user_language' => $typeFactory->multivalue($user_language),
 			'user_style' => $typeFactory->sortable($user_style),
 			'user_page' => $typeFactory->sortable($userPage),
+
 			'geo_located' => $typeFactory->identifier(empty($loc) ? 'n' : 'y'),
 			'geo_location' => $typeFactory->identifier($loc),
+
 			'searchable' => $typeFactory->identifier($this->userIsIndexed($detail) ? 'y' : 'n'),
 			'groups' => $typeFactory->multivalue($detail['groups']),
 			'_extra_groups' => array('Registered'), // Add all registered to allowed groups
+
+			'view_permission' => $typeFactory->identifier('tiki_p_list_users'),
 		);
 
 		$data = array_merge($data, $this->getTrackerFieldsForUser($objectId, $typeFactory));
@@ -131,13 +137,24 @@ class Search_ContentSource_UserSource implements Search_ContentSource_Interface
 
 		$data = array(
 			'title',
+			'creation_date',
 			'wiki_content',
+
+			'user_country',
+			'user_gender',
+			'user_homepage',
+			'user_realName',
+			'user_allowmsgs',
+			'user_language',
+			'user_style',
+			'user_page',
 
 			'geo_located',
 			'geo_location',
-			'user_country',
 
 			'searchable',
+			'groups',
+			'_extra_groups',
 		);
 
 		foreach ($this->getAllIndexableHandlers() as $baseKey => $handler) {
@@ -203,6 +220,10 @@ class Search_ContentSource_UserSource implements Search_ContentSource_Interface
 			}
 
 			$item = $this->trk->get_tracker_item($row['itemId']);
+			$data = array_merge($data, array(
+				'tracker_item_id' => $typeFactory->identifier($row['itemId']),
+				'tracker_item_status' => $typeFactory->identifier($item['status']),
+			));
 
 			foreach (Search_ContentSource_TrackerItemSource::getIndexableHandlers($definition, $item) as $baseKey => $handler) {
 				$data = array_merge($data, $handler->getDocumentPart($typeFactory));

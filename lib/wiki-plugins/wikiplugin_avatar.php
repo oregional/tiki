@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -41,7 +41,7 @@ function wikiplugin_avatar_info()
 			'fullsize' => array(
 				'required' => false,
 				'name' => tra('Full Size'),
-				'description' => tra('If full size images are stored in the File Gallery, show the full size one.'),
+				'description' => tra('If full-size images are stored in the file gallery, show the full-size image.'),
 				'default' => 'n',
 				'since' => '10.0',
 			),

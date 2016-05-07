@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -1230,7 +1230,7 @@ class NlLib extends TikiLib
 		return $retval;
 	}
 
-	private function get_edition_mail($editionId, $target, $is_html = null)
+	private function get_edition_mail($editionId, $target, $is_html = null, $replyTo=null, $sendFrom=null)
 	{
 		global $prefs, $base_url;
 		static $mailcache = array();
@@ -1303,8 +1303,13 @@ class NlLib extends TikiLib
 			$zmail = tiki_get_admin_mail();
 			$emailMimeParts = array();
 
-			if (!empty($info['replyto'])) {
-				$zmail->setReplyTo($info['replyto']);
+			if (!empty($replyTo)) {
+				$zmail->setReplyTo($replyTo);
+			}
+			
+			if (!empty($sendFrom)) {
+				$zmail->setFrom($sendFrom);
+				$zmail->setSender($sendFrom);
 			}
 
 			foreach ($info['files'] as $f) {
@@ -1343,10 +1348,12 @@ class NlLib extends TikiLib
 		$zmail = $cache['zmail'];
 
 		$textPart = new Zend\Mime\Part($cache['text'] . strip_tags($unsubmsg));
+		$textPart->setCharset('UTF-8');
 		$textPart->setType(Zend\Mime\Mime::TYPE_TEXT);
 		$emailMimeParts[] = $textPart;
 
 		$htmlPart = new Zend\Mime\Part($html);
+		$htmlPart->setCharset('UTF-8');
 		$htmlPart->setType(Zend\Mime\Mime::TYPE_HTML);
 		$emailMimeParts[] = $htmlPart;
 
@@ -1354,6 +1361,7 @@ class NlLib extends TikiLib
 		$emailBody->setParts($emailMimeParts);
 
 		$zmail->setBody($emailBody);
+		$zmail->setEncoding('UTF-8');
 
 		$zmail->getHeaders()->removeHeader('to');
 		$zmail->getHeaders()->removeHeader('cc');
@@ -1450,7 +1458,7 @@ class NlLib extends TikiLib
 			}
 
 			try {
-				$zmail = $this->get_edition_mail($info['editionId'], $us, $info['is_html']);
+				$zmail = $this->get_edition_mail($info['editionId'], $us, $info['is_html'], $info['replyto'], $info['sendfrom']);
 				if (!$zmail) {
 					continue;
 				}
@@ -1486,7 +1494,15 @@ class NlLib extends TikiLib
 
 			if ($prefs['newsletter_throttle'] === 'y' && 0 >= --$throttleLimit) {
 				$rate = (int) $prefs['newsletter_pause_length'];
-				print '<div class="throttle" data-edition="' . $info['editionId'] . '" data-rate="' . $rate . '">' . tr('Limiting the email send rate. Resuming in %0 seconds.', $rate) . '</div>';
+				$replytoData = '';
+				if (!empty($info['replyto'])) {
+					$replytoData = ' data-replyto="' . $info['replyto'] . '"';
+				}
+				$sendfromData = '';
+				if (!empty($info['sendfrom'])) {
+					$sendfromData = ' data-sendfrom="' . $info['sendfrom'] . '"';
+				}
+				print '<div class="throttle" data-edition="' . $info['editionId'] . '"' . $replytoData . $sendfromData . ' data-rate="' . $rate . '">' . tr('Limiting the email send rate. Resuming in %0 seconds.', $rate) . '</div>';
 				exit;
 			}
 		}

@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -1238,17 +1238,3 @@ function histlib_strip_irrelevant( $data )
 	return $data;
 }
 
-function rollback_page_to_version($page, $version, $check_key = true, $keep_lastModif = false)
-{
-	global $prefs;
-	$histlib = TikiLib::lib('hist');
-	$tikilib = TikiLib::lib('tiki');
-	$access = TikiLib::lib('access');
-
-	if ($check_key) {
-		$access->check_authenticity();
-	}		
-	$histlib->use_version($page, $version, '', $keep_lastModif);
-	
-	$tikilib->invalidate_cache($page);
-}

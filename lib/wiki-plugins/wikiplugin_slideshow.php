@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -56,11 +56,11 @@ function wikiplugin_slideshow_info()
 			),
 			'backgroundurl' => array(
 				'required' => false,
-				'name' => tra('Background Url Location'),
+				'name' => tra('Background URL location'),
 				'description' => tr('URL of the background image to use in your slideshow, overrides %0',
 					'<code>backgroundcolor</code>'),
 				'filter' => 'url',
-				'accepted' => tra('Valid url'),
+				'accepted' => tra('Valid URL'),
 				'default' => '',
 				'since' => '7.0',
 			),

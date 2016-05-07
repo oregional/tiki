@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -1390,7 +1390,7 @@ class AccountingLib extends LogsLib
 			$errors[] = htmlspecialchars($idname) . ' (' . htmlspecialchars($id) . ')'
 				. tra('is not a number.');
 		} elseif ($id <= 0) {
-			$errors[] = htmlspecialchars($idname) . ' ' . tra('must be > 0.');
+			$errors[] = htmlspecialchars($idname) . ' ' . tra('must be greater than 0.');
 		} else {
 			//static whitelist based on usage of the validateId function in accountinglib.php
 			$tablesWhitelist = array(

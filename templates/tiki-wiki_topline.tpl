@@ -38,6 +38,24 @@
 					<!--/span -->
 				{/if}
 
+				{* if we want a ShareThis icon and we want it displayed prominently *}
+				{if $prefs.feature_wiki_sharethis eq "y" and $prefs.wiki_sharethis_encourage eq "y"}
+					{* Similar as in the blogs except there can be only one per page, so it is simpler *}
+					<div class="btn-group">
+						{literal}
+						<script type="text/javascript">
+							//Create your sharelet with desired properties and set button element to false
+							var object = SHARETHIS.addEntry({ title:'{/literal}{$page|escape:"url"}{literal}'}, {button:false});
+							//Output your customized button
+							document.write('<a class="btn btn-link tips" id="share" href="#"{/literal} title="{tr}ShareThis{/tr}">{icon name="sharethis"}{literal}</a>');
+							//Tie customized button to ShareThis button functionality.
+							var element = document.getElementById("share");
+							object.attachButton(element);
+						</script>
+						{/literal}
+					</div>
+				{/if}
+
 				{if $prefs.feature_backlinks eq 'y' and $backlinks|default:null and $tiki_p_view_backlink eq 'y'}
 					<div class="btn-group backlinks">
 						{if $js == 'n'}<ul class="cssmenu_horiz"><li>{/if}
@@ -98,7 +116,6 @@
 				{* all single-action icons under one dropdown*}
 				{assign var="hasPageAction" value="0"}
 				{capture name="pageActions"}
-				{capture "pageActions"}
 					{if $js == 'n'}<ul class="cssmenu_horiz"><li>{/if}
 					<a class="btn btn-link" data-toggle="dropdown" data-hover="dropdown" href="#">
 						{icon name='menu-extra'}
@@ -116,6 +133,11 @@
 								</a>
 							{/if}
 						</li>
+						{if !($prefs.flaggedrev_approval neq 'y' or ! $revision_approval or $lastVersion eq $revision_displayed)}
+							{jq}
+								$(".editplugin, .icon_edit_section").hide();
+							{/jq}
+						{/if}
 						{if $prefs.flaggedrev_approval neq 'y' or ! $revision_approval or $lastVersion eq $revision_displayed}
 							{if $editable and ($tiki_p_edit eq 'y' or $page|lower eq 'sandbox') and $beingEdited ne 'y' and $machine_translate_to_lang eq ''}
 								<li>
@@ -206,6 +228,23 @@
 									{icon name="envelope"} {tr}Send link{/tr}
 									{assign var="hasPageAction" value="1"}
 								</a>
+							</li>
+						{/if}
+						{* if we want a ShareThis icon and we show it under the single-action icons dropdown singl-click *}
+						{if $prefs.feature_wiki_sharethis eq "y" and $prefs.wiki_sharethis_encourage neq "y"}
+							{* Similar as in the blogs except there can be only one per page, so it is simpler *}
+							<li>
+								{literal}
+								<script type="text/javascript">
+									//Create your sharelet with desired properties and set button element to false
+									var object = SHARETHIS.addEntry({ title:'{/literal}{$page|escape:"url"}{literal}'}, {button:false});
+									//Output your customized button
+									document.write('<a id="share" href="#"{/literal} title="{tr}ShareThis{/tr}">{icon name="sharethis"} {tr}ShareThis{/tr}{literal}</a>');
+									//Tie customized button to ShareThis button functionality.
+									var element = document.getElementById("share");
+									object.attachButton(element);
+								</script>
+								{/literal}
 							</li>
 						{/if}
 						{if !empty($user) and $prefs.feature_notepad eq 'y' and $tiki_p_notepad eq 'y'}

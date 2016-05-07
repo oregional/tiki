@@ -29,15 +29,10 @@
 			<h5>
 				{$ajaxtimeoutMsg|escape}
 			</h5>
-		{/if}<br>
+		{/if}
 		{if !empty($ajaxtimer)}
 			<div style="text-align: center">
-				<em>{tr}Redirecting in {/tr}</em>
-				<span id="timer-seconds">
-						<em>
-							{$timer}
-						</em>
-				</span> <em>{tr}seconds{/tr}</em>
+				<em>{tr _0='<span id="timer-seconds">'|cat:$ajaxtimer|cat:'</span>'}Redirecting in %0 seconds{/tr}</em>
 			</div>
 		{/if}
 	{/remarksbox}

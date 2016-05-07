@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 // 
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -17,11 +17,12 @@ function wikiplugin_annotation_info()
 		'iconname' => 'edit',
 		'introduced' => 2,
 		'tags' => array( 'basic' ),
+		'format' => 'html',
 		'params' => array(
 			'src' => array(
 				'required' => true,
 				'name' => tra('Location'),
-				'description' => tra('Absolute URL to the image or relative path from Tiki site root.'),
+				'description' => tra('Absolute URL to the image, relative path from Tiki site root or an image from the file gallery <code>display1</code>.'),
 				'filter' => 'url',
 				'default' => '',
 				'since' => '3.0',
@@ -57,17 +58,58 @@ function wikiplugin_annotation_info()
 					array('text' => tra('Center'), 'value' => 'center'), 
 				),
 			),
+			'class' => array(
+				'required' => false,
+				'name' => tra('CSS Class'),
+				'description' => tra('Class of the containing DIV element.'),
+				'filter' => 'text',
+				'default' => '',
+				'since' => '15.0',
+				'advanced' => true,
+			),
+			'showlist' => array(
+				'required' => false,
+				'name' => tra('Show List'),
+				'description' => tra('Show the list of annotations below the image.') . ' ' . tra('(y/n)'),
+				'filter' => 'alpha',
+				'default' => 'y',
+				'since' => '15.0',
+				'advanced' => true,
+				'options' => array(
+					array('text' => '', 'value' => ''),
+					array('text' => tra('Yes'), 'value' => 'y'),
+					array('text' => tra('No'), 'value' => 'n'),
+				),
+			),
+			'showlink' => array(
+				'required' => false,
+				'name' => tra('Show Link'),
+				'description' => tra('Show the link below the label in the popups.') . ' ' . tra('(y/n)'),
+				'filter' => 'alpha',
+				'default' => 'n',
+				'since' => '15.0',
+				'advanced' => true,
+				'options' => array(
+					array('text' => '', 'value' => ''),
+					array('text' => tra('Yes'), 'value' => 'y'),
+					array('text' => tra('No'), 'value' => 'n'),
+				),
+			),
 		)
 	);
 }
 
 function wikiplugin_annotation($data, $params)
 {
-	static $first = true;
 	global $page, $tiki_p_edit;
 	$headerlib = TikiLib::lib('header');
 
-	$params = array_merge(array( 'align' => 'left' ), $params);
+	$defaults = array();
+	$plugininfo = wikiplugin_annotation_info();
+	foreach ($plugininfo['params'] as $key => $param) {
+		$defaults["$key"] = $param['default'];
+	}
+	$params = array_merge($defaults, $params);
 
 	$annotations = array();
 	foreach ( explode("\n", $data) as $line ) {
@@ -92,314 +134,7 @@ function wikiplugin_annotation($data, $params)
 
 	$annotations = json_encode($annotations);
 
-	if ( $first ) {
-		$first = false;
-		$script = <<<SCRIPT
-var active = null;
-var selected = {};
-var containers = {};
-var editors = {};
-var annotations = {};
-var nextid = 0;
-
-function getc(cid) // {{{
-{
-	if ( containers[cid] == null )
-		containers[cid] = document.getElementById(cid);
-	
-	return containers[cid];
-} // }}}
-
-function gete(cid) // {{{
-{
-	if ( editors[cid] == null )
-	{
-		var eid = cid + '-editor';
-		editors[cid] = document.getElementById(eid);
-
-		editors[cid].fieldLabel = document.getElementById(cid + '-label');
-		editors[cid].fieldLink = document.getElementById(cid + '-link');
-		editors[cid].fieldContent = document.getElementById(cid + '-content');
-	}
-	
-	return editors[cid];
-} // }}}
-
-function eactive(cid) // {{{
-{
-	return gete(cid).style.display == 'block';
-} // }}}
-
-function getFullOffset( node ) // {{{
-{
-	var offset = { top: 0, left: 0 };
-	
-	do
-	{
-		offset.left += node.offsetLeft;
-		offset.top += node.offsetTop;
-	} while( node = node.offsetParent );
-
-	return offset;
-} // }}}
-
-function getx( event ) // {{{
-{
-	if ( !event.pageX ) {
-		var e = document.documentElement||{}, b = document.body||{};
-		event.pageX = event.clientX + (e.scrollLeft || b.scrollLeft || 0) - (e.clientLeft || 0);
-	}
-
-	return event.pageX;
-} // }}}
-
-function gety( event ) // {{{
-{
-	if ( ! event.pageY ) {
-		var e = document.documentElement||{}, b = document.body||{};
-		event.pageY = event.clientY + (e.scrollTop || b.scrollTop || 0) - (e.clientTop || 0);
-	}
-
-	return event.pageY;
-} // }}}
-
-function initAnnotation( o, cid ) // {{{
-{
-	o.obj = document.createElement( 'div' );
-	o.obj.style.borderStyle = 'solid';
-	o.obj.style.borderWidth = '2px';
-	o.obj.style.borderColor = 'red';
-	o.obj.style.position = 'absolute';
-	getc(cid).insertBefore( o.obj, getc(cid).firstChild );
-} // }}}
-
-function activateAnnotation( o, cid ) // {{{
-{
-	o.id = o.obj.id = "annotation-" + nextid++;
-	annotations[o.id] = o;
-	o.cid = cid;
-
-	var x1 = o.x1;
-	var x2 = o.x2;
-	var y1 = o.y1;
-	var y2 = o.y2;
-
-	o.x1 = Math.min( x1, x2 );
-	o.x2 = Math.max( x1, x2 );
-	o.y1 = Math.min( y1, y2 );
-	o.y2 = Math.max( y1, y2 );
-
-	var div = document.createElement( 'div' );
-	var a = document.createElement( 'a' );
-	getc(cid).parentNode.appendChild( div );
-	div.appendChild( a );
-	a.innerHTML = o.value;
-	a.href="javascript:void(0)";
-	a.onclick = function(e) { beginEdit(e, o, cid); };
-	a.onmouseover = function(e) { highlight(o.id, cid) };
-	a.onmouseout = function(e) { if ( ! selected[cid] || selected[cid].obj.id != o.id ) unhighlight(o.id, cid) };
-	o.obj.onmouseover = function(e) { highlight(o.id, cid) };
-	o.obj.onmouseout = function(e) { if ( ! selected[cid] || selected[cid].obj.id != o.id ) unhighlight(o.id, cid) };
-	o.obj.onclick = function(e) { if ( !active ) beginEdit(e, o, cid); };
-
-	o.link = a;
-} // }}}
-
-function createAnnotation( o, cid ) // {{{
-{
-	var offset = getFullOffset( getc(cid) );
-
-	o.x1 = parseInt(o.x1) + parseInt(offset.left);
-	o.x2 = parseInt(o.x2) + parseInt(offset.left);
-	o.y1 = parseInt(o.y1) + parseInt(offset.top);
-	o.y2 = parseInt(o.y2) + parseInt(offset.top);
-
-	initAnnotation( o, cid );
-	activateAnnotation( o, cid );
-	positionize( o, cid );
-} // }}}
-
-function handleClick( event, cid ) // {{{
-{
-	if ( selected[cid] )
-	{
-		if ( event.target.id == cid )
-			endEdit( cid, false );
-		return;
-	}
-
-	if ( ! active )
-	{
-		if ( !event.pageX )
-		{
-			x = getx(event);
-			y = gety(event);
-
-			for( k in annotations )
-			{
-				var o = annotations[k];
-				if ( !o )
-					continue;
-
-				if ( x>o.x1 && x<o.x2 && y>o.y1 && y<o.y2 ) {
-					o.obj.onclick(event);
-					return;
-				}
-			}
-		}
-
-		active = {
-			obj: null,
-			link: null,
-			y1: gety(event),
-			x1: getx(event),
-			y2: gety(event),
-			x2: getx(event),
-			value: 'New annotation',
-			target: ''
-		};
-
-		initAnnotation( active, cid );
-		positionize( active, cid );
-	}
-	else
-	{
-		active.y2 = gety(event);
-		active.x2 = getx(event);
-		positionize( active, cid );
-
-		activateAnnotation( active, cid );
-		beginEdit( event, active, cid );
-
-		active = null;
-		serializeAnnotations( annotations, cid );
-	}
-} // }}}
-
-function handleMove( event, cid ) // {{{
-{
-	if ( active == null )
-		return;
-
-	active.y2 = gety(event);
-	active.x2 = getx(event);
-	positionize( active, cid );
-} // }}}
-
-function positionize( o, cid ) // {{{
-{
-	o.obj.style.top = (Math.min(o.y1,o.y2)) + "px";
-	o.obj.style.left = (Math.min(o.x1,o.x2)) + "px";
-	o.obj.style.width = Math.abs(o.x1 - o.x2) + "px";
-	o.obj.style.height = Math.abs(o.y1 - o.y2) + "px";
-} // }}}
-
-function highlight( id, cid ) // {{{
-{
-	var o = annotations[id];
-	o.obj.style.borderColor = 'green';
-} // }}}
-
-function unhighlight( id, cid ) // {{{
-{
-	var o = annotations[id];
-	o.obj.style.borderColor = 'red';
-} // }}}
-
-function beginEdit( event, o, cid ) // {{{
-{
-	var editor = gete(cid);
-
-	var left = event.pageX;
-	if ( left + 300 > window.innerWidth )
-		left += window.innerWidth - left - 300;
-	var top = event.pageY;
-	if ( event.clientY + 120 > window.innerHeight )
-		top += window.innerHeight - event.clientY - 120;
-
-	editor.style.top = top + "px";
-	editor.style.left = left + "px";
-	editor.style.display = 'block';
-
-	editor.fieldLabel.value = o.value;
-	editor.fieldLink.value = o.target;
-
-	editor.fieldLabel.select();
-	editor.fieldLabel.focus();
-
-	selected[cid] = o;
-	highlight( o.id, cid );
-} // }}}
-
-function endEdit( cid, store ) // {{{
-{
-	var o = selected[cid];
-	selected[cid] = null;
-
-	var editor = gete(cid);
-
-	if ( store )
-	{
-		o.value = editor.fieldLabel.value;
-		o.target = editor.fieldLink.value;
-		o.link.innerHTML = o.value;
-
-		serializeAnnotations( annotations, cid );
-	}
-
-	gete(cid).style.display = 'none';
-
-	unhighlight( o.id, cid );
-
-	return false;
-} // }}}
-
-function handleCancel( e, cid ) // {{{
-{
-	var editor = gete(cid);
-
-	if ( e.keyCode == e.DOM_VK_ESCAPE )
-		endEdit( cid, false );
-} // }}}
-
-function handleDelete(cid) // {{{
-{
-	var o = selected[cid];
-
-	endEdit( cid, false );
-
-	o.obj.parentNode.removeChild(o.obj);
-	o.link.parentNode.removeChild(o.link);
-	annotations[o.id] = null;
-	selected[cid] = null;
-
-	serializeAnnotations( annotations, cid );
-} // }}}
-
-function serializeAnnotations( data, cid ) // {{{
-{
-	var k = 0;
-	var str = '';
-	var offset = getFullOffset( getc(cid) );
-	for( k in data )
-	{
-		var row = data[k];
-		if ( row == null )
-			continue;
-		if ( row.cid != cid )
-			continue;
-
-		str += "(" + (row.x1-offset.left) + "," + (row.y1-offset.top) + "),(" + (row.x2-offset.left) + "," + (row.y2-offset.top) + ") ";
-		str += row.value + " [" + row.target + "]\\n";
-	}
-
-	gete(cid).fieldContent.value = str;
-} // }}}
-
-SCRIPT;
-		
-		$headerlib->add_js($script);
-	}
+	$headerlib->add_jsfile('lib/jquery_tiki/wikiplugin-annotation.js');
 
 	static $uid = 0;
 	$uid++;
@@ -408,9 +143,11 @@ SCRIPT;
 	$labelSave = tra('Save changes to annotations');
 	$message = tra('Image annotations changed.');
 	
-	if ( $tiki_p_edit == 'y' )
+	if ( $tiki_p_edit == 'y' ) {
+		$editableStr = tra('Editable');
+
 		$form = <<<FORM
-<form method="post" action="tiki-wikiplugin_edit.php">
+<form method="post" action="tiki-wikiplugin_edit.php" class="form save-annotations">
 	<div style="display:none">
 		<input type="hidden" name="page" value="$page"/>
 		<input type="hidden" name="type" value="annotation"/>
@@ -418,48 +155,82 @@ SCRIPT;
 		<input type="hidden" name="message" value="$message"/>
 		<textarea id="$cid-content" name="content"></textarea>
 	</div>
-	<p><input type="submit" class="btn btn-default btn-sm" value="$labelSave"/></p>
+	<div class="form-group">
+		<input type="submit" class="btn btn-default btn-sm" value="$labelSave"/>
+		<label>
+			<input type="checkbox" id="$cid-editable">
+			{$editableStr}
+		</label>
+	</div>
 </form>
 FORM;
+	}
 	else
 		$form = '';
 
-	$js = <<<JS
-\$(document).ready( function() {
-	var toCreate = $annotations;
-	for( k = 0; k < toCreate.length; ++k ) {
-		createAnnotation( toCreate[k], '$cid' );
+	// inititalise the annotations
+	$showlink = $params['showlink'] === 'y' ? 'true' : 'false';
 
-		serializeAnnotations( annotations, '$cid' );
-	}
-} );
-JS;
-	
-	$headerlib = TikiLib::lib('header');
-	$headerlib->add_js($js);
+	$headerlib->add_jq_onready('$("#' . $cid . '").imageAnnotation(' . $annotations . ', ' . $showlink . ');');
+
 	$smarty = TikiLib::lib('smarty');
 	$smarty->loadPlugin('smarty_function_icon');
-	$minimize = smarty_function_icon(['name' => 'minimize'], $smarty);
-	$delete = smarty_function_icon(['name' => 'delete'], $smarty);
+	$close = smarty_function_icon(['name' => 'close'], $smarty);
+	$delete = smarty_function_icon(['name' => 'trash'], $smarty);
+
+	$labelStr = tra('Label');
+	$linkStr = tra('Link');
+	$saveStr = tra('Save');
+	$closeStr = tra('Close');
+	$removeStr = tra('Remove');
+
+	if ($tiki_p_edit == 'y') {
+		$editor_form = <<<EDITORFORM
+		<div class="editor panel">
+			<div class="panel-body">
+				<form method="post" action="#" class="form-horizontal">
+					<div class="form-group">
+						<label style="width:100%">
+							<span class="col-sm-3">$labelStr</span>
+							<span class="col-sm-9"><textarea name="label" class="form-control"></textarea></span>
+						</label>
+					</div>
+					<div class="form-group">
+						<label style="width:100%">
+							<span class="col-sm-3">$linkStr</span>
+							<span class="col-sm-9"><input type="text" name="link" class="form-control"></span>
+						</label>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-9 col-sm-offset-3">
+							<input type="submit" class="btn btn-default btn-sm" value="$saveStr">
+							<div class="pull-right">
+								<a class="btn btn-default btn-sm minimize" href="#" title="$closeStr">$close</a>
+								<a class="btn btn-default btn-sm delete" href="#" title="$removeStr">$delete</a>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+EDITORFORM;
+	} else {
+		$editor_form = '';
+	}
+
+	if ($params['showlist'] === 'y') {
+		$list_div = '<div class="list-box"><div>';
+	} else {
+		$list_div = '';
+	}
 
 	return <<<ANNOTATION
-~np~
-<div>
-<div id="$cid" style="background:url({$params['src']}); width:{$params['width']}px; height:{$params['height']}px;" onclick="handleClick(event,'$cid')" onmousemove="handleMove(event,'$cid')">
-	<div id="$cid-editor" style="display:none;width:250px;height:100px;position:absolute;background:white;border-color:black;border-style:solid;border-width:normal;padding:2px;">
-		<a href="javascript:endEdit('$cid', false);void(0)">$minimize</a>
-		<a href="javascript:handleDelete('$cid');void(0)" style="position:absolute;bottom:0px;right:0px;text-decoration:none;">$delete Delete</a>
-		<form method="post" action="" onsubmit="endEdit('$cid',true);return false;">
-			<div>Label</div>
-			<div><input type="text" name="label" id="$cid-label" style="width:96%" onkeyup="handleCancel(event, '$cid')"/></div>
-			<div style="display:none">Link</div>
-			<div style="display:none"><input type="text" name="link" id="$cid-link" style="width:96%" onkeyup="handleCancel(event, '$cid')"/></div>
-			<div><input type="submit" class="btn btn-default btn-sm" value="Save"/></div>
-		</form>
+<div class="wp-annotation {$params['class']}">
+	<div id="$cid" style="background:url({$params['src']}); width:{$params['width']}px; height:{$params['height']}px;">
+{$editor_form}
 	</div>
+	{$list_div}
+	{$form}
 </div>
-</div>
-$form
-~/np~
 ANNOTATION;
 }

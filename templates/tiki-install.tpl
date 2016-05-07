@@ -211,6 +211,7 @@
 						{/remarksbox}
 					{/if}
 					<p>{tr}Tiki uses the GD library to process images for the Image Gallery and CAPTCHA support.{/tr}</p>
+					<p>{tr}By default Tiki save your images and files in the database to make the setup as easy as possible.{/tr}<br />{tr}This setting can be changed later in the Control Panels, File Galleries section General Settings.{/tr}<br />{tr}If you need to store a lot of files you should consider switching from "Store to database" to "Store to directory".{/tr}</p>
 					<form action="tiki-install.php" method="post" role="form">
 						<div class="form-group text-center">
 							<input type="hidden" name="install_step" value="3">
@@ -550,17 +551,26 @@
 							{/remarksbox}
 							<br>
 							<fieldset>
-								<legend>{tr}General{/tr} <a href="https://doc.tiki.org/general+admin" target="_blank" title="{tr}Help{/tr}">{icon name="help"}</a></legend>
-								<div style="padding:5px; clear:both">
-									<label for="browsertitle">{tr}Browser title:{/tr}</label>
-									<div style="margin-left:1em"><input class="form-control" type="text" size="40" name="browsertitle" id="browsertitle" onclick="if (this.value=="{tr}My Tiki{/tr}") this.value='';" onfocus="origval=this.value;" onblur="if (this.value=='') this.value=origval;" value="{if $prefs.browsertitle eq ''}{tr}My Tiki{/tr}{else}{$prefs.browsertitle|escape}{/if}">
-										<br><em>{tr}This will appear in the browser title bar.{/tr}</em>
-									</div>
+								<legend>
+									{tr}General{/tr} <a href="https://doc.tiki.org/general+admin" target="_blank" title="{tr}Help{/tr}">{icon name="help"}</a>
+								</legend>
+								<div class="form-group" style="padding:5px; clear:both">
+									<label for="browsertitle">
+										{tr}Browser title:{/tr}
+									</label>
+									<input class="form-control" type="text" size="40" name="browsertitle" id="browsertitle" onclick="if (this.value=="{tr}My Tiki{/tr}") this.value='';" onfocus="origval=this.value;" onblur="if (this.value=='') this.value=origval;" value="{if $prefs.browsertitle eq ''}{tr}My Tiki{/tr}{else}{$prefs.browsertitle|escape}{/if}">
+									<span class="help-block">
+										{tr}This will appear in the browser title bar.{/tr}
+									</span>
 								</div>
-								<div style="padding:5px; clear:both"><label for="sender_email">{tr}Sender email:{/tr}</label>
-									<div style="margin-left:1em"><input type="text" class="form-control" size="40" name="sender_email" id="sender_email" value="{$prefs.sender_email|escape}">
-										<br><em>{tr}Email sent by your site will use this address.{/tr}</em>
-									</div>
+								<div class="form-group" style="padding:5px; clear:both">
+									<label for="sender_email">
+										{tr}Sender email:{/tr}
+									</label>
+									<input type="text" class="form-control" size="40" name="sender_email" id="sender_email" value="{$prefs.sender_email|escape}">
+									<span class="help-block">
+										{tr}Email sent by your site will use this address.{/tr}
+									</span>
 								</div>
 								<div style="padding:5px; clear:both">
 									<div style="padding:5px; clear:both">
@@ -571,7 +581,6 @@
 											<div style="margin-left:1em"><label for="proxy_port">{tr}Port{/tr}</label><input type="text" class="form-control" size="40" name="proxy_port" id="proxy_port" value="{$prefs.proxy_port|escape}"></div>
 											<div style="margin-left:1em"><label for="proxy_user">{tr}Proxy username{/tr}</label><input type="text" class="form-control" size="40" name="proxy_user" id="proxy_user" value="{$prefs.proxy_user|escape}"></div>
 											<div style="margin-left:1em"><label for="proxy_pass">{tr}Proxy password{/tr}</label><input type="text" class="form-control" size="40" name="proxy_pass" id="proxy_pass" value="{$prefs.proxy_pass|escape}"></div>
-											</div>
 										</div>
 									</div>
 								</div>
@@ -641,23 +650,40 @@
 								</div>
 							</fieldset>
 							<br>
-							<fieldset><legend>{tr}Administrator{/tr}</legend>
-								<div style="padding:5px"><label for="admin_email">{tr}Admin email:{/tr}</label>
-									<div style="margin-left:1em"><input type="text" class="form-control" size="40" name="admin_email" id="admin_email" value="{if isset($admin_email)}{$admin_email}{/if}">
-									<br><em>{tr}This is the email address for your administrator account.{/tr}</em></div>
+							<fieldset>
+								<legend>
+									{tr}Administrator{/tr}
+								</legend>
+								<div class="form-group" style="padding:5px">
+									<label for="admin_email">
+										{tr}Admin email:{/tr}
+									</label>
+									<input type="text" class="form-control" size="40" name="admin_email" id="admin_email" value="{if isset($admin_email)}{$admin_email}{/if}">
+									<span class="help-block">
+										{tr}This is the email address for your administrator account.{/tr}
+									</span>
 								</div>
 							</fieldset>
 							{if not empty($htaccess_options)}
 								<br>
-								<fieldset><legend>{tr}Set up htaccess file{/tr}</legend>
-									<div style="padding:5px">
-										<label for="htaccess_process">{tr}Method:{/tr}</label>
-										<select name="htaccess_process" id="htaccess_process">
+								<fieldset>
+									<legend>
+										{tr}Set up htaccess file{/tr}
+									</legend>
+									<div class="form-group" style="padding:5px">
+										<label class="control-label" for="htaccess_process">
+											{tr}Method:{/tr}
+										</label>
+										<select class="form-control" name="htaccess_process" id="htaccess_process">
 											{foreach $htaccess_options as $k => $v}
-												<option value="{$k}">{$v}</option>
+												<option value="{$k}">
+													{$v}
+												</option>
 											{/foreach}
 										</select>
-										<br><em>{tr}Select how to set up your htaccess file..{/tr}</em>
+										<span class="help-block">
+											{tr}Select how to set up your htaccess file.{/tr}
+										</span>
 									</div>
 								</fieldset>
 							{/if}
@@ -721,12 +747,12 @@
 					{/if}
 
 					<p>
-						{if isset($smarty.post.scratch)}
+						{if $install_type eq 'scratch'}
 							{tr}If this is your first install, your admin password is <strong>admin</strong>.{/tr}
 						{/if}
 						{tr}You can now log in into Tiki as user <strong>admin</strong> and start configuring the application.{/tr}
 					</p>
-					{if isset($smarty.post.scratch)}
+					{if $install_type eq 'scratch'}
 						<h3>{icon name='information'} {tr}Installation{/tr}</h3>
 						<p>{tr}If this is a first time installation, go to <strong>tiki-admin.php</strong> after login to start configuring your new Tiki installation.{/tr}</p>
 					{/if}

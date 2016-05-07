@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -278,8 +278,8 @@ class RSSLib extends TikiDb_Bridge
 				$item->setDescription($data[$descId]);
 			}
 
-			$item->setDateCreated($data[$dateId]);
-			$item->setDateModified($data[$dateId]);
+			$item->setDateCreated((int) $data[$dateId]);
+			$item->setDateModified((int) $data[$dateId]);
 
 			if ($authorId != '' && $prefs['feed_'.$section.'_showAuthor'] == 'y') {
 				$author = $this->process_item_author($data[$authorId]);
@@ -398,6 +398,16 @@ class RSSLib extends TikiDb_Bridge
 	function refresh_rss_module($rssId)
 	{
 		$this->update_feeds(array( $rssId ), true);
+	}
+
+	function refresh_all_rss_modules()
+	{
+		$mods = $this->list_rss_modules();
+		$feeds = [];
+		foreach ($mods['data'] as $mod) {
+			$feeds[] = $mod['rssId'];
+		}
+		$this->update_feeds($feeds, true);
 	}
 
 	function clear_rss_cache($rssId)
@@ -731,7 +741,7 @@ class RSSLib extends TikiDb_Bridge
 				'',
 				$data['url'],
 				'',
-				'',
+				$configuration['a_lang'],
 				$configuration['rating']
 			);
 
@@ -774,7 +784,7 @@ class RSSLib extends TikiDb_Bridge
 				'',
 				$data['url'],
 				'',
-				'',
+				$configuration['a_lang'],
 				$configuration['rating']
 			);
 

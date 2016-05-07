@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -44,7 +44,7 @@ function wikiplugin_div_info()
 			'bg' => array(
 				'required' => false,
 				'name' => tra('Background Color'),
-				'description' => tra('As defined by CSS, name or Hex code.'),
+				'description' => tra('As defined by CSS, name, or color hex code.'),
 				'since' => '1',
 				'filter' => 'text',
 				'accepted' => tra('Valid CSS color name or hex code'),
@@ -96,7 +96,7 @@ function wikiplugin_div_info()
 			'clear' => array(
 				'required' => false,
 				'name' => tra('Clear'),
-				'description' => tra('Items are not allowed to wrap around the side(s) this parameter is set to.'),
+				'description' => tra('Content cannot wrap around this object because of what the parameter is set to.'),
 				'since' => '1',
 				'filter' => 'text',
 				'safe' => true,
@@ -121,7 +121,7 @@ function wikiplugin_div_info()
 			'id' => array(
 				'required' => false,
 				'name' => tra('HTML ID'),
-				'description' => tra('Sets the div\'s id attribute, as defined by HTML.'),
+				'description' => tra("Sets the id attribute of the div, as defined by HTML."),
 				'since' => '1',
 				'filter' => 'text',
 				'safe' => true,

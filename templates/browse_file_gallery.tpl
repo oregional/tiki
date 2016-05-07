@@ -5,7 +5,13 @@
 		{/self_link}
 	</div>
 {/if}
-<div id="thumbnails" style="float:left">
+{jq}
+	// Make nice rows of thumbnails even when there is description or long titles
+	$('.thumbnailcontener').height(
+		Math.max.apply(null, $('.thumbnailcontener').map(function(index, el) { return $(el).height(); }).get())
+	);
+{/jq}
+<div id="thumbnails"{* style="float:left"*}>
 
 	{section name=changes loop=$files}
 
@@ -150,7 +156,7 @@
 				{if !isset($gal_info.show_action) or $gal_info.show_action neq 'n'}
 					{if ( $prefs.use_context_menu_icon eq 'y' or $prefs.use_context_menu_text eq 'y' )
 					and $prefs.javascript_enabled eq 'y'}
-						<a class="fgalname tips" title="{tr}Actions{/tr}" href="#" {popup delay="0|2000" fullhtml="1" text=$smarty.capture.over_actions|escape:"javascript"|escape:"html"}>
+						<a class="fgalname tips" title="{tr}Actions{/tr}" href="#" {popup fullhtml="1" text=$smarty.capture.over_actions|escape:"javascript"|escape:"html"}>
 							{icon name='wrench' alt="{tr}Actions{/tr}"}
 						</a>
 						{else}
@@ -160,7 +166,7 @@
 			</div> {* thumbactions *}
 			{/if}
 		{/capture}
-			<div id="{$checkname}_{$files[changes].id}" class="clearfix thumbnailcontener{if $is_checked eq 'y'} thumbnailcontenerchecked{/if}{if $files[changes].isgal eq 1} subgallery{/if}" {if $view eq 'page'}style="float:left"{else}style="width:{$thumbnailcontener_size}px"{/if}>
+			<div id="{$checkname}_{$files[changes].id}" class="{if $view eq 'page'}clearfix thumbnailcontener-heightauto{else}clearfix thumbnailcontener{if $is_checked eq 'y'} thumbnailcontenerchecked{/if}{if $files[changes].isgal eq 1} subgallery{/if}{/if}" style="{if $view eq 'browse'}float:left;{/if}{if $view neq 'page'}width:{$thumbnailcontener_size}px{/if}">
 				<div class="thumbnail" style="float:left; {if $view neq 'page'}width:{$thumbnailcontener_size}px{/if}">
 					<div class="thumbnailframe" style="width:100%;height:{if $view != 'page'}{$thumbnailcontener_size}px{else}100%{/if}{if $show_infos neq 'y'};margin-bottom:4px{/if}">
 						<div class="thumbimage">
@@ -198,7 +204,7 @@
 										{if $key_type neq 'image/svg' and $key_type neq 'image/svg+xml'}
 											{if $imagetypes eq 'y' or $prefs.theme_iconset eq 'legacy'}
 												{if $view eq 'page'}
-													<img src="tiki-download_file.php?fileId={$files[changes].id}&preview" alt="" style="max-width:{$maxWidth}">
+													<img src="tiki-download_file.php?fileId={$files[changes].id}&preview" alt="" style="width:{$maxWidth};max-width: 100%;">
 												{else}
 													<img src="{$files[changes].id|sefurl:thumbnail}" alt="" style="max-height:{$thumbnailcontener_size}px">
 												{/if}

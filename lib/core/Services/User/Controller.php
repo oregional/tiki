@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2015 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -58,12 +58,12 @@ class Services_User_Controller
 			return array('result' => json_encode(array(tr("secure connection required"))));
 		}
 
-		$name = $input->name->string();
-		$pass = $input->pass->string();
-		$passAgain = $input->passAgain->string();
-		$captcha = $input->captcha->arra();
-		$antibotcode = $input->antibotcode->string();
-		$email = $input->email->string();
+		$name = $input->name->text();
+		$pass = $input->pass->text();
+		$passAgain = $input->passAgain->text();
+		$captcha = $input->captcha->array();
+		$antibotcode = $input->antibotcode->text();
+		$email = $input->email->text();
 
 		if ($prefs['user_unique_email'] == 'y' && TikiLib::lib('user')->get_user_by_email($email)) {
 			$errormsg = tra('We were unable to create your account because this email is already in use.');
@@ -263,7 +263,7 @@ class Services_User_Controller
 			$result['error'] = tra("You cannot see this user's data.");
 			if ($user) {
 				$result['error'] .= '<br>' .
-					tra('You need to set your own info to be shown on mouseover.') . '<br>' .
+					tra('You need to set "Show my information on mouseover".') . '<br>' .
 					'<a href="tiki-user_preferences.php?cookietab=2">' . tra('Click here') . '</a>';
 			} else {
 				$result['error'] .= '<br>' . tra('You need to log in.');
@@ -879,17 +879,17 @@ class Services_User_Controller
 	function action_invite_tempuser($input)
 	{
 		Services_Exception_Denied::checkGlobal('admin_users');
-		$emails = $input->tempuser_emails->string();
-		$groups = $input->tempuser_groups->string();
+		$emails = $input->tempuser_emails->text();
+		$groups = $input->tempuser_groups->text();
 		$expiry = $input->tempuser_expiry->int();
-		$prefix = $input->tempuser_prefix->string();
-		$path = $input->tempuser_path->string();
+		$prefix = $input->tempuser_prefix->text();
+		$path = $input->tempuser_path->text();
 
 		if (empty($prefix)) {
 			$prefix = 'guest';
 		}
 		if (empty($path)) {
-			$path = 'tiki-index.php';
+			$path = 'index.php';
 		}
 
 		$groups = explode(',', $groups);
@@ -897,14 +897,14 @@ class Services_User_Controller
 		$groups = array_map('trim', $groups);
 		$emails = array_map('trim', $emails);
 		if ($expiry > 0) {
-			$expiry = $expiry * 3600;
+			$expiry = $expiry * 3600 * 24; //translate day input to seconds
 		} else if ($expiry != -1) {
 			throw new Services_Exception(tra('Please specify validity period'));
 		}
 
 		foreach($groups as $grp) {
 			if (!TikiLib::lib('user')->group_exists($grp)) {
-				throw new Services_Exception(tra('The group %0 does not exist', $grp));
+				throw new Services_Exception(tr('The group %0 does not exist', $grp));
 			}
 		}
 
@@ -917,13 +917,47 @@ class Services_User_Controller
 				'action' => 'modal_alert',
 				'ajaxtype' => 'feedback',
 				'ajaxheading' => tra('Success'),
-				'ajaxmsg' => 'Your invite has been sent.',
-				'ajaxdismissible' => 'n',
+				'ajaxmsg' => tra('Your invite has been sent.'),
+				'ajaxdismissible' => 'y',
+				'ajaxtimer' => 5,
 			)
 		);
 
 	}
 
+	function action_upload_avatar( $input ) {
+		global $user;
+		$userwatch = $input->user->none();
+
+		if (!$userwatch) {
+			$errormsg = tra('You must set a user for whom to set an avatar.');
+			throw new Services_Exception($errormsg);
+		}
+
+		if ($user != $userwatch && Perms::get()->admin != 'y') {
+			$errormsg = tra('You do not have the permission to change the avatar.');
+			throw new Services_Exception($errormsg);
+		}
+		$this->access->check_feature('feature_userPreferences');
+		$this->access->check_user($user);
+
+		if($_SERVER['REQUEST_METHOD'] === 'POST') {
+			if (empty($_FILES['userfile'])) {
+				$errormsg = tra('You must select an avatar to upload.');
+				throw new Services_Exception($errormsg);
+			}
+			$name = $_FILES['userfile']['name'];
+
+			$avatarlib = TikiLib::lib('avatar');
+			$avatarlib->set_avatar_from_url($_FILES['userfile']['tmp_name'], $userwatch, $name);
+			return true;
+		} else {
+			return array(
+				"title" => tra("Upload Avatar"),
+				"userwatch" => $userwatch,
+			);
+		}
+	}
 
 	private function removeUsers(array $users, $page = false, $trackerIds = [], $files = false)
 	{
