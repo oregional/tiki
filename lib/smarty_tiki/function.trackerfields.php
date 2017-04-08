@@ -52,6 +52,7 @@ function smarty_function_trackerfields($params, $smarty)
 	$sections = [];
 	$auto = ['input' => [], 'output' => [], 'inline' => []];
 
+	$datepicker = false;
 	foreach ($params['fields'] as $field) {
 		if ($field['type'] == 'h') {
 			$title = tr($field['name']);
@@ -61,13 +62,18 @@ function smarty_function_trackerfields($params, $smarty)
 		$permName = $field['permName'];
 		
 		$itemId = isset($params['itemId']) ? $params['itemId'] : null;
+		if( $itemId )
+			$item = array('itemId' => $itemId);
+		else
+			$item = array();
+		$smarty->assign('item', $item);
 		
-		
-		$auto['input'][$permName] = new Tiki_Render_Lazy(function () use ($field, $smarty) {
+		$auto['input'][$permName] = new Tiki_Render_Lazy(function () use ($field, $smarty, $item) {
 			return smarty_function_trackerinput([
 				'field' => $field,
 				'showlinks' => 'n',
 				'list_mode' => 'n',
+				'item' => $item,
 			], $smarty);
 		});
 		
@@ -95,6 +101,10 @@ function smarty_function_trackerfields($params, $smarty)
 				], $smarty);
 			});
 		}
+
+		if ($field['type'] == 'j') {
+			$datepicker = true;
+		}
 	}
 
 	$out = array();
@@ -114,7 +124,8 @@ function smarty_function_trackerfields($params, $smarty)
 	// Compatibility attempt with the legacy $f_X format.
 	// Note: Here we set the the closures for the field, NOT the final values!
 	// The final values are set in trackerlib.php using field_render_value()
-	foreach ($fields as $field) {
+	// Using $params['fields'] as $fields is only the last "section" now
+	foreach ($params['fields'] as $field) {
 		$id = $field['fieldId'];
 		$permName = $field['permName'];
 		$smarty->assign('f_' . $id, $auto['default'][$permName]);
@@ -149,20 +160,27 @@ function smarty_function_trackerfields($params, $smarty)
 	$trklib->registerSectionFormat('config', 'view', $viewItemPretty, tr('Configured'));
 	$template = $trklib->getSectionFormatTemplate($sectionFormat, $params['mode']);
 
+	// smarty doesn't use tpl: as a resource prefix any more
+	$template = stripos($template, 'tpl:') === 0 ? substr($template, 4) : $template;
+
 	$trklib->unregisterSectionFormat('config');
 
 	try {
 		$result = $smarty->fetch($template);
 	} catch (Exception $e) {
 		// catch any exception probably casued by a pretty tracker template issue
-		TikiLib::lib('errorreport')->report(
-			tr('Tracker rendering error (section="%0" mode="%1")', $sectionFormat, $params['mode']) . '<br><br>' .
-			htmlentities($e->getMessage())
-		);
+		Feedback::error(tr('Tracker rendering error (section="%0" mode="%1")', $sectionFormat, $params['mode']) . 
+			'<br><br>' . htmlentities($e->getMessage(), 'session'));
 		// try again with the default section format "flat"
 		$template = $trklib->getSectionFormatTemplate('flat', $params['mode']);
 		$result = $smarty->fetch($template);
 	}
+
+	if ( $datepicker ) {
+		$smarty->loadPlugin('smarty_function_js_insert_icon');
+		$result .= smarty_function_js_insert_icon(array('type'=>"jscalendar"), $smarty);
+	}
+
 	return $result;
 }
 

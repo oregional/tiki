@@ -37,7 +37,7 @@ if (strstr($_SERVER['SCRIPT_NAME'], 'tiki-index.php')
 ) {
 	$check = false;
 	if (!isset($_REQUEST['page']) && !isset($_REQUEST['page_ref_id']) && !isset($_REQUEST['page_id'])) {
-		$_REQUEST['page'] = $userlib->get_user_default_homepage2($user);
+		$_REQUEST['page'] = $userlib->get_user_default_homepage($user);
 		$check = true;
 	}
 
@@ -72,7 +72,7 @@ if (strstr($_SERVER['SCRIPT_NAME'], 'tiki-index.php')
 	}
 
 	// If the HomePage does not exist, create it
-	if ($check && !$tikilib->page_exists($_REQUEST['page'])) {
+	if ($check && !empty($_REQUEST['page']) && !$tikilib->page_exists($_REQUEST['page'])) {
 
 		$homePageLang = $prefs['language'];
 		$profilesLink = 'tiki-admin.php?profile=&categories%5B%5D=15.x&categories%5B%5D=Featured+profiles' .

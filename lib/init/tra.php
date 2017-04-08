@@ -9,12 +9,14 @@
  */
 // $Id$
 
+require_once('lib/init/typography.php');
+
 global $interactive_collected_strings;
 $interactive_collected_strings = array();
 
 /**
  * needs a description
- * @param $content
+ * @param string $content
  * @return mixed|string
  */function tr($content)
 {
@@ -24,7 +26,7 @@ $interactive_collected_strings = array();
 
 /**
  * translate an English string
- * @param        $content English string
+ * @param string $content English string
  * @param string $lg      language - if not specify = global current language
  * @param bool   $unused
  * @param array  $args
@@ -54,6 +56,7 @@ function tra($content, $lg = '', $unused = false, $args = array())
 	}
 
 	$out = tra_impl($content, $lang, $args);
+	$out = typography($out, $lang, true);
 
 	record_string($content, $out);
 
@@ -150,7 +153,7 @@ function tra_impl($content, $lg = '', $args = array())
 		// This should avoid duplicated strings like 'Log In' and 'Log In:' that were needed before
 		//   (because there is no space before ':' in english, but there is one in others like french)
 		$lastCharacter = $content[strlen($content) - 1];
-		if (in_array($lastCharacter, array(':', '!', ';', '.', ',', '?'))) { // Modify get_strings.php accordingly
+		if (in_array($lastCharacter, array(':', '!', ';', '.', ',', '?'))) { // Should stay synchronized with Language_WriteFile::writeStringsToFile()
 			$new_content = substr($content, 0, -1);
 			if ( isset(${"lang_$lg"}[$new_content]) ) {
 				return tr_replace(
@@ -165,10 +168,10 @@ function tra_impl($content, $lg = '', $args = array())
 	// ### Trebly:B00624-01:added test on tikilib existence : on the first launch of tra tikilib is not yet set
 	if (isset($prefs['record_untranslated']) && $prefs['record_untranslated'] == 'y' && $lg != 'en' && isset($tikilib)) {
 		$query = 'select `id` from `tiki_untranslated` where `source`=? and `lang`=?';
-      	if (!$tikilib->getOne($query, array($content, $lg))) {
-      		$query = "insert into `tiki_untranslated` (`source`,`lang`) values (?,?)";
-      		$tikilib->query($query, array($content, $lg), -1, -1, false);
-      	}
+		if (!$tikilib->getOne($query, array($content, $lg))) {
+			$query = "insert into `tiki_untranslated` (`source`,`lang`) values (?,?)";
+			$tikilib->query($query, array($content, $lg), -1, -1, false);
+		}
 	}
 
 	return tr_replace($content, $args);
@@ -187,10 +190,12 @@ function tr_replace( $content, $args )
 		$out = $content;
 	} else {
 		$needles = array();
-		$replacements = $args;
-
-		foreach ( array_keys($args) as $num )
+		// reverse makes sure %11, %12, etc. are translated
+		$replacements = array_reverse($args);
+		$keys = array_reverse(array_keys($args));
+		foreach ( $keys as $num ) {
 			$needles[] = "%$num";
+		}
 
 		$out = str_replace($needles, $replacements, $content);
 	}
@@ -258,7 +263,7 @@ function check_file_BOM($filename, $try_to_fix = true) {
 	if ($BOM_found) {
 		$message = 'Warning: File "' . $filename . '" contains a BOM which cannot be fixed. Please re-edit and save as "UTF-8 without BOM"';
 		if (Perms::get()->admin) {
-			TikiLib::lib('errorreport')->report($message);
+			Feedback::error($message, 'session');
 		}
 		trigger_error($message);
 	}

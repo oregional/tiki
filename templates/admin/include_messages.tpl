@@ -1,13 +1,11 @@
 {* $Id$ *}
 
 <form class="form-horizontal" action="tiki-admin.php?page=messages" method="post" name="messages">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 
 	<div class="row">
 		<div class="form-group col-lg-12 clearfix">
-			<div class="pull-right">
-				<input type="submit" class="btn btn-default btn-sm" name="messagesprefs" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-			</div>
+			{include file='admin/include_apply_top.tpl'}
 		</div>
 	</div>
 
@@ -28,11 +26,5 @@
 		{preference name=messu_truncate_internal_message}
 
 	</fieldset>
-
-	<br>{* I cheated. *}
-	<div class="row">
-		<div class="form-group col-lg-12 text-center">
-			<input type="submit" class="btn btn-default btn-sm" name="messagesprefs" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-		</div>
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

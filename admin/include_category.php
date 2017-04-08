@@ -10,14 +10,10 @@ if (strpos($_SERVER["SCRIPT_NAME"], basename(__FILE__)) !== false) {
 	header("location: index.php");
 	exit;
 }
-if (isset($_REQUEST["categorysetup"])) {
-	ask_ticket('admin-inc-category');
-}
-if (!empty($_REQUEST['assignWikiCategories']) && $prefs['category_defaults']) {
-	check_ticket('admin-inc-category');
+if (!empty($_REQUEST['assignWikiCategories']) && $prefs['category_defaults'] && $access->ticketMatch()) {
 	$categlib = TikiLib::lib('categ');
 	$maxRecords = 100;
-	// The outer loop attemps to limit memory usage by fetching pages gradually
+	// The outer loop attempts to limit memory usage by fetching pages gradually.
 	for ($offset = 0; $pages = $tikilib->list_pages($offset, $maxRecords), !empty($pages['data']); $offset += $maxRecords) {
 		foreach ($pages['data'] as $page) {
 			$categories = $categlib->get_object_categories('wiki page', $page['pageName']);
@@ -25,6 +21,5 @@ if (!empty($_REQUEST['assignWikiCategories']) && $prefs['category_defaults']) {
 			$categlib->update_object_categories($categories, $page['pageName'], 'wiki page', $page['description'], $page['pageName'], $page['href']);
 		}
 	}
-	$smarty->assign('assignWikiCategories', 'y');
+	add_feedback('category_defaults', tr('category defaults'), 2);
 }
-ask_ticket('admin-inc-category');

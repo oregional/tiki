@@ -95,6 +95,9 @@ function iconset_default()
 			'admin_login' => array(
 				'id' => 'sign-in',
 			),
+            'admin_user' => array(
+                'id' => 'user',
+            ),
 			'admin_look' => array(
 				'id' => 'image',
 			),
@@ -178,6 +181,9 @@ function iconset_default()
 			),
 			'admin_wysiwyg' => array(
 				'id' => 'file-text',
+			),
+			'admin_print' => array(
+				'id' => 'print',
 			),
 			//align-center in defaults
 			//align-justify in defaults
@@ -355,6 +361,9 @@ function iconset_default()
 			'keyboard' => array(
 				'id' => 'keyboard-o',
 			),
+			'like' => array(
+				'id' => 'thumbs-up',
+			),
 			//link in defaults
 			'link-external' => array(
 				'id' => 'external-link',
@@ -510,12 +519,12 @@ function iconset_default()
 				'style' => 'color:green'
 			),
 			'status-pending' => array(
-				'id' => 'circle',
+				'id' => 'adjust',
 				'style' => 'color:orange'
 			),
 			'status-closed' => array(
-				'id' => 'circle',
-				'style' => 'color:lightgrey'
+				'id' => 'times-circle-o',
+				'style' => 'color:grey'
 			),
 			//stop in defaults
 			'stop-watching' => array(
@@ -565,6 +574,9 @@ function iconset_default()
 			//undo in defaults
 			//unlink in defaults
 			//unlock in defaults
+			'unlike' => array(
+				'id' => 'thumbs-down',
+			),
 			'up' => array(
 				'id' => 'sort-asc',
 			),
@@ -1298,6 +1310,101 @@ function iconset_default()
 			'youtube',
 			'youtube-play',
 			'youtube-square',
+
+			// new icons with v4.6
+			'american-sign-language-interpreting',
+			'asl-interpreting',
+			'assistive-listening-systems',
+			'audio-description',
+			'blind',
+			'braille',
+			'deaf',
+			'deafness',
+			'envira',
+			'fa',
+			'first-order',
+			'font-awesome',
+			'gitlab',
+			'glide',
+			'glide-g',
+			'google-plus-circle',
+			'google-plus-official',
+			'hard-of-hearing',
+			'instagram',
+			'low-vision',
+			'pied-piper',
+			'question-circle-o',
+			'sign-language',
+			'signing',
+			'snapchat',
+			'snapchat-ghost',
+			'snapchat-square',
+			'themeisle',
+			'universal-access',
+			'viadeo',
+			'viadeo-square',
+			'volume-control-phone',
+			'wheelchair-alt',
+			'wpbeginner',
+			'wpforms',
+			'yoast',
+
+			// new icons in 4.7
+			'address-book',
+			'address-book-o',
+			'address-card',
+			'address-card-o',
+			'bandcamp',
+			'bath',
+			'bathtub',
+			'drivers-license',
+			'drivers-license-o',
+			'eercast',
+			'envelope-open',
+			'envelope-open-o',
+			'etsy',
+			'free-code-camp',
+			'grav',
+			'handshake-o',
+			'id-badge',
+			'id-card',
+			'id-card-o',
+			'imdb',
+			'linode',
+			'meetup',
+			'microchip',
+			'podcast',
+			'quora',
+			'ravelry',
+			's15',
+			'shower',
+			'snowflake-o',
+			'superpowers',
+			'telegram',
+			'thermometer',
+			'thermometer-0',
+			'thermometer-1',
+			'thermometer-2',
+			'thermometer-3',
+			'thermometer-4',
+			'thermometer-empty',
+			'thermometer-full',
+			'thermometer-half',
+			'thermometer-quarter',
+			'thermometer-three-quarters',
+			'times-rectangle',
+			'times-rectangle-o',
+			'user-circle',
+			'user-circle-o',
+			'user-o',
+			'vcard',
+			'vcard-o',
+			'window-close',
+			'window-close-o',
+			'window-maximize',
+			'window-minimize',
+			'window-restore',
+			'wpexplorer',
 		),
 	);
 

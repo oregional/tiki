@@ -5,6 +5,7 @@
 <div class="t_navbar margin-bottom-md">
 	{assign var=thispage value=$page|escape:url}
 	{button href="tiki-index.php?page=$thispage" class="btn btn-default" _text="{tr}View page{/tr}" _icon_name="view"}
+	{button href="tiki-editpage.php?page=$thispage" class="btn btn-default" _text="{tr}Edit page{/tr}" _icon_name="edit"}
 	{if !isset($noHistory)}
 		{if $show_all_versions eq "y"}
 			{button _text="{tr}Collapse Into Edit Sessions{/tr}" href="?clear_versions=1&show_all_versions=n" _auto_args="*" class="btn btn-default" _icon_name="expanded"}
@@ -51,19 +52,19 @@
 			</form>
 		{/remarksbox}
 	{/if}
-        
-        {if (isset($flaggedrev_approval) and $flaggedrev_approval)}
-            {remarksbox type=warning title="{tr}History view{/tr}"}
-                <p>
-                    {if $flaggedrev_preview_approved}
-                            {tr}This revision may not be the latest approved revision{/tr}!
-                    {else}
-                            {tr}This revision has not been approved.{/tr}
-                    {/if}
-                </p>
-            {/remarksbox}
+
+	{if (isset($flaggedrev_approval) and $flaggedrev_approval)}
+		{remarksbox type=warning title="{tr}History view{/tr}"}
+			<p>
+				{if $flaggedrev_preview_approved}
+						{tr}This revision may not be the latest approved revision{/tr}!
+				{else}
+						{tr}This revision has not been approved.{/tr}
+				{/if}
+			</p>
+		{/remarksbox}
 	{/if}
-        
+
 	<div class="wikitext" id="page-data">
 		{$previewd}
 	</div>
@@ -112,7 +113,7 @@
 			{tr}History{/tr}
 		</h2>
 	{/if}
-	<form id="pagehistory" class="form-horizontal confirm-form" action="tiki-pagehistory.php?page={$page}">
+	<form id="pagehistory" class="form-horizontal" action="tiki-pagehistory.php?page={$page}">
 		<input type="hidden" name="page" value="{$page|escape}">
 		<input type="hidden" name="history_offset" value="{$history_offset}">
 		<div class="clearfix">
@@ -120,7 +121,7 @@
 				<input type="checkbox" name="paginate" id="paginate"{if $paginate} checked="checked"{/if}>
 				<label for="paginate">{tr}Enable pagination{/tr}</label>
 				{if $paginate}
-					<input type="text" name="history_pagesize" id="history_pagesize" value="{$history_pagesize}" size="5">
+					<input type="text" name="history_pagesize" id="history_pagesize" value="{$history_pagesize}" class="form-control" style="width: 5em; display: inline-block">
 					<label for="history_pagesize">{tr}per page{/tr}</label>
 				{/if}
 			</div>
@@ -199,6 +200,31 @@
 							{button _text="{tr}Advanced{/tr}" _id="toggle_diffs" _ajax="n" _class="btn btn-default btn-sm"}
 						</span>
 						{jq}
+	$("form#pagehistory")
+		.each(function store_original_values(i, form){
+			form.originals = {};
+
+			$(form).find(':input').each(function(i, input){
+				var name = $(input).attr('name');
+				var value = $(input).val();
+				form.originals[name] = value;
+			});
+		})
+		.submit(function submit_changed_values(evt){
+			var always = ['page', 'oldver'];
+			var originals = this.originals || {};
+
+			$(this).find(':input:enabled').each(function(i, input){
+				var name = $(input).attr('name');
+				var value = $(input).val();
+
+				if(always.indexOf(name) === -1 && originals[name] === value) {
+					$(input).attr('disabled', 'disabled')
+							.prop('disabled', 'disabled');
+				}
+			});
+		});
+
 	$("a#toggle_diffs").click(function(e){
 		if ($(this).text() == "{tr}Advanced{/tr}") {
 			$(this).text("{tr}Simple{/tr}");
@@ -491,16 +517,20 @@
 				</table>
 			</div>
 			<div class="input-group col-sm-6">
-				<select class="form-control" name="confirmAction">
-					<option value="" selected="selected">
+				<select class="form-control" name="action">
+					<option value="no_action" selected="selected">
 						{tr}Select action to perform with checked{/tr}...
 					</option>
-					<option value="delete">
+					<option value="remove_page_versions">
 						{tr}Remove{/tr}
 					</option>
 				</select>
 				<span class="input-group-btn">
-					<button type="submit" form="pagehistory" class="btn btn-primary">
+					<button
+						type="submit"
+						form="pagehistory"
+						formaction="{bootstrap_modal controller=wiki}"
+						class="btn btn-primary confirm-submit">
 						{tr}OK{/tr}
 					</button>
 				</span>

@@ -13,7 +13,7 @@
 # it has to be launched from tiki root dir
 #
 # 2010-10-04: If this script is not working for you, just use: 
-# php installer/shell.php
+# php console.php -n database:update
 # 
 
 FIND='/usr/bin/find'
@@ -35,6 +35,7 @@ if [ ! -d 'db' ]; then
 	exit 0
 fi
 
-find db/ -name local.php -follow | sed -nr 's/db(\/([a-z0-9_-]+))?\/local\.php/\2/p' | awk '{system("'$PHP' installer/shell.php " $0)}'
+# Update old command 'installer/shell.php' to the newer one 'console.php d:u --site='
+find db/ -name local.php -follow | sed -nr 's/db(\/([a-z0-9_-.]+))?\/local\.php/\2/p' | awk '{system("'$PHP' console.php -n database:update --site=" $0)}'
 
 exit 0

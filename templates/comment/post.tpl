@@ -53,6 +53,11 @@
 					{/if}
 					{capture name=rows}{if $type eq 'forum'}{$prefs.default_rows_textarea_forum}{else}{$prefs.default_rows_textarea_comment}{/if}{/capture}
 					{textarea codemirror='true' syntax='tiki' name="data" comments="y" _wysiwyg="n" rows=$smarty.capture.rows class="form-control wikiedit" placeholder="{tr}Post new comment{/tr}..."}{$data|escape}{/textarea}
+					{if $prefs.feature_user_watches eq 'y'}
+						<div id="watch_thread_on_reply">
+							<input id="watch_thread" type="checkbox" name="watch" value="y"{if $smarty.request.watch eq 'y'} checked="checked"{/if}> <label for="watch_thread">{tr}Send me an email when someone replies{/tr}</label>
+						</div>
+					{/if}
 				</div>
 				<div class="panel-footer">
 					{if $prefs.feature_antibot eq 'y'}
@@ -60,9 +65,11 @@
 						{include file='antibot.tpl'}
 					{/if}
 					<input type="hidden" name="return_url" value="{$return_url|escape}">
-					<input type="submit" class="comment-post btn btn-primary btn-sm" value="{tr}Post{/tr}"/>
-					<div class="btn btn-link">
-						<a href="#" onclick="$(this).closest('.comment-container').reload(); $(this).closest('.ui-dialog').remove(); return false;">{tr}Cancel{/tr}</a>
+					<div class="form-group comment-post">
+						<input type="submit" class="comment-post btn btn-primary btn-sm" value="{tr}Post{/tr}"/>
+						<div class="btn btn-link">
+							<a href="#" onclick="$(this).closest('.comment-container').reload(); $(this).closest('.ui-dialog').remove(); return false;">{tr}Cancel{/tr}</a>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -71,7 +78,7 @@
 	{if $prefs.feature_syntax_highlighter eq 'y'}
 		{jq}
 			//Synchronize textarea and codemirror before comment is posted
-			$(".comment-form>form").submit(function(event){
+			$(".comment-form>form, .add-comment-zone>form").submit(function(event){
 				var $textarea = $(event.target).find("textarea.wikiedit"); //retrieve the text area from the form that is submitted
 				if (typeof syntaxHighlighter.sync === 'function') {
 					syntaxHighlighter.sync($textarea);

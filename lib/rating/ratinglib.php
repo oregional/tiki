@@ -230,9 +230,10 @@ class RatingLib extends TikiDb_Bridge
 
         if ( is_string($value) && strpos($value, '=') !== false ){
             $hasLabels = true;
-            $parser = new WikiLingo\Utilities\Parameters\Parser();
-            $parsedPref = $parser->parse($value);
-            return $parsedPref;
+            // FIXME? No idea what this was supposed to do
+            //$parser = new WikiLingo\Utilities\Parameters\Parser();
+            //$parsedPref = $parser->parse($value);
+            //return $parsedPref;
         }
 
 		$result = $tikilib->get_preference($pref, range(1, 5), ($expectedArray && is_array($value)));
@@ -246,10 +247,9 @@ class RatingLib extends TikiDb_Bridge
 
 	function set_override($type, $objectId, $value)
 	{
-		global $attributelib;
 		$options = $this->override_array($type);
 
-		$attributelib->set_attribute($type, $objectId, $type.".rating.override", $options[$value - 1]);
+		TikiLib::lib('attribute')->set_attribute($type, $objectId, $type.".rating.override", $options[$value - 1]);
 	}
 
 	function get_override($type, $objectId)
@@ -443,7 +443,7 @@ class RatingLib extends TikiDb_Bridge
 	function attempt_refresh( $all = false )
 	{
 		global $prefs;
-		if ( 1 == rand(1, $prefs['rating_recalculation_odd']) ) {
+		if ( 1 == mt_rand(1, $prefs['rating_recalculation_odd']) ) {
 			$this->internal_refresh_list($prefs['rating_recalculation_count']);
 		}
 	}

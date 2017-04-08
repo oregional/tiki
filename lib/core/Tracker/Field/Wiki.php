@@ -194,7 +194,7 @@ class Tracker_Field_Wiki extends Tracker_Field_Text
 						$to_create_page = true;
 					}
 				} else {
-					TikiLib::lib('errorreport')->report(tr('Page "%0" already exists. Not overwriting.', $page_name));
+					Feedback::error(tr('Page "%0" already exists. Not overwriting.', $page_name), 'session');
 				}
 			}
 		}
@@ -315,7 +315,7 @@ class Tracker_Field_Wiki extends Tracker_Field_Text
 		if ($this->getOption('wysiwyg') === 'y' && $prefs['wysiwyg_htmltowiki'] != 'y') {
 			$parseOptions['is_html'] = true;
 		}
-		return TikiLib::lib('tiki')->parse_data($text, $parseOptions);
+		return TikiLib::lib('parser')->parse_data($text, $parseOptions);
 	}
 
 }

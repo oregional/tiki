@@ -16,13 +16,14 @@
 				<div class="panel-body">
 					<ol>
 						<li>{if $install_step eq '0'}<strong>{else}<a href="#" onclick="$('#install_step0').submit();return false;" title="{tr}Welcome{/tr} / {tr}Restart the installer.{/tr}">{/if}{tr}Welcome{/tr}{if $install_step eq '0'}</strong>{else}</a>{/if}</li>
-						<li>{if $install_step eq '1'}<strong>{else}<a href="#" onclick="$('#install_step1').submit();return false;" title="{tr}Read the License{/tr}">{/if}{tr}Read the License{/tr}{if $install_step eq '1'}</strong>{else}</a>{/if}</li>
+						<li>{if $install_step eq '1'}<strong>{else}<a href="#" onclick="$('#install_step1').submit();return false;" title="{tr}License{/tr}">{/if}{tr}License{/tr}{if $install_step eq '1'}</strong>{else}</a>{/if}</li>
 						<li>{if $install_step eq '2'}<strong>{elseif $install_step ge '3' or $dbcon eq 'y'}<a href="#" onclick="$('#install_step2').submit();return false;" title="{tr}Review the System Requirements{/tr}">{/if}{tr}Review the System Requirements{/tr}{if $install_step eq '2'}</strong>{elseif $install_step ge '3' or $dbcon eq 'y'}</a>{/if}</li>
 						<li>{if $install_step eq '3'}<strong>{elseif $dbcon eq 'y'}<a href="#" onclick="$('#install_step3').submit();return false;" title="{tr}Database Connection{/tr}">{/if}{if $dbcon eq 'y'}{tr}Reset the Database Connection{/tr}{else}{tr}Database Connection{/tr}{/if}{if $install_step eq '3'}</strong>{elseif $dbcon eq 'y'}</a>{/if}</li>
 						<li>{if $install_step eq '4'}<strong>{elseif $dbcon eq 'y' or isset($smarty.post.scratch) or isset($smarty.post.update)}<a href="#" onclick="$('#install_step4').submit();return false;" title="{if $tikidb_created}{tr}Install/Upgrade{/tr}{else}{tr}Install{/tr}{/if}">{/if}{if $tikidb_created}<em>{tr}Install/Upgrade{/tr}</em>{else}{tr}Install{/tr}{/if}{if $install_step eq '4'}</strong>{elseif ($dbcon eq 'y') or (isset($smarty.post.scratch)) or (isset($smarty.post.update))}</a>{/if}</li>
 						<li>{if $install_step eq '5'}<strong>{elseif $tikidb_is20}<a href="#" onclick="$('#install_step5').submit();return false;" title="{if isset($smarty.post.update)}{tr}Review the Upgrade{/tr}{else}{tr}Review the Installation{/tr}{/if}">{/if}{if isset($smarty.post.update)}{tr}Review the Upgrade{/tr}{else}{tr}Review the Installation{/tr}{/if}{if $install_step eq '5'}</strong>{elseif $tikidb_is20}</a>{/if}</li>
 						<li>{if $install_step eq '6'}<strong>{elseif $tikidb_is20 and !isset($smarty.post.update)}<a href="#" onclick="$('#install_step6').submit();return false;" title="{tr}Configure the General Settings{/tr}">{/if}{tr}Configure the General Settings{/tr}{if $install_step eq '6'}</strong>{elseif $tikidb_is20 and !isset($smarty.post.update)}</a>{/if}</li>
-						<li>{if $install_step eq '7'}<strong>{elseif $tikidb_is20}<a href="#" onclick="$('#install_step7').submit();return false;" title="{tr}Enter Your Tiki{/tr}">{/if}{tr}Enter Your Tiki{/tr}{if $install_step eq '7'}</strong>{elseif $tikidb_is20}</a>{/if}</li>
+						<li>{if $install_step eq '7'}<strong>{elseif $tikidb_is20}<a href="#" onclick="$('#install_step7').submit();return false;" title="{tr}Important Tiki Admin Information{/tr}">{/if}{tr}Last Notes{/tr}{if $install_step eq '7'}</strong>{elseif $tikidb_is20}</a>{/if}</li>
+						<li>{if $install_step eq '8'}<strong>{elseif $tikidb_is20}<a href="#" onclick="$('#install_step8').submit();return false;" title="{tr}Enter Your Tiki{/tr}">{/if}{tr}Enter Your Tiki{/tr}{if $install_step eq '8'}</strong>{elseif $tikidb_is20}</a>{/if}</li>
 					</ol>
 					<form method="post" action="tiki-install.php" id="install_step0">
 						<input type="hidden" name="install_step" value="0">
@@ -64,6 +65,11 @@
 						{if $multi}<input type="hidden" name="multi" value="{$multi}">{/if}
 						{if $lang}<input type="hidden" name="lang" value="{$lang}">{/if}
 					</form>
+					<form method="post" action="tiki-install.php" id="install_step8">
+						<input type="hidden" name="install_step" value="8">
+						{if $multi}<input type="hidden" name="multi" value="{$multi}">{/if}
+						{if $lang}<input type="hidden" name="lang" value="{$lang}">{/if}
+					</form>
 				</div>
 			</div><!-- End of install-menu -->
 			<div class="install-help panel panel-default">
@@ -72,7 +78,7 @@
 				</div>
 				<div class="panel-body">
 					<ul class="nav nav-pills nav-stacked">
-						<li><a href="https://tiki.org" target="_blank"><img src="favicon.png" alt="{tr}Tiki Icon{/tr}"> {tr}Tiki Project Web Site{/tr}</a></li>
+						<li><a href="https://tiki.org" target="_blank"><img src="themes/base_files/favicons/favicon-16x16.png" alt="{tr}Tiki Icon{/tr}"> {tr}Tiki Project Web Site{/tr}</a></li>
 						<li><a href="https://doc.tiki.org" target="_blank" title="{tr}Documentation{/tr}">{icon name="documentation"} {tr}Documentation{/tr}</a></li>
 						<li><a href="https://tiki.org/forums" target="_blank" title="{tr}Forums{/tr}">{icon name="admin_forums"} {tr}Support Forums{/tr}</a></li>
 					</ul>
@@ -81,20 +87,20 @@
 		</div>
 
 		<div class="col-md-9 install-steps">
-
+			{feedback}
 			{if $install_step eq '0' or !$install_step}{* start of installation *}
 				<div class="install-step0">
 					<h1 class="pagetitle">{tr}Welcome{/tr}</h1>
 					<p>{tr}Welcome to the Tiki installation and upgrade script.{/tr} {tr}Use this script to install a new Tiki database or upgrade your existing database to release{/tr} <strong>{$tiki_version_name}</strong></p>
 					<ul>
-						<li>{tr}For the latest information about this release, please read the{/tr} <a href="https://tiki.org/tiki-index.php?page=ReleaseNotes{$tiki_version_name|urlencode}" target="_blank">{tr}Release Notes{/tr}</a>.</li>
+						<li>{tr}For the latest information about this release, please read the{/tr} <a href="https://doc.tiki.org/Tiki{$tiki_version_short|urlencode}" target="_blank">{tr}Release Notes{/tr}</a>.</li>
 						<li>{tr}For complete documentation, please visit{/tr} <a href="https://doc.tiki.org" target="_blank">doc.tiki.org</a>.</li>
 						<li>{tr}For more information about Tiki, please visit{/tr} <a href="https://tiki.org" target="_blank">tiki.org</a>.</li>
 					</ul>
 					<form action="tiki-install.php" method="post" role="form">
 						<div class="form-group">
 							<label for="general-lang">{tr}Select your language{/tr}</label>
-							<select name="lang" id="general-lang" onchange="$('input[name=lang]:hidden').val($(this).val()); this.form.submit();" title="{tr}Select your language{/tr}" class="form-control">
+							<select name="lang" id="general-lang" onchange="$('.install-steps').tikiModal(tr('Loading...')); $('input[name=lang]:hidden').val($(this).val()); this.form.submit();" title="{tr}Select your language{/tr}" class="form-control">
 								{section name=ix loop=$languages}
 									<option value="{$languages[ix].value|escape}"
 										{if $prefs.site_language eq $languages[ix].value}selected="selected"{/if}>{$languages[ix].name}
@@ -121,7 +127,7 @@
 
 			{elseif $install_step eq '1'}
 				<div class="install-step1">
-					<h1>{tr}Read the License{/tr}</h1>
+					<h1>{tr}License{/tr}</h1>
 					<p>{tr}Tiki is software distributed under the LGPL license.{/tr} </p>
 					<div align="center" style="margin-top:1em;">
 						<iframe src="license.txt" width="700" height="300" style="width:700px;height:300px"> </iframe>
@@ -166,7 +172,7 @@
 						<form action="tiki-install.php#mail" method="post" role="form">
 							<div class="form-group">
 								<label for="email_test_to">{tr}Test email:{/tr}</label>
-								<input type="text" size="40" name="email_test_to" id="email_test_to" value="{if isset($email_test_to)}{$email_test_to}{/if}">
+								<input type="text" size="40" name="email_test_to" id="email_test_to" value="{if isset($email_test_to)}{$email_test_to}{/if}" placeholder="{tr}tiki@example.com{/tr}">
 								{if isset($email_test_err)}<span class="attention"><em>{$email_test_err}</em></span>
 								{else}<em>{tr}Email address to send test to.{/tr}</em>{/if}
 								<br><br>
@@ -196,7 +202,7 @@
 					<h2>{tr}Image Processing{/tr}</h2>
 					{if $gd_test eq 'y'}
 						{remarksbox type=confirm title="{tr}Success{/tr}" close="n"}
-							{icon name="ok"} {tr}Tiki detected:{/tr} <strong>GD {$gd_info}</strong>
+							{icon name="ok"} {tr}Tiki detected:{/tr} <strong>GD {if $lang eq 'he' or $lang eq 'ar'}{$gd_info|regex_replace:"/[()]/":""}{else}{$gd_info}{/if}</strong>
 							{if $sample_image eq 'y'}
 								<p>{icon name="ok"} {tr}Tiki can create images.{/tr}</p>
 							{else}
@@ -211,7 +217,6 @@
 						{/remarksbox}
 					{/if}
 					<p>{tr}Tiki uses the GD library to process images for the Image Gallery and CAPTCHA support.{/tr}</p>
-					<p>{tr}By default Tiki save your images and files in the database to make the setup as easy as possible.{/tr}<br />{tr}This setting can be changed later in the Control Panels, File Galleries section General Settings.{/tr}<br />{tr}If you need to store a lot of files you should consider switching from "Store to database" to "Store to directory".{/tr}</p>
 					<form action="tiki-install.php" method="post" role="form">
 						<div class="form-group text-center">
 							<input type="hidden" name="install_step" value="3">
@@ -234,8 +239,8 @@
 					{else}
 						{remarksbox type=confirm title="{tr}Success{/tr}" close="n"}
 							{if $dbname}
-								{tr}Tiki found an existing database connection in your local.php file.{/tr}
-								<strong>{tr _0=$dbname}Database name: &quot;%0&quot;{/tr}</strong>
+								{tr}Tiki found an existing database connection in your local.php file.{/tr}<br>
+								<strong>{tr _0=$dbname}Database name: %0{/tr}</strong>
 							{else}
 								{tr}Tiki found an automatic database connection for your environment.{/tr}
 							{/if}
@@ -248,20 +253,8 @@
 								<input type="submit" class="btn btn-primary" value=" {tr}Use Existing Connection{/tr} ">
 							</form>
 							<hr>
-							<a href="#" onclick="$('#installer_3_new_db_form').toggle();return false;" class="btn btn-link">{tr}Modify database connection{/tr}</a>
+							<a href="#" onclick="$('#installer_3_new_db_form').toggle();return false;" class="btn btn-warning">{tr}Modify database connection{/tr}</a>
 						</div>
-					{/if}
-					{if $tikifeedback}
-						<br>
-						{section name=n loop=$tikifeedback}
-							<div class="alert {if $tikifeedback[n].num > 0} alert-warning{/if}">
-								{if $tikifeedback[n].num > 0}
-									{icon name="error"} {$tikifeedback[n].mes}
-								{else}
-									{icon name="ok"} {$tikifeedback[n].mes}
-								{/if}
-							</div>
-						{/section}
 					{/if}
 					<div id="installer_3_new_db_form"{if $dbcon eq 'y'} style="display:none;"{/if}>
 						<p>{tr}Use this page to create a new database connection, or use the <a href="https://doc.tiki.org/Manual+Installation" target="_blank" title="manual installation">manual installation process</a>.{/tr} <a href="https://doc.tiki.org/Manual+Installation" target="_blank" title="{tr}Help{/tr}">{icon name="help"}</a></p>
@@ -277,7 +270,7 @@
 								<legend>{tr}Database information{/tr}</legend>
 								<p>{tr}Enter your database connection information.{/tr}</p>
 								<div class="form-group">
-									<label for="db">{tr}Database type:{/tr}</label>
+									<label for="db">{tr}DBMS driver:{/tr}</label>
 									<div style="margin-left:1em">
 										<select class=form-control name="db" id="db">
 											{foreach key=dsn item=dbname from=$dbservers}
@@ -290,8 +283,8 @@
 											{icon name="help"}
 										</a>
 										<div style="display:none" id="db_help">
-											<p>{tr}Select the type of database to use with Tiki.{/tr}</p>
-											<p>{tr}Only databases supported by your PHP installation are listed here. If your database is not in the list, try to install the appropriate PHP extension.{/tr}</p>
+											<p>{tr}Select the database driver to use with Tiki.{/tr}</p>
+											<p>{tr}Only drivers supported by your PHP installation are listed here. If your driver is not in the list, try to install the appropriate PHP extension.{/tr}</p>
 										</div>
 									</div>
 								</div>
@@ -312,25 +305,27 @@
 								<div class="form-group">
 									<label for="name">{tr}Database name:{/tr}</label>
 									<div style="margin-left:1em;">
-										<input type="text" class=form-control id="name" name="name" size="40" value="{if isset($smarty.request.name)}{$smarty.request.name|escape:"html"}{elseif isset($preconfigname)}{$preconfigname|escape:"html"}{/if}" />
+										<input type="text" class=form-control id="name" name="name" size="40" value="{if isset($smarty.request.name)}{$smarty.request.name|escape:"html"}{elseif isset($preconfigname)}{$preconfigname|escape:"html"}{/if}" placeholder="{tr}Database name{/tr}"/>
 										<a href="javascript:void(0)" onclick="flip('name_help');" title="{tr}Help{/tr}">
 											{icon name="help"}
 										</a>
-										<br><em>{tr}Enter the name of the database that Tiki will use (if already created) or create (if permitted).{/tr}</em>
+										<br><em>{tr}Name of the database to be used. This database will be created if it does not exist and permissions allow creation.{/tr}</em>
 										<div style="margin-left:1em;display:none;" id="name_help">
-											<p>{tr}You can create the database using Adminer, phpMyAdmin, cPanel, or ask your hosting provider. If the database doesn't exist and the supplied username has permissions, the database will be created.{/tr}</p>
+											<p>{tr}You can create the database using Adminer, MySQL Workbench, phpMyAdmin, cPanel, or ask your hosting provider. If the database doesn't exist and the supplied username has permissions, it will be created.{/tr}</p>
 											<p>{tr}If you are using a database which is already being used for something else (not recommended), check db/tiki.sql to make sure the table names used by Tiki are not already used.{/tr}</p>
 										</div>
 									</div>
 								</div>
 							</fieldset>
+
 							<br>
 							<fieldset>
 								<legend>{tr}Database user{/tr}</legend>
 								<p>{tr}Enter a database user with administrator permission for the Database.{/tr}</p>
 								<div style="padding:5px;">
-									<label for="user">{tr}User name:{/tr}</label> <input type="text" class=form-control id="user" name="user" value="{if (isset($smarty.request.user))}{$smarty.request.user|escape:"html"}{elseif isset($preconfiguser)}{$preconfiguser|escape:"html"}{/if}">
+									<label for="user">{tr}User name:{/tr}</label> <input type="text" class=form-control id="user" name="user" value="{if (isset($smarty.request.user))}{$smarty.request.user|escape:"html"}{elseif isset($preconfiguser)}{$preconfiguser|escape:"html"}{/if}" maxlength="16" placeholder="{tr}Database username{/tr}">
 								</div>
+
 								<div style="padding:5px;">
 									{if isset($preconfigpass)}
 										<label for="pass">{tr}Password:{/tr}</label> <input type="text" class=form-control id="pass" name="pass" value="{$preconfigpass|escape:"html"}" >
@@ -338,7 +333,44 @@
 										<label for="pass">{tr}Password:{/tr}</label> <input type="password" class=form-control id="pass" name="pass" >
 									{/if}
 								</div>
+
+								<div style="padding:5px;">
+									<input type="checkbox" id="create-new-user" name="create_new_user" />
+									<label for="create-new-user">{tr}Create a new user just for this Tiki instance.{/tr}</label>&nbsp;
+								</div>
 							</fieldset>
+
+							<br/>
+							<fieldset id="new-user-fieldset" style="display: none;">
+								<legend>{tr}Administrative database user{/tr}</legend>
+								<p>{tr}Enter database administrator user name and password.{/tr}</p>
+								<div style="padding:5px;">
+									<label for="user">{tr}DB admin user name:{/tr}</label> <input type="text" class=form-control id="root_user" name="root_user" value="{if (isset($smarty.request.root_user))}{$smarty.request.root_user|escape:"html"}{elseif isset($preconfiguser)}{$preconfiguser|escape:"html"}{/if}" placeholder="{tr}DB admin user name{/tr}">
+								</div>
+								<div style="padding:5px;">
+									<label for="pass">{tr}DB admin password:{/tr}</label> <input type="password" class=form-control id="root_pass" name="root_pass" value="{if (isset($smarty.request.root_pass))}{$smarty.request.root_pass|escape:"html"}{/if}">
+								</div>
+							</fieldset>
+							<script type='text/javascript'><!--//--><![CDATA[//><!--
+							;(function(){
+								var user = document.getElementById('user');
+								var create_new_user = document.getElementById('create-new-user');
+								var new_user_fs = document.getElementById('new-user-fieldset');
+
+								if(create_new_user.checked) {
+									new_user_fs.style.display = 'block';
+								}
+
+								create_new_user.addEventListener('click', function(){
+									if(create_new_user.checked) {
+										new_user_fs.style.display = 'block';
+									} else {
+										new_user_fs.style.display = 'none';
+									}
+								});
+							})();//--><!]]></script>
+
+							<br/>
 							<input type="hidden" name="resetdb" value="y">
 							<fieldset>
 								<legend>{tr}Character set{/tr}</legend>
@@ -356,7 +388,7 @@
 
 			{elseif $install_step eq '4'}
 				<div class="install-step4">
-					<h1>{if $tikidb_created}{tr}Install &amp; Upgrade{/tr}{else}{tr}Install{/tr}{/if}</h1>
+					<h1>{if $tikidb_created}{tr}Install & Upgrade{/tr}{else}{tr}Install{/tr}{/if}</h1>
 					{if $max_exec_set_failed eq 'y'}
 						{remarksbox type="warning" title="{tr}Warning{/tr}" close="n"}
 							{tr}Failed to set max_execution_time for PHP. You may experience problems when creating/upgrading the database using this installer on a slow system. This can manifest itself by a blank page.{/tr}
@@ -373,7 +405,7 @@
 					{if ($database_charset neq 'utf8' or isset($legacy_collation)) and $tikidb_created}
 						{remarksbox type=error title="{tr}Encoding Issue{/tr}" close="n"}
 							{if isset($legacy_collation)}
-								<strong style="color: red">Something is wrong with the database encoding.</strong> The schema has UTF-8 as default encoding but some tables in the schema have a different collation, {$legacy_collation}. Converting to UTF-8 may solve this but may also make matters worse. You should investigate what happened or only proceed with backups.
+								<strong style="color: red">Something is wrong with the database encoding.</strong> The database has UTF-8 as default encoding but some tables in the database have a different collation, {$legacy_collation}. Converting to UTF-8 may solve this but may also make matters worse. You should investigate what happened or only proceed with backups.
 							{else}
 								{tr _0=$database_charset}<p>Your database encoding is <strong>not</strong> in UTF-8.</p><p>Current encoding is <em>%0</em>. The languages that will be available for content on the site will be limited. If you plan on using languages not covered by the character set, you should re-create or alter the database so the default encoding is <em>utf8</em>.</p>{/tr}
 							{/if}
@@ -403,7 +435,7 @@
 										<h3>{tr}Install{/tr}</h3>
 										{if $tikidb_created}
 											{remarksbox type="warning" title="{tr}Warning{/tr}" close="n"}
-												{tr _0=$dbname}This will destroy your current database &quot;%0&quot;.{/tr}
+												{tr _0=$dbname}This will destroy your current database : %0.{/tr}
 											{/remarksbox}
 										{/if}
 										{if $tikidb_created}
@@ -416,7 +448,7 @@
 											{/literal}
 											//--><!]]></script>
 											<div id="install-link">
-												<p style="text-align:center"><a style="color: #1174a5;" href="javascript:install()">{tr}Reinstall the database{/tr}</a></p>
+												<p class="text-center"><a class="btn btn-warning" href="javascript:install()">{tr}Reinstall the database{/tr}</a></p>
 											</div>
 											<div id="install-table" style="visibility:hidden">
 										{else}
@@ -431,7 +463,7 @@
 										{else}
 											<input type="hidden" name="useInnoDB" value="0">
 										{/if}
-										<p align="center">
+										<p class="text-center">
 											<input type="submit" class="btn btn-warning" name="scratch" value="{if $tikidb_created}{tr}Reinstall{/tr}{else}{tr}Install{/tr}{/if}" style="margin: 32px;">
 										</p>
 										</div><!-- End of install-table -->
@@ -447,7 +479,7 @@
 											<p>{tr}Automatically upgrade your existing database to version{/tr}
 												<strong>{$tiki_version_name}</strong>.
 											</p>
-											<p align="center"><input type="submit" class="btn btn-primary" name="update" value="{tr}Upgrade{/tr}"></p>
+											<p class="text-center"><input type="submit" class="btn btn-primary" name="update" value="{tr}Upgrade{/tr}"></p>
 										</div><!-- End of db-upgrade -->
 									{/if}
 								</form>
@@ -558,7 +590,7 @@
 									<label for="browsertitle">
 										{tr}Browser title:{/tr}
 									</label>
-									<input class="form-control" type="text" size="40" name="browsertitle" id="browsertitle" onclick="if (this.value=="{tr}My Tiki{/tr}") this.value='';" onfocus="origval=this.value;" onblur="if (this.value=='') this.value=origval;" value="{if $prefs.browsertitle eq ''}{tr}My Tiki{/tr}{else}{$prefs.browsertitle|escape}{/if}">
+									<input class="form-control" type="text" size="40" name="browsertitle" id="browsertitle" value="{if $prefs.browsertitle}{$prefs.browsertitle|escape}{else}{tr}My Tiki{/tr}{/if}">
 									<span class="help-block">
 										{tr}This will appear in the browser title bar.{/tr}
 									</span>
@@ -567,22 +599,20 @@
 									<label for="sender_email">
 										{tr}Sender email:{/tr}
 									</label>
-									<input type="text" class="form-control" size="40" name="sender_email" id="sender_email" value="{$prefs.sender_email|escape}">
+									<input type="text" class="form-control" size="40" name="sender_email" id="sender_email" value="{$prefs.sender_email|escape}" placeholder="{tr}tiki@example.com{/tr}">
 									<span class="help-block">
 										{tr}Email sent by your site will use this address.{/tr}
 									</span>
 								</div>
 								<div style="padding:5px; clear:both">
-									<div style="padding:5px; clear:both">
-										<label for="network_proxy">{tr}Network Proxy?{/tr}</label> <a href="#" onclick="$('#use_proxy_childcontainer').toggle();return false;">{tr}Toggle section display{/tr}</a>
-										<div id="use_proxy_childcontainer"{if $prefs.use_proxy neq 'y'} style="display:none;"{/if}>
+									<details>
+											<summary><label>{tr}Network Proxy?{/tr}</label> {tr}Toggle section display{/tr}</summary>
 											<div style="margin-left:1em"><label for="use_proxy">{tr}Use proxy{/tr}</label> <input type="checkbox" name="use_proxy" id="use_proxy"{if $prefs.use_proxy eq 'y'} checked="checked"{/if}><a href="https://doc.tiki.org/General+Settings" target="_blank" title="{tr}Help{/tr}">{icon name="help"}</a></div>
 											<div style="margin-left:1em"><label for="proxy_host">{tr}Proxy host name{/tr}</label><input type="text" class="form-control" size="40" name="proxy_host" id="proxy_host" value="{$prefs.proxy_host|escape}"></div>
 											<div style="margin-left:1em"><label for="proxy_port">{tr}Port{/tr}</label><input type="text" class="form-control" size="40" name="proxy_port" id="proxy_port" value="{$prefs.proxy_port|escape}"></div>
 											<div style="margin-left:1em"><label for="proxy_user">{tr}Proxy username{/tr}</label><input type="text" class="form-control" size="40" name="proxy_user" id="proxy_user" value="{$prefs.proxy_user|escape}"></div>
 											<div style="margin-left:1em"><label for="proxy_pass">{tr}Proxy password{/tr}</label><input type="text" class="form-control" size="40" name="proxy_pass" id="proxy_pass" value="{$prefs.proxy_pass|escape}"></div>
-										</div>
-									</div>
+									</details>
 								</div>
 							</fieldset>
 							<br>
@@ -658,7 +688,7 @@
 									<label for="admin_email">
 										{tr}Admin email:{/tr}
 									</label>
-									<input type="text" class="form-control" size="40" name="admin_email" id="admin_email" value="{if isset($admin_email)}{$admin_email}{/if}">
+									<input type="text" class="form-control" size="40" name="admin_email" id="admin_email" value="{if isset($admin_email)}{$admin_email}{/if}" placeholder="{tr}admin@example.com{/tr}">
 									<span class="help-block">
 										{tr}This is the email address for your administrator account.{/tr}
 									</span>
@@ -728,16 +758,72 @@
 				</div><!-- End of install-step6 -->
 
 			{elseif $install_step eq '7'}
-				<div class="install-step7">
-					<h1 class="pagetitle">{tr}Enter Your Tiki{/tr}</h1>
-					<p>{tr}The installation is complete!{/tr} {tr}Your database has been configured and Tiki is ready to run.{/tr} </p>
-					{remarksbox type='tip' title="{tr}Join us!{/tr}" close="n"}
-						{tr}Tiki is an open source project, you can <a href='https://tiki.org/Join' target='_blank' class="alert-link">join the community</a> and help <a href='https://dev.tiki.org' target='_blank' class="alert-link">develop Tiki</a>.{/tr}
-					{/remarksbox}
-					{remarksbox type='tip' title="{tr}Stay up-to-date{/tr}" close="n"}
-						{tr}Subscribe to the <a href="https://tiki.org/Newsletter" title="Subscribe" target="_blank" class="alert-link">Tiki newsletter</a> or <a href="https://tiki.org/tiki-articles_rss.php" title="RSS" target="_blank" class="alert-link">RSS feed</a> to learn about new releases, security updates, and community news.{/tr}
-					{/remarksbox}
+			<div class="install-step7">
+				<h1>{tr}Last Notes{/tr}</h1>
+				{remarksbox type=note title="{tr}Important{/tr}" close="n"}
+					{tr}Read the following information to ensure that your website data stays protected, your site healthy and you don't unnecessarily loose time or data while setting up your Tiki site now or while maintaining it in the future.{/tr}
+				{/remarksbox}
+				<form action="tiki-install.php" method="post">
+					<div class="clearfix">
+						<fieldset>
+							<legend>
+								{icon name="shield"} {tr}Subscribe to Tiki Releases newsletter{/tr} - {tr}Critical & Security update{/tr}
+							</legend>
+							{tr}It is highly recommended that you subscribe to the Tiki Releases newsletter, so that you receive important notices about new releases and critical security updates.{/tr}
+							{tr}We don't share subscribed emails and we send very few of these newsletters per year.{/tr}<br /><br />
+							{tr}Please use the following link and subscribe:{/tr} <a href="https://tiki.org/tiki-newsletters.php?nlId=8&info=1" title="Subscribe" target="_blank" class="text-danger">{tr}Tiki Releases newsletter{/tr}</a>
+						</fieldset>
+						</br>
+						<fieldset>
+							<legend>
+								{icon name="magic"}{icon name="filter"} {tr}First Wizards, then Control Panels with Preference Filter{/tr}
+							</legend>
+							{tr}Tiki contains thousands of options and parameters (what we call "preferences"), which can be overwhelming for a new site administrator.{/tr}
+							{tr}That's why we suggest you to start by using our <a class='alert-link' target='tikihelp' href='https://doc.tiki.org/Wizards'>Wizards</a> ({icon name='magic'}).{/tr}
+							{tr}Once basic parameters will be set, you will always be able to gain full control of the options using the Control Panels. Note: basic preferences will be displayed by default after a new install.{/tr}<br /><br />
+							{tr}You can modify the default filter choice at your own convenience to also display Advanced, Experimental or Unavailable preferences in Control Panels.{/tr}
+							{tr}You'll find the <a class='alert-link' target='tikihelp' href='https://doc.tiki.org/Preference+Filters'>Preference Filter</a> at the top of the Navigation Bar in the <a class='alert-link' target='tikihelp' href='https://doc.tiki.org/Control+Panels'>Control Panels</a> by clicking on the funnel icon ({icon name='filter'}) or use the search box provided.{/tr}<br />
+						</fieldset>
+						</br>
+						<fieldset>
+							<legend>
+								{icon name="floppy-o"} {tr}Storing your uploaded files{/tr}
+							</legend>
+							{tr}To ease the install process and first access, Tiki saves your uploaded files (office documents, images, pdf, etc. attached to wiki pages, forum posts, tracker items, file galleries, ...) by default in its database.{/tr}
+							{tr}This works perfectly in most cases but it is not the recommended setup if you need to save many thousands of files or more.{/tr} <br /><br />{tr}In that case, consider switching from "<strong>Store to database</strong>" to "<strong>Store to directory</strong>", which you will find in the <em>Configuration Wizard - Set up File Gallery & Attachments</em> or in the <em>Control Panels - File Galleries</em> where you will be able to migrate your currently uploaded files from one to the other.{/tr}<br />
+							<br />
+						</fieldset>
+						</br>
+						<fieldset>
+							<legend>
+								{icon name="group"} {tr}Tiki Community{/tr}
+							</legend>
+							{tr}The Tiki Community is a global network of developers, site operators, <a href='https://tiki.org/Consultants' target='_blank'>consultants</a> and end users.{/tr}<br />
+							<ul>
+								<li><a href='https://tiki.org/Join' target='_blank'>{tr}Join the Community{/tr}</a></li>
+								<li><a href='https://tiki.org/Help' target='_blank'>{tr}Get Help with Tiki{/tr}</a></li>
+								<li><a href='https://tiki.org/Consultants' target='_blank'>{tr}Hire a Tiki Service Provider{/tr}</a></li>
+								<li>{tr}Help to improve the <a href='https://dev.tiki.org/' target='_blank'>Code</a> and the <a href='https://doc.tiki.org/' target='_blank'>Documentation</a>{/tr}</li>
+							</ul>
+						</fieldset>
+					</div>
 
+					<div align="center" style="margin-top:1em;">
+						{if $multi}<input type="hidden" name="multi" value="{$multi}">{/if}
+						{if $lang}<input type="hidden" name="lang" value="{$lang}">{/if}
+						<input type="hidden" name="install_step" value="8">
+						<input type="hidden" name="install_type" value="{$install_type}">
+						<input type="submit" class="btn btn-primary" value="{tr}Continue{/tr}">
+					</div>
+				</form>
+			</div><!-- End of install-step7 -->
+
+		{elseif $install_step eq '8'}
+				<div class="install-step8">
+					<h1 class="pagetitle">{tr}Enter Your Tiki{/tr}</h1>
+					{remarksbox type='confirm' title="{tr}Ready to run{/tr}" close="n"}
+					<p>{tr}The installation is complete!{/tr} {tr}Your database has been configured and Tiki is ready to run.{/tr} </p>
+					{/remarksbox}
 					{if isset($htaccess_error) and $htaccess_error eq 'y'}
 						<h3>{tr}.htaccess File{/tr} <a title="{tr}Help{/tr}" href="https://doc.tiki.org/Installation" target="help">{icon name="help"}</a></h3>
 						{tr}We recommend enabling the <strong>.htaccess</strong> file for your Tiki{/tr}. {tr}This will enable you to use SEFURLs (search engine friendly URLs) and help improve site security{/tr}.
@@ -758,25 +844,25 @@
 					{/if}
 					{if isset($smarty.post.update)}
 						<h3>{icon name='information'} {tr}Upgrade{/tr}</h3>
-						<p>{tr}If this is an upgrade, clean the Tiki caches manually (the <strong>templates_c</strong> directory) or by using the <strong>Admin &gt; System</strong> option from the Admin menu.{/tr}</p>
+						<p>{tr}If this is an upgrade, clean the Tiki caches manually (the <strong>temp/templates_c</strong> directory) or by using the <strong>Admin &gt; System</strong> option from the Admin menu.{/tr}</p>
 					{/if}
 					{if $tikidb_is20}
-						<form method="post" action="tiki-install.php" style="float: left">
+						<form method="post" action="tiki-install.php" class="btn pvtVertList">
 							{if $multi}
 								<input type="hidden" name="multi" value="{$multi|escape}">
 							{/if}
 							<input type="hidden" name="install_type" value="{$install_type}">
-							<input type="hidden" name="install_step" value="8">
+							<input type="hidden" name="install_step" value="9">
 							<input type="submit" value="{tr}Enter Tiki and Lock Installer{/tr} ({tr}Recommended{/tr})" class="btn btn-primary">
 						</form>
-						<form method="post" action="tiki-install.php" style="margin-left: 20px; display: inline-block;">
+						<form method="post" action="tiki-install.php" class="btn pvtVertList">
 							<input type="hidden" name="nolockenter" value="1">
 							{if $multi}
 								<input type="hidden" name="multi" value="{$multi|escape}">
 							{/if}
 							<input type="hidden" name="install_type" value="{$install_type}">
-							<input type="hidden" name="install_step" value="8">
-							<input type="submit" value="{tr}Enter Tiki Without Locking Installer{/tr}" class="btn btn-default">
+							<input type="hidden" name="install_step" value="9">
+							<input type="submit" value="{tr}Enter Tiki Without Locking Installer{/tr}" class="btn btn-warning">
 							<br><em><span class="text-warning">{icon name="warning"}</span> {tr}Not recommended due to security risk{/tr}.</em>
 						</form>
 					{/if}
@@ -832,7 +918,7 @@
 												</select>
 												<span class="input-group-btn"><input type="submit" class="btn btn-danger btn-sm" name="fix_double_encoding" value="{tr}Click to fix double encoding (dangerous){/tr}"></span>
 											</div>
-											<input type="hidden" name="install_step" value="7">
+											<input type="hidden" name="install_step" value="8">
 										</div>
 									{else}
 										<p>{tr}Oops. You need to make sure client charset is forced to UTF-8. Reset the database connection to continue.{/tr}</p>
@@ -841,7 +927,7 @@
 							</form>
 						{/if}
 					{/if}
-				</div><!-- End of install-step7 -->
+				</div><!-- End of install-step8 -->
 
 			{/if}{* end elseif $install_step... *}
 
@@ -897,6 +983,6 @@
 
 	<div class="row install-footer text-center">
 		<hr>
-		<a href="https://tiki.org" target="_blank" title="{tr}Powered by{/tr} {tr}Tiki Wiki CMS Groupware{/tr} &#169; 2002&#8211;{$smarty.now|date_format:"%Y"} " class="btn"><img src="img/tiki/tikibutton.png" alt="{tr}Powered by Tiki Wiki CMS Groupware{/tr}"></a>
+		<a href="https://tiki.org" target="_blank" title="{tr}Powered by{/tr} {tr}Tiki Wiki CMS Groupware{/tr} &copy; 2002–{$smarty.now|date_format:"%Y"} " class="btn"><img src="img/tiki/tikibutton.png" alt="{tr}Powered by Tiki Wiki CMS Groupware{/tr}"></a>
 	</div><!-- End of install-footer -->
 </div><!-- End of tiki-install container -->

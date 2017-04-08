@@ -8,6 +8,7 @@
 namespace Tiki\Command;
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -42,6 +43,8 @@ class IndexRebuildCommand extends Command
 
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
+		global $num_queries;
+
 		$force = $input->getOption('force');
 		if ($input->getOption('log')) {
 			$log = 2;
@@ -59,7 +62,19 @@ class IndexRebuildCommand extends Command
 
 		if (!$cron) { $output->writeln('Started rebuilding index...'); }
 
+		$timer = new \timer();
+		$timer->start();
+
+		$memory_peak_usage_before = memory_get_peak_usage();
+
+		$num_queries_before = $num_queries;
+
 		$result = $unifiedsearchlib->rebuild($log);
+
+		// Also rebuild admin index
+		\TikiLib::lib('prefs')->rebuildIndex();
+
+		$queries_after = $num_queries;
 
 		if ($result) {
 			if (!$cron) {
@@ -68,15 +83,21 @@ class IndexRebuildCommand extends Command
 					$output->writeln("  $key: $val");
 				}
 				$output->writeln('Rebuilding index done');
+				$output->writeln('Execution time: ' . FormatterHelper::formatTime($timer->stop()));
+				$output->writeln('Current Memory usage: ' . FormatterHelper::formatMemory(memory_get_usage()));
+				$output->writeln('Memory peak usage before indexing: ' . FormatterHelper::formatMemory($memory_peak_usage_before));
+				$output->writeln('Memory peak usage after indexing: ' . FormatterHelper::formatMemory(memory_get_peak_usage()));
+				$output->writeln('Number of queries: ' . ($queries_after - $num_queries_before));
 			}
 			return(0);
 		} else {
-			$errlib = \TikiLib::lib('errorreport');
-
-			foreach ($errlib->get_errors() as $message) {
-				$output->writeln("<info>$message</info>");
+			$errors = \Feedback::get();
+			if (is_array($errors)) {
+				foreach ($errors as $message) {
+					$output->writeln("<info>$message</info>");
+				}
+				$output->writeln("\n<error>Search index rebuild failed. Last messages shown above.</error>");
 			}
-			$output->writeln("\n<error>Search index rebuild failed. Last messages shown above.</error>");
 			return(1);
 		}
 	}

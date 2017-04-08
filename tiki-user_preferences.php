@@ -117,13 +117,6 @@ if ($prefs['feature_userPreferences'] == 'y' && isset($_REQUEST["new_prefs"])) {
 		$tikilib->set_user_preference($userwatch, 'display_timezone', $_REQUEST['display_timezone']);
 	}
 	$tikilib->set_user_preference($userwatch, 'user_information', $_REQUEST['user_information']);
-	if (isset($_REQUEST['user_dbl']) && $_REQUEST['user_dbl'] == 'on') {
-		$tikilib->set_user_preference($userwatch, 'user_dbl', 'y');
-		$smarty->assign('user_dbl', 'y');
-	} else {
-		$tikilib->set_user_preference($userwatch, 'user_dbl', 'n');
-		$smarty->assign('user_dbl', 'n');
-	}
 	if (isset($_REQUEST['display_12hr_clock']) && $_REQUEST['display_12hr_clock'] == 'on') {
 		$tikilib->set_user_preference($userwatch, 'display_12hr_clock', 'y');
 		$smarty->assign('display_12hr_clock', 'y');
@@ -147,6 +140,9 @@ if ($prefs['feature_userPreferences'] == 'y' && isset($_REQUEST["new_prefs"])) {
 			$smarty->assign('show_mouseover_user_info', 'n');
 		}
 	}
+
+	$tikilib->set_user_preference($userwatch, 'remember_closed_rboxes', empty($_REQUEST['remember_closed_rboxes']) ? 'n' : 'y');
+
 	$email_isPublic = isset($_REQUEST['email_isPublic']) ? $_REQUEST['email_isPublic'] : 'n';
 	$tikilib->set_user_preference($userwatch, 'email is public', $email_isPublic);
 	$tikilib->set_user_preference($userwatch, 'mailCharset', $_REQUEST['mailCharset']);
@@ -247,6 +243,9 @@ if ($prefs['feature_userPreferences'] == 'y' && isset($_REQUEST["new_prefs"])) {
 	if ($prefs['feature_intertiki'] == 'y' && !empty($prefs['feature_intertiki_mymaster']) && $prefs['feature_intertiki_import_preferences'] == 'y') { //send to the master
 		$userlib->interSendUserInfo($prefs['interlist'][$prefs['feature_intertiki_mymaster']], $userwatch);
 	}
+	if (isset($_REQUEST['xmpp_password'])) {
+		$tikilib->set_user_preference($userwatch, 'xmpp_password', trim($_REQUEST['xmpp_password']));
+	}
 
 	TikiLib::events()->trigger(
 		'tiki.user.update', array(
@@ -272,7 +271,7 @@ if (isset($_REQUEST['chgadmin'])) {
 		if ($prefs['feature_intertiki'] == 'y' && !empty($prefs['feature_intertiki_mymaster'])) {
 			if ($ok = $userlib->intervalidate($prefs['interlist'][$prefs['feature_intertiki_mymaster']], $userwatch, $pass)) if ($ok->faultCode()) $ok = false;
 		} else {
-			list($ok, $userwatch, $error) = $userlib->validate_user($userwatch, $pass, '', '');
+			list($ok, $userwatch, $error) = $userlib->validate_user($userwatch, $pass);
 		}
 		if (!$ok) {
 			$smarty->assign('msg', tra("Invalid password. Your current password is required to change administrative information"));
@@ -282,7 +281,7 @@ if (isset($_REQUEST['chgadmin'])) {
 	}
 	if (!empty($_REQUEST['email']) && ($prefs['login_is_email'] != 'y' || $user == 'admin') && $_REQUEST['email'] != $userlib->get_user_email($userwatch)) {
 		$userlib->change_user_email($userwatch, $_REQUEST['email'], $pass);
-		$tikifeedback[] = array('num' => 1, 'mes' => sprintf(tra("Email is set to %s"), $_REQUEST['email']));
+		Feedback::success(sprintf(tra('Email is set to %s'), $_REQUEST['email']));
 		if ($prefs['feature_intertiki'] == 'y' && !empty($prefs['feature_intertiki_mymaster']) && $prefs['feature_intertiki_import_preferences'] == 'y') { //send to the master
 			$userlib->interSendUserInfo($prefs['interlist'][$prefs['feature_intertiki_mymaster']], $userwatch);
 		}
@@ -306,8 +305,7 @@ if (isset($_REQUEST['chgadmin'])) {
 			$cryptlib = TikiLib::lib('crypt');
 			$cryptlib->onChangeUserPassword($_REQUEST["pass"], $_REQUEST["pass1"]);
 		}
-
-		$tikifeedback[] = array('num' => 1, 'mes' => sprintf(tra('Password has been changed')));
+		Feedback::success(sprintf(tra('Password has been changed')));
 	}
 }
 if (isset($_REQUEST['deleteaccount']) && $tiki_p_delete_account == 'y') {
@@ -365,7 +363,6 @@ if (isset($user_preferences[$userwatch]['email is public'])) {
 	$user_preferences[$userwatch]['email_isPublic'] = $user_preferences[$userwatch]['email is public'];
 }
 $tikilib->get_user_preference($userwatch, 'mailCharset', $prefs['default_mail_charset']);
-$tikilib->get_user_preference($userwatch, 'user_dbl', 'y');
 $tikilib->get_user_preference($userwatch, 'display_12hr_clock', 'n');
 $userinfo = $userlib->get_user_info($userwatch);
 $smarty->assign_by_ref('userinfo', $userinfo);
@@ -450,7 +447,6 @@ $smarty->assign('userPageExists', 'n');
 if ($prefs['feature_wiki'] == 'y' and $prefs['feature_wiki_userpage'] == 'y') {
 	if ($tikilib->page_exists($prefs['feature_wiki_userpage_prefix'] . $user)) $smarty->assign('userPageExists', 'y');
 }
-$smarty->assign_by_ref('tikifeedback', $tikifeedback);
 include_once ('tiki-section_options.php');
 ask_ticket('user-prefs');
 $smarty->assign('mid', 'tiki-user_preferences.tpl');

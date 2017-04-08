@@ -19,14 +19,14 @@ $paths = array(
 		realpath('../..'),
 		realpath('core'),
 		realpath('../pear'),
-        realpath('../../vendor'),
-        realpath('../../vendor/mikey179/vfsStream/src/main/php'),
+        realpath('../../vendor_bundled/vendor'),
+        realpath('../../vendor_bundled/vendor/mikey179/vfsStream/src/main/php'),
         realpath('../../vendor_extra/pear')
 		);
 
 ini_set('include_path', implode(PATH_SEPARATOR, $paths));
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor_bundled/vendor/autoload.php';
 
 if (!is_file(dirname(__FILE__) . '/local.php')) {
 	die("\nYou need to setup a new database and create a local.php file for the test suite inside " . dirname(__FILE__) . "\n\n");
@@ -79,6 +79,15 @@ if (!$installer->tableExists('tiki_preferences')) {
 } else if ($installer->requiresUpdate()) {
 	echo "Updating Tiki database...\n";
 	$installer->update();
+	if ( count($installer->failures) ) {
+		foreach ( $installer->failures as $key => $error ) {
+			list( $query, $message, $patch ) = $error;
+
+			echo "Error $key in $patch\n\t$query\n\t$message\n\n";
+		}
+		echo 'Exiting, fix database issues and try again.';
+		die;
+	}
 }
 
 $pwd = getcwd();
@@ -115,8 +124,16 @@ $systemConfiguration = new Zend\Config\Config(
 global $user_overrider_prefs, $prefs;
 $user_overrider_prefs = array();
 $prefs['language'] = 'en';
-$prefs['site_language'] = 'en';
 require_once 'lib/setup/prefs.php';
+$prefs['site_language'] = 'en';
+$prefs['zend_mail_handler'] = 'file';
+$prefs['feature_typo_quotes'] = 'n';
+$prefs['feature_typo_approximative_quotes'] = 'n';
+$prefs['feature_typo_dashes_and_ellipses'] = 'n';
+$prefs['feature_typo_smart_nobreak_spaces'] = 'n';
+
+$builder = new Perms_Builder;
+Perms::set($builder->build());
 
 ini_set('display_errors', 'on');
 error_reporting(CUSTOM_ERROR_LEVEL);

@@ -13,11 +13,12 @@ function prefs_user_list($partial = false)
 	$fieldFormat = '{title} ({tracker_name})';
 	return array(
 		'user_show_realnames' => array(
-			'name' => tra('Show user\'s real name instead of username (log-in name), when possible'),
+			'name' => tra('Show user\'s real name'),
 			'description' => tra('Show user\'s real name instead of username (log-in name), when possible'),
 			'help' => 'User+Preferences',
 			'type' => 'flag',
 			'default' => 'n',
+			'tags' => array('basic'),
 		),
 		'user_unique_email' => array(
 			'name' => tra('User e-mails must be unique'),
@@ -70,6 +71,7 @@ function prefs_user_list($partial = false)
 			'name' => tra('Size of the small profile picture stored for users'),
 			'help' => 'User+Preferences',
 			'type' => 'text',
+			'units' => tra('pixels'),
 			'filter' => 'digits',
 			'default' => '45',
 		),
@@ -113,10 +115,11 @@ function prefs_user_list($partial = false)
 			'default' => 'n',
 		),
 		'user_who_viewed_my_stuff_days' => array(
-			'name' => tra('Number of days to consider in displaying "who viewed my items"'),
+			'name' => tra('Length of "who viewed my items" history'),
 			'description' => tra('Number of days before the current day to consider when displaying "who viewed my items"'),
 			'type' => 'text',
 			'filter' => 'digits',
+			'units' => tra('days'),
 			'size' => '4',
 			'default' => 90,
 		),
@@ -154,6 +157,15 @@ function prefs_user_list($partial = false)
 				'user_register_pretty_tracker',
 			),
 			'default' => ''
+		),
+		'user_register_prettytracker_hide_mandatory' => array(
+			'name' => tra('Hide Mandatory'),
+			'description' => tra('Hide mandatory fields indication with an asterisk (shown by default).'),
+			'type' => 'flag',
+			'default' => 'n',
+			'dependencies' => array(
+				'user_register_pretty_tracker',
+			),
 		),
 		'user_register_prettytracker_output' => array(
 			'name' => tra('Output the registration results'),
@@ -212,7 +224,17 @@ function prefs_user_list($partial = false)
 			),
 			'default' => '',
 			'profile_reference' => 'tracker_field',
-			'format' => $fieldFormat,
+		),
+		'user_trackersync_groups' => array(
+			'name' => tra('Tracker field IDs to sync user groups'),
+			'description' => tra('Enter the IDs separated by commas of all fields that contain group names to sync user groups to'),
+			'type' => 'text',
+			'size' => '10',
+			'dependencies' => array(
+				'userTracker',
+				'user_trackersync_trackers',
+			),
+			'default' => '',
 		),
 		'user_trackersync_geo' => array(
 			'name' => tra('Synchronize long/lat/zoom to location field'),
@@ -245,35 +267,37 @@ function prefs_user_list($partial = false)
 			'format' => $fieldFormat,
 		),
 		'user_selector_threshold' => array(
-			'name' => tra('Maximum number of users to show in drop-down lists'),
+			'name' => tra('Maximum users n drop-down lists'),
 			'description' => tra('Prevents out-of-memory and performance issues when the user list is very large, by using a jQuery autocomplete text input box.'),
 			'type' => 'text',
 			'size' => '5',
+			'units' => tra('users'),
 			'dependencies' => array('feature_jquery_autocomplete'),
 			'default' => 50,
 		),
 		'user_selector_realnames_tracker' => array(
-			'name' => tra('Show user\'s real name instead of log-in name in the autocomplete selector in trackers'),
+			'name' => tra('Show user\'s real name'),
 			'description' => tra('Use user\'s real name instead of log-in name in the autocomplete selector in trackers'),
 			'type' => 'flag',
 			'dependencies' => array('feature_jquery_autocomplete', 'user_show_realnames', 'feature_trackers'),
 			'default' => 'n',
+
 		),
 		'user_selector_realnames_messu' => array(
-			'name' => tra('Show user\'s real name instead of log-in name in the autocomplete selector in the messaging feature'),
+			'name' => tra('Show user\'s real name'),
 			'description' => tra('Use user\'s real name instead of log-in name in the autocomplete selector in the messaging feature'),
 			'type' => 'flag',
 			'dependencies' => array('feature_jquery_autocomplete', 'user_show_realnames', 'feature_messages'),
 			'default' => 'n',
 		),
 		'user_favorites' => array(
-			'name' => tra('User Favorites'),
+			'name' => tra('User favorites'),
 			'description' => tra('Allows users to flag content as their favorite.'),
 			'type' => 'flag',
 			'default' => 'n',
 		),
 		'user_likes' => array(
-			'name' => tra('User Likes'),
+			'name' => tra('User likes'),
 			'description' => tra('Allows for users to "like" content.'),
 			'type' => 'flag',
 			'default' => 'n',
@@ -310,6 +334,14 @@ function prefs_user_list($partial = false)
 			'type' => 'textarea',
 			'size' => 5,
 			'default' => ''
+		),
+		'user_force_avatar_upload' => array(
+			'name' => tr('Force users to upload an avatar.'),
+			'description' => tr("Forces a user to upload an avatar if they haven't already by prompting them with a modal"),
+			'type' => 'flag',
+			'tags' => array('advanced'),
+			'default' => 'n',
+			'dependencies' => array('feature_userPreferences'),
 		),
 	);
 }

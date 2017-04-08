@@ -28,7 +28,8 @@ function prefs_comments_list()
 		),
 		'comments_vote' => array(
 			'name' => tra('Use vote system for comments'),
-			'description' => tra('Allow users with permission (tiki_p_vote_comments) to vote on comments.'),
+			'description' => tra('Allow users with permission to vote on comments.'),
+			'hint' => tr('Permissions involved: %0', 'vote_comments, wiki_view_comments, ratings_view_results'),
 			'type' => 'flag',
 			'default' => 'n',
 		),
@@ -62,7 +63,7 @@ function prefs_comments_list()
 			'type' => 'flag',
 			'default' => 'n',
 			'tags' => array('advanced'),
-			'keywords' => array('askimet'),			
+			'keywords' => 'askimet',			
 		),
 		'comments_allow_correction' => array(
 			'name' => tr('Allow comments to be edited by their author'),

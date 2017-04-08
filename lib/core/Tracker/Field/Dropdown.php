@@ -43,7 +43,7 @@ class Tracker_Field_Dropdown extends Tracker_Field_Abstract implements Tracker_F
 				'params' => array(
 					'options' => array(
 						'name' => tr('Option'),
-						'description' => tr('If an option contains an equal sign, the part before the equal sign will be used as the value, and the second part as the label. It is recommended to add an "other" option.'),
+						'description' => tr('If an option contains an equal sign, the part before the equal sign will be used as the value, and the second part as the label. You need to add an "other" option (in lowercase, or with "other=Other").'),
 						'filter' => 'text',
 						'count' => '*',
 						'legacy_index' => 0,
@@ -131,7 +131,7 @@ class Tracker_Field_Dropdown extends Tracker_Field_Abstract implements Tracker_F
 
 	function renderInnerOutput($context = array())
 	{
-		if ($context['list_mode'] === 'csv') {
+		if (!empty($context['list_mode']) && $context['list_mode'] === 'csv') {
 			return implode(', ', $this->getConfiguration('selected'));
 		} else {
 			$labels = array_map(array($this, 'getValueLabel'), $this->getConfiguration('selected'));
@@ -141,7 +141,7 @@ class Tracker_Field_Dropdown extends Tracker_Field_Abstract implements Tracker_F
 
 	private function getValueLabel($value)
 	{
-		$possibilities = $this->getConfiguration('possibilities');
+		$possibilities = $this->getPossibilities();
 		if (isset($possibilities[$value])) {
 			return $possibilities[$value];
 		} else {
@@ -303,6 +303,7 @@ class Tracker_Field_Dropdown extends Tracker_Field_Abstract implements Tracker_F
 		$baseKey = $this->getBaseKey();
 
 		$possibilities = $this->getPossibilities();
+		$possibilities['-Blank (no data)-'] = tr('-Blank (no data)-');
 
 		$filters->addNew($permName, 'dropdown')
 			->setLabel($name)
@@ -310,7 +311,9 @@ class Tracker_Field_Dropdown extends Tracker_Field_Abstract implements Tracker_F
 			->setApplyCondition(function ($control, Search_Query $query) use ($baseKey) {
 				$value = $control->getValue();
 
-				if ($value) {
+				if ($value === '-Blank (no data)-') {
+					$query->filterIdentifier('', $baseKey.'_text');
+				} elseif ($value) {
 					$query->filterIdentifier($value, $baseKey);
 				}
 			});
@@ -325,7 +328,11 @@ class Tracker_Field_Dropdown extends Tracker_Field_Abstract implements Tracker_F
 					$sub = $query->getSubQuery("ms_$permName");
 
 					foreach ($values as $v) {
-						$sub->filterIdentifier((string) $v, $baseKey);
+						if ($v === '-Blank (no data)-') {
+							$sub->filterIdentifier('', $baseKey.'_text');
+						} elseif ($v) {
+							$sub->filterContent((string) $v, $baseKey);
+						}
 					}
 				}
 			});

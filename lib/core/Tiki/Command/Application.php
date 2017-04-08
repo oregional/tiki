@@ -19,6 +19,5 @@ class Application extends SymfonyApplication
 		
 		return $definition;
     }
-
 }
 

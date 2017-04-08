@@ -32,12 +32,15 @@ class Services_File_Controller
 			'typeFilter' => $input->type->text(),
 			'uploadInModal' => $input->uploadInModal->int(),
 			'files' => $this->getFilesInfo((array) $input->file->int()),
+			'image_max_size_x'=>$input->image_max_size_x->text(),
+			'image_max_size_y'=>$input->image_max_size_y->text()
+			
 		);
 	}
 
 	function action_upload($input)
 	{
-		if ($input->files->array()) {
+		if ($input->files->asArray()) {
 			return;
 		}
 
@@ -45,7 +48,15 @@ class Services_File_Controller
 
 		$fileId = $input->fileId->int();
 		$asuser = $input->user->text();
-
+			if(!$input->imagesize->word())		
+          {		
+		   $image_x=$input->image_max_size_x->text();		
+		   $image_y=$input->image_max_size_y->text();		
+		  }		
+		else		
+		{  $image_x=$gal_info["image_max_size_x"];		
+		   $image_y=$gal_info["image_max_size_y"];		
+		} 
 		if (isset($_FILES['data'])) {
 			// used by $this->action_upload_multiple and file gallery Files fields (possibly others)
 			if (is_uploaded_file($_FILES['data']['tmp_name'])) {
@@ -77,12 +88,19 @@ class Services_File_Controller
 		if ($fileId) {
 			$this->utilities->updateFile($gal_info, $name, $size, $type, $data, $fileId, $asuser);
 		} else {
-			$fileId = $this->utilities->uploadFile($gal_info, $name, $size, $type, $data, $asuser);
+			$fileId = $this->utilities->uploadFile($gal_info, $name, $size, $type, $data, $asuser,$image_x,$image_y);
 		}
 
 		if ($fileId === false) {
 			throw new Services_Exception(tr('File could not be uploaded. Restrictions apply.'), 406);
 		}
+
+		$cat_type = 'file';
+		$cat_objid = $fileId;
+		$cat_desc = null;
+		$cat_name = $name;
+		$cat_href = "tiki-download_file.php?fileId=$fileId";
+		include('categorize.php');
 
 		return array(
 			'size' => $size,
@@ -97,7 +115,7 @@ class Services_File_Controller
 	/**
 	 * Uploads several files at once, currently from jquery_upload when file_galleries_use_jquery_upload pref is enabled
 	 *
-	 * @param $input
+	 * @param JitFilter $input
 	 * @return array
 	 * @throws Services_Exception
 	 * @throws Services_Exception_NotAvailable
@@ -106,35 +124,34 @@ class Services_File_Controller
 	{
 		global $user;
 		$filegallib = TikiLib::lib('filegal');
-		$errorreportlib = TikiLib::lib('errorreport');
 		$output = ['files' => []];
 
 		if (isset($_FILES['files']) && is_array($_FILES['files']['tmp_name'])) {
 
 			// a few other params that are still arrays but shouldn't be (mostly)
 			if (is_array($input->galleryId->asArray())) {
-				$input->offsetSet('galleryId', $input->galleryId->asArray()[0]);
+				$input->offsetSet('galleryId', $input->asArray('galleryId')[0]);
 			}
 			if (is_array($input->hit_limit->asArray())) {
-				$input->offsetSet('hit_limit', $input->hit_limit->asArray()[0]);
+				$input->offsetSet('hit_limit', $input->asArray('hit_limit')[0]);
 			}
 			if (is_array($input->isbatch->asArray())) {
-				$input->offsetSet('isbatch', $input->isbatch->asArray()[0]);
+				$input->offsetSet('isbatch', $input->asArray('isbatch')[0]);
 			}
 			if (is_array($input->deleteAfter->asArray())) {
-				$input->offsetSet('deleteAfter', $input->deleteAfter->asArray()[0]);
+				$input->offsetSet('deleteAfter', $input->asArray('deleteAfter')[0]);
 			}
 			if (is_array($input->deleteAfter_unit->asArray())) {
-				$input->offsetSet('deleteAfter_unit', $input->deleteAfter_unit->asArray()[0]);
+				$input->offsetSet('deleteAfter_unit', $input->asArray('deleteAfter_unit')[0]);
 			}
 			if (is_array($input->author->asArray())) {
-				$input->offsetSet('author', $input->author->asArray()[0]);
+				$input->offsetSet('author', $input->asArray('author')[0]);
 			}
 			if (is_array($input->user->asArray())) {
-				$input->offsetSet('user', $input->user->asArray()[0]);
+				$input->offsetSet('user', $input->asArray('user')[0]);
 			}
 			if (is_array($input->listtoalert->asArray())) {
-				$input->offsetSet('listtoalert', $input->listtoalert->asArray()[0]);
+				$input->offsetSet('listtoalert', $input->asArray('listtoalert')[0]);
 			}
 
 			for ($i = 0; $i < count($_FILES['files']['tmp_name']); $i++) {
@@ -154,7 +171,7 @@ class Services_File_Controller
 						$file['syntax'] = $filegallib->getWikiSyntax($file['galleryId'], $file['info'], $input->asArray());
 					}
 
-					if ($input->isbatch->word() && stripos($input->type->text(), 'zip') !== false) {
+					if ($input->isbatch->word() && stripos($_FILES['data']['type'], 'zip') !== false) {
 						$errors = [];
 						$perms = Perms::get(['type' => 'file', 'object' => $file['fileId']]);
 						if ($perms->batch_upload_files) {
@@ -167,17 +184,15 @@ class Services_File_Controller
 									$errors
 								);
 							} catch (Exception $e) {
-								$errorreportlib->report($e->getMessage());
+								Feedback::error($e->getMessage(), 'session');
 							}
 							if ($errors) {
-								foreach ($errors as $error) {
-									$errorreportlib->report($error);
-								}
+								Feedback::error(['mes' => $errors], 'session');
 							} else {
 								$file['syntax'] = tr('Batch file processed: "%0"', $file['name']);	// cheeky?
 							}
 						} else {
-							$errorreportlib->report(tra('You don\'t have permission to upload zipped file packages'));
+							Feedback::error(tra('You don\'t have permission to upload zipped file packages'), 'session');
 						}
 					}
 

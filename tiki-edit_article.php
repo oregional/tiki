@@ -74,7 +74,7 @@ if (!empty($_REQUEST['type'])) {
 if (isset($_REQUEST['previewId'])) {
 	$previewId = $_REQUEST['previewId'];
 } else {
-	$previewId = rand();
+	$previewId = mt_rand();
 }
 
 $smarty->assign('articleId', $articleId);
@@ -144,6 +144,7 @@ $smarty->assign('ispublished', '');
 // If the articleId is passed then get the article data
 // GGG - You have to check for the actual value of the articleId because it
 // will be 0 when you select preview while creating a new article.
+$parserlib = TikiLib::lib('parser');
 if (isset($_REQUEST["articleId"]) and $_REQUEST["articleId"] > 0) {
 
 	$cat_lang = $article_data['lang'];
@@ -189,10 +190,10 @@ if (isset($_REQUEST["articleId"]) and $_REQUEST["articleId"] > 0) {
 
 	$body = $article_data['body'];
 	$heading = $article_data['heading'];
-	$smarty->assign('parsed_body', $tikilib->parse_data($body, array('is_html' => $artlib->is_html($article_data))));
+	$smarty->assign('parsed_body', $parserlib->parse_data($body, array('is_html' => $artlib->is_html($article_data))));
 	$smarty->assign(
 		'parsed_heading',
-		$tikilib->parse_data(
+		$parserlib->parse_data(
 			$heading,
 			array(
 				'min_one_paragraph' => true,
@@ -238,14 +239,15 @@ if (isset($_REQUEST['ispublished'])) {
 	}
 }
 
-$errors = array();
+$errors = false;
 if (empty($_REQUEST['emails']) || $prefs['feature_cms_emails'] != 'y')
 $emails = '';
 elseif (!empty($_REQUEST['emails'])) {
 	$emails = explode(',', $_REQUEST['emails']);
 	foreach ($emails as $email) {
 		if (!validate_email($email, $prefs['validateEmail']))
-			$errors[] = tra('Invalid email:').' '.$email;
+			Feedback::warning(tra('Invalid email:').' '.$email);
+			$errors = true;
 	}
 }
 
@@ -401,7 +403,6 @@ if (isset($_REQUEST['preview']) or !empty($errors)) {
 
 	if (isset($_REQUEST['allowhtml']) && $_REQUEST['allowhtml'] == 'on') {
 		$body = $_REQUEST['body'];
-		$parserlib = TikiLib::lib('parser');
 		$noparsed = array();
 		$parserlib->plugins_remove($body, $noparsed);
 
@@ -435,8 +436,8 @@ if (isset($_REQUEST['preview']) or !empty($errors)) {
 
 	$smarty->assign('size', strlen($body));
 
-	$parsed_body = $tikilib->parse_data($body, array('is_html' => $artlib->is_html(array($body))));
-	$parsed_heading = $tikilib->parse_data($heading, array('is_html' => 'y'));
+	$parsed_body = $parserlib->parse_data($body, array('is_html' => $artlib->is_html(array($body))));
+	$parsed_heading = $parserlib->parse_data($heading, array('is_html' => 'y'));
 
 	$smarty->assign('parsed_body', $parsed_body);
 	$smarty->assign('parsed_heading', $parsed_heading);
@@ -485,7 +486,6 @@ if (isset($_REQUEST['save']) && empty($errors)) {
 
 	if (isset($_REQUEST['allowhtml']) && $_REQUEST['allowhtml'] == 'on' || $_SESSION['wysiwyg'] == 'y') {
 		$body = $_REQUEST['body'];
-		$parserlib = TikiLib::lib('parser');
 		$noparsed = array();
 		$parserlib->plugins_remove($body, $noparsed);
 
@@ -687,7 +687,6 @@ if (isset($_REQUEST['save']) && empty($errors)) {
 	header('location: '.$url);
 	exit;
 }
-$smarty->assign_by_ref('errors', $errors);
 
 // Set date to today before it's too late
 $_SESSION['thedate'] = $tikilib->now;

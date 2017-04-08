@@ -194,11 +194,11 @@ foreach ($listevents as $event) {
 	}
 	$events[] = array ( 'id' => $event['calitemId'],
 											'title' => $event['name'],
-											'description' => !empty($event["description"]) ? $tikilib->parse_data($event["description"], array('is_html' => $prefs['calendar_description_is_html'] === 'y')) : "",
+											'description' => !empty($event["description"]) ? TikiLib::lib('parser')->parse_data($event["description"], array('is_html' => $prefs['calendar_description_is_html'] === 'y')) : "",
 											'url' => $url,
 											'allDay' => $event['allday'] != 0 ,
-											'start' => $event['date_start'],
-											'end' => $event['date_end'],
+											'start' => TikiLib::date_format("c", $event['date_start'], false, 5, false),
+											'end' => TikiLib::date_format("c", $event['date_end'], false, 5, false),
 											'editable' => $event['editable'] === 'y',
 											'color' => '#'.$cals_info['data'][$event['calendarId']]['custombgcolor'],
 											'textColor' => '#'.$cals_info['data'][$event['calendarId']]['customfgcolor']);

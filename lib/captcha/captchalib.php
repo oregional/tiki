@@ -67,6 +67,9 @@ class Captcha
 					'public_key' => $prefs['recaptcha_pubkey'],
 				)
 			);
+			$httpClient = TikiLib::lib('tiki')->get_http_client();
+			$this->captcha->getService()->setHttpClient($httpClient);
+
 			$this->captcha->getService()->setOption('theme', isset($prefs['recaptcha_theme']) ? $prefs['recaptcha_theme'] : 'clean');
 
 			$this->captcha->setOption('ssl', true);
@@ -85,6 +88,8 @@ class Captcha
 					'theme' => isset($prefs['recaptcha_theme']) ? $prefs['recaptcha_theme'] : 'clean',
 				)
 			);
+			$httpClient = TikiLib::lib('tiki')->get_http_client();
+			$this->captcha->getService()->setHttpClient($httpClient);
 
 			$this->captcha->setOption('ssl', true);
 
@@ -150,7 +155,8 @@ class Captcha
 				$this->captcha->setSession($session);
 				$this->captcha->setKeepSession(false);
 			}
-		} catch (Zend\Captcha\Exception\ExceptionInterface $e) {
+		} catch (Exception $e) {
+			Feedback::error($e->getMessage());
 		}
 		return $key;
 	}
@@ -234,7 +240,11 @@ Recaptcha.create("' . $this->captcha->getPubKey() . '",
 	 */
 	function getPath()
 	{
-		return $this->captcha->getImgDir() . $this->captcha->getId() . $this->captcha->getSuffix();
+		try {
+			return $this->captcha->getImgDir() . $this->captcha->getId() . $this->captcha->getSuffix();
+		} catch (Exception $e) {
+			Feedback::error($e->getMessage());
+		}
 	}
 
 	/**

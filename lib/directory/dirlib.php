@@ -104,7 +104,7 @@ class DirLib extends TikiLib
 		if ($count < $cant) $cant = $count;
 		$ret = array();
 		while (count($ret) < $cant) {
-			$x = rand(0, $count);
+			$x = mt_rand(0, $count);
 			if (!in_array($x, $ret)) {
 				$ret[] = $x;
 			}
@@ -227,7 +227,7 @@ class DirLib extends TikiLib
 
 		while ($res = $result->fetchRow()) {
 			$res["cats"] = $this->dir_get_site_categories($res["siteId"]);
-			$res["description"] = $this->parse_data($res["description"]);
+			$res["description"] = TikiLib::lib('parser')->parse_data($res["description"]);
 			$ret[] = $res;
 		}
 		$retval = array();

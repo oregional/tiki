@@ -43,7 +43,7 @@
 				</span>
 					<input class="form-control" type="text" name="find" id="find" value="{$find|escape}" placeholder="{if empty($whatlabel)}{tr}Find{/tr}...{else}{tr}{$whatlabel}{/tr}{/if}">
 					{if isset($autocomplete)}
-						{jq}$("#find").tiki("autocomplete", "{{$autocomplete}}"){/jq}
+						{jq}$("#find").tiki("autocomplete", "{{$autocomplete}}");{/jq}
 					{/if}
 					{if $prefs.javascript_enabled eq 'y' and (isset($exact_match) or isset($types) or isset($types_tag) or isset($find_topics) or isset($find_show_languages) or isset($find_lang) or isset($find_show_categories) or isset($find_show_categories_multi) or isset($find_categId) or isset($find_show_num_rows) or isset($find_show_date_range) or isset($find_show_orphans) or isset($find_show_sub) or isset($find_show_other))}
 						<div class="input-group-btn btn btn-default btn-sm find-parameters-btn">
@@ -56,7 +56,7 @@
 				</div>
 				{if !empty($find) or !empty($find_type) or !empty($find_topic) or !empty($find_lang) or !empty($find_langOrphan) or !empty($find_categId) or !empty($find_orphans) or !empty($find_other_val) or $maxRecords ne $prefs.maxRecords}{* $find_date_from & $find_date_to get set usually *}
 					<div class="find-clear-filter text-center">
-						<a href="{$smarty.server.PHP_SELF}?{query find='' type='' types='' topic='' lang='' langOrphan='' exact_match='' categId='' maxRecords=$prefs.maxRecords find_from_Month='' find_from_Day='' find_from_Year='' find_to_Month='' find_to_Day='' find_to_Year=''}" title="{tr}Clear Filter{/tr}" class="btn btn-link">{tr}Clear Filter{/tr}</a>
+						<a href="{$smarty.server.PHP_SELF|escape}?{query find='' type='' types='' topic='' lang='' langOrphan='' categId='' maxRecords=$prefs.maxRecords find_from_Month='' find_from_Day='' find_from_Year='' find_to_Month='' find_to_Day='' find_to_Year=''}" title="{tr}Clear Filter{/tr}" class="btn btn-link">{tr}Clear Filter{/tr}</a>
 					</div>
 				{/if}
 			</div>

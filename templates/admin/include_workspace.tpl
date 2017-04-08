@@ -1,27 +1,21 @@
 {* $Id$ *}
 <form class="form-horizontal" action="tiki-admin.php?page=workspace" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
-	<div class="row">
-		<div class="form-group col-lg-12">
-			{if $prefs.workspace_ui eq "y"}
-				<a class="btn btn-default btn-sm" href="{service controller=workspace action=list_templates}" title="{tr}List{/tr}">
-					{icon name="list"} {tr}Workspace Templates{/tr}
-				</a>
-			{/if}
-			<div class="pull-right">
-				<input type="submit" class="btn btn-primary btn-sm" name="workspacesetprefs" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
-		</div>
+	{include file='access/include_ticket.tpl'}
+	<div class="clearfix margin-bottom-md">
+		{if $prefs.workspace_ui eq "y"}
+			<a class="btn btn-default btn-sm" href="{service controller=workspace action=list_templates}" title="{tr}List{/tr}">
+				{icon name="list"} {tr}Workspace Templates{/tr}
+			</a>
+		{/if}
+		{include file='admin/include_apply_top.tpl'}
 	</div>
 	{tabset name="admin_workspaces_areas"}
 		{tab name="{tr}Workspaces{/tr}"}
-			<h2>{tr}Workspaces{/tr}</h2>
-
+			<br>
 			<fieldset>
 				<legend>{tr}Activate the feature{/tr}</legend>
 				{preference name=workspace_ui visible="always"}
 			</fieldset>
-
 			<fieldset>
 				<legend>{tr}Dependencies{/tr}</legend>
 				{preference name=namespace_enabled}
@@ -31,12 +25,10 @@
 				{preference name=feature_categories}
 				{preference name=feature_wiki}
 			</fieldset>
-
 			<fieldset>
 				<legend>{tr}Advanced{/tr}</legend>
 				{preference name=workspace_root_category}
 			</fieldset>
-
 			{jq}
 				$('#tiki-center').on('click', '.service-dialog', function () {
 					$(this).serviceDialog({
@@ -54,15 +46,11 @@
 			{/jq}
 		{/tab}
 		{tab name="{tr}Areas{/tr}"}
-			<h2>{tr}Areas{/tr}</h2>
-
+			<br>
 			<fieldset>
 				<legend>{tr}Activate the feature{/tr}</legend>
 				{preference name=feature_areas}
 			</fieldset>
-			{if isset($error)}
-				{remarksbox type="warning" title="{tr}Error{/tr}"}{$error} {tr}Nothing was updated.{/tr}{/remarksbox}
-			{/if}
 			<fieldset>
 				<legend>{tr}Areas{/tr}</legend>
 				<div class="table-responsive">
@@ -75,7 +63,6 @@
 							<th>{tr}Share Common{/tr}</th>
 							<th>{tr}Description{/tr}</th>
 						</tr>
-
 						{if $areas|count}
 							{foreach from=$areas item=area}
 								<tr class="{cycle}{if $area.enabled neq 'y'} disabled{/if}">
@@ -108,19 +95,12 @@
 			</fieldset>
 			{remarksbox type="info" title="{tr}Hint{/tr}"}{tr}This tab shows you an overview of categories affected by the areas feature. <br> More help here: <a href="http://doc.tiki.org/Areas" target="tikihelp">doc.tiki.org/Areas</a> {/tr}{/remarksbox}
 			<div class="form-group heading input_submit_container" style="text-align: center">
-				<input type="submit" class="btn btn-primary btn-sm" name="update_areas" value="{tr}Update areas{/tr}" />
+				<input type="submit" class="btn btn-primary btn-sm timeout" name="update_areas" value="{tr}Update areas{/tr}">
 			</div>
 			<div class="adminoptionboxchild" id="feature_areas_childcontainer">
 				{preference name=areas_root}
 			</div>
-
 		{/tab}
 	{/tabset}
-	<div class="row">
-		<div class="form-group col-lg-12">
-			<div class="text-center">
-				<input type="submit" class="btn btn-primary btn-sm" name="workspacesetprefs" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
-		</div>
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

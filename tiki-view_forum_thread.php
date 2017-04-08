@@ -231,22 +231,22 @@ if ($user != $thread_info['userName']) {
 	);
 }
 
-if (empty($thread_info) && empty($_POST['ajaxtype'])) {
-	$smarty->assign('msg', tra("Incorrect thread"));
-	$smarty->display("error.tpl");
-	die;
-} elseif (!empty($_POST['ajaxtype']) && empty($thread_info)) {
-	$ajaxpost = array_intersect_key($_POST, [
-		'ajaxtype' => '',
-		'ajaxheading' => '',
-		'ajaxitems' => '',
-		'ajaxmsg' => '',
-		'ajaxtoMsg' => '',
-		'ajaxtoList' => '',
-	]);
-	$keys = array_keys($_POST['ajaxitems']);
-	$_SESSION['ajaxpost' . $keys[0]] = $ajaxpost;
-	header('location: ' . 'tiki-view_forum.php?forumId=' . $_POST['forumId'] . '&deleted_parentId=' . $keys[0]);
+if (empty($thread_info)) {
+	$forumId = '';
+	//thread might be missing due to a successful delete of a post
+	if (!empty($_SESSION['tikifeedback'][0]['deleted_forumId'])) {
+		$forumId = $_SESSION['tikifeedback'][0]['deleted_forumId'];
+	} elseif (!empty($_REQUEST['forumId'])) {
+		$forumId = $_REQUEST['forumId'];
+		Feedback::error(tr('Thread %0 does not exist.', $comments_parentId));
+	}
+	if (!empty($forumId)) {
+		TikiLib::lib('access')->redirect('tiki-view_forum.php?forumId=' . $forumId);
+	} else {
+		$smarty->assign('msg', tr('Thread %0 does not exist.', $comments_parentId));
+		$smarty->display("error.tpl");
+		die;
+	}
 }
 
 if (!empty($thread_info['parentId'])) {
@@ -351,10 +351,6 @@ if ($prefs['feature_freetags'] == 'y') {
 	$tags = $freetaglib->get_tags_on_object($cat_objid, $cat_type);
 	$smarty->assign('freetags', $tags);
 }
-if (isset($_SESSION['feedbacks'])) {
-	$smarty->assign('feedbacks', $_SESSION['feedbacks']);
-	unset($_SESSION['feedbacks']);
-}
 $defaultRows = $prefs['default_rows_textarea_forumthread'];
 $smarty->assign('forum_mode', 'y');
 
@@ -377,19 +373,6 @@ if (!empty($_REQUEST['view_atts']) && $_REQUEST['view_atts'] == 'y') {
 	$smarty->assign_by_ref('view_atts', $_REQUEST['view_atts']);
 }
 
-if (isset($_POST['ajaxtype'])) {
-	$smarty->assign('ajaxfeedback', 'y');
-	$ajaxpost = array_intersect_key($_POST, [
-		'ajaxtype' => '',
-		'ajaxheading' => '',
-		'ajaxitems' => '',
-		'ajaxmsg' => '',
-		'ajaxtoMsg' => '',
-		'ajaxtoList' => '',
-	]);
-	$smarty->assign($ajaxpost);
-}
-
 // Display the template
 if (isset($_REQUEST['display'])) {
 	// Remove icons and actions that should not be printed
@@ -407,17 +390,20 @@ if (isset($_REQUEST['display'])) {
 	if ($_REQUEST['display'] == 'pdf') {
 		require_once 'lib/pdflib.php';
 		$generator = new PdfGenerator();
-		$pdf = $generator->getPdf('tiki-view_forum_thread.php', array('display' => 'print', 'comments_parentId' => $_REQUEST['comments_parentId'], 'forumId' => $_REQUEST['forumId']));
-
-		header('Cache-Control: private, must-revalidate');
-		header('Pragma: private');
-		header("Content-Description: File Transfer");
-		header('Content-disposition: attachment; filename="'. $thread_info['title'] . '.pdf"');
-		header("Content-Type: application/pdf");
-		header("Content-Transfer-Encoding: binary");
-		header('Content-Length: '. strlen($pdf));
-		echo $pdf;
-
+		if (!empty($generator->error)) {
+			Feedback::error($generator->error, 'session');
+			$access->redirect($_SERVER['HTTP_REFERER']);
+		} else {
+			$pdf = $generator->getPdf('tiki-view_forum_thread.php', array('display' => 'print', 'comments_parentId' => $_REQUEST['comments_parentId'], 'forumId' => $_REQUEST['forumId']));
+			header('Cache-Control: private, must-revalidate');
+			header('Pragma: private');
+			header("Content-Description: File Transfer");
+			header('Content-disposition: attachment; filename="'. $thread_info['title'] . '.pdf"');
+			header("Content-Type: application/pdf");
+			header("Content-Transfer-Encoding: binary");
+			header('Content-Length: '. strlen($pdf));
+			echo $pdf;
+		}
 	} else {
 		$smarty->display('tiki-print.tpl');
 	}

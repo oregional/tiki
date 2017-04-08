@@ -3,37 +3,29 @@
 	{tr}Look under "<a href="tiki-admin_rssmodules.php" target="_blank" class="alert-link">External Feeds</a>" on the application menu if you are searching for the <a href="https://doc.tiki.org/Article+generator" target="_blank" class="alert-link">"Article Generator" on RSS feeds</a>{/tr}.
 {/remarksbox}
 {if !empty($msgs)}
-	<div class="alert alert-warning">
-		{foreach from=$msgs item=msg}
-			{$msg}
-		{/foreach}
-	</div>
 {/if}
-<form role="form" class="form-horizontal" method="post" action="tiki-admin.php?page=articles">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+<form role="form" class="form-horizontal" method="post" action="tiki-admin.php?page=articles" enctype="multipart/form-data">
+	{include file='access/include_ticket.tpl'}
 	<div class="t_navbar margin-bottom-md clearfix">
-		<a role="link" class="btn btn-link" href="tiki-list_articles.php" title=":{tr}List{/tr}">
+		<a role="link" class="btn btn-link tips" href="tiki-list_articles.php" title=":{tr}List of articles{/tr}">
 			{icon name="list"} {tr}Articles{/tr}
 		</a>
-		<a role="link" class="btn btn-link" href="tiki-article_types.php" title=":{tr}List{/tr}">
-			{icon name="list"} {tr}Article Types{/tr}
+		<a role="link" class="btn btn-link tips" href="tiki-article_types.php" title=":{tr}List of article types{/tr}">
+			{icon name="structure"} {tr}Article Types{/tr}
 		</a>
-		<a role="link" class="btn btn-link" href="tiki-admin_topics.php" title=":{tr}List{/tr}">
-			{icon name="list"} {tr}Article Topics{/tr}
+		<a role="link" class="btn btn-link tips" href="tiki-admin_topics.php" title=":{tr}List of article topics{/tr}">
+			{icon name="flag"} {tr}Article Topics{/tr}
 		</a>
 		{if $prefs.feature_submissions eq "y"}
 			<a role="link" class="btn btn-default btn-sm tips" href="tiki-list_submissions.php" title=":{tr}List{/tr}">
 				{icon name="list"} {tr}Submissions{/tr}
 			</a>
 		{/if}
-		<div class="pull-right">
-			<input type="submit" class="btn btn-primary btn-sm tips" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-		</div>
+		{include file='admin/include_apply_top.tpl'}
 	</div>
 	{tabset name="admin_articles"}
 		{tab name="{tr}General Settings{/tr}"}
-			<h2>{tr}General Settings{/tr}</h2>
-			<input type="hidden" name="articlesprefs" />
+			<br>
 			<fieldset>
 				<legend>{tr}Activate the feature{/tr}</legend>
 				{preference name=feature_articles visible="always"}
@@ -66,7 +58,6 @@
 				<div class="adminoptionboxchild" id="feature_cms_templates_childcontainer">
 					{preference name=lock_content_templates}
 				</div>
-				{preference name=feature_cms_print}
 				{preference name=feature_cms_emails}
 				{preference name=article_paginate}
 				{preference name=article_custom_attributes}
@@ -77,13 +68,12 @@
 				<div class="adminoptionboxchild" id="tracker_article_tracker_container">
 					{preference name=tracker_article_trackerId}
 				</div>
-				<input type="hidden" name="articlesfeatures" />
 				{preference name=article_feature_copyrights}
 			</fieldset>
-			<fieldset>
-				<legend>
-					{tr}Default maximum dimensions of custom images{/tr}
-				</legend>
+			<legend>
+				{tr}Custom (Article Own) images setting{/tr}
+			</legend>
+				{preference name=article_image_file_size_max}
 				{preference name=article_image_size_x}
 				{preference name=article_image_size_y}
 				{preference name=article_default_list_image_size_x}
@@ -103,7 +93,7 @@
 				<div class="adminoptionbox">
 					<label for="csvlist" class="control-label col-sm-4">{tr}Batch upload (CSV file){/tr}</label>
 					<div class="col-sm-8">
-						<input type="file" name="csvlist" id="csvlist" />
+						<input type="file" name="csvlist" id="csvlist">
 						<span class="help-block">{tr}File format: title,authorName,heading,body,lang,user{/tr}....</span>
 						<div align="center">
 							<input type="submit" class="btn btn-default btn-sm" name="import" value="{tr}Import{/tr}" />
@@ -112,11 +102,10 @@
 				</div>
 			</fieldset>
 		{/tab}
-		{tab name="{tr}Articles Listing{/tr}"}
-			<h2>{tr}Articles Listing{/tr}</h2>
+		{tab name="{tr}Articles Listing and View{/tr}"}
+			<br>
 			<fieldset>
-				<legend>{tr}List Articles{/tr}</legend>
-				<input type="hidden" name="artlist" />
+				<legend>{tr}List articles{/tr}</legend>
 				{preference name=art_sort_mode}
 				{preference name=art_list_title}
 				<div class="adminoptionboxchild" id="art_list_title_childcontainer">
@@ -140,14 +129,12 @@
 				{preference name=gmap_article_list}
 			</fieldset>
 			<fieldset>
-				<legend>{tr}Article View{/tr}</legend>
+				<legend>{tr}Article view{/tr}</legend>
 				{preference name=art_trailer_pos}
 				{preference name=art_header_text_pos}
 			</fieldset>
 		{/tab}
 	{/tabset}
-	<div class="t_navbar margin-bottom-md text-center">
-		<input type="submit" class="btn btn-primary btn-sm tips" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>
 

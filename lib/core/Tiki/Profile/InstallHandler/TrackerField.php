@@ -105,6 +105,7 @@ class Tiki_Profile_InstallHandler_TrackerField extends Tiki_Profile_InstallHandl
 					'public' => 'n',
 					'admin_only' => 'y',
 					'admin_editable' => 'p',
+					'admin_editable_after' => 'a',
 					'creator_editable' => 'c',
 					'immutable' => 'i',
 				)
@@ -127,6 +128,8 @@ class Tiki_Profile_InstallHandler_TrackerField extends Tiki_Profile_InstallHandl
 			'public' => 'isPublic',
 			'mandatory' => 'isMandatory',
 			'multilingual' => 'isMultilingual',
+			'visby' => 'visibleBy',
+			'editby' => 'editableBy',
 			'validation' => 'validation',
 			'validation_param' => 'validationParam',
 			'validation_message' => 'validationMessage',
@@ -262,6 +265,8 @@ class Tiki_Profile_InstallHandler_TrackerField extends Tiki_Profile_InstallHandl
 				} elseif (!empty($conversions[$optionKey])) {
 					$reverseVal = $conversions[$optionKey]->reverse($value);
 					$data[$optionKey] = $reverseVal;
+				} elseif( $optionKey == 'description' ) {
+					$data[$optionKey] = $writer->getReference('wiki_content', $value);
 				} else {
 					$data[$optionKey] = $value;
 				}

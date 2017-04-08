@@ -32,7 +32,7 @@ class WikiPlugin_Negotiator_Wiki
 	private $alias;
 
 	public static $standardRelativePath = 'lib/wiki-plugins/wikiplugin_';
-	public static $zendRelativePath = 'vendor/zendframework/zendframework1/library/';
+	public static $zendRelativePath = 'vendor_bundled/vendor/zendframework/zendframework1/library/';
 	public static $checkZendPaths = true;
 	static $pluginIndexes = array();
 	static $pluginInfo = array();
@@ -406,17 +406,6 @@ class WikiPlugin_Negotiator_Wiki
 			$real[] = $plugin;
 		}
 
-		//Check for existence of Zend wiki plugins
-		foreach ( glob('lib/core/WikiPlugin/*.php', GLOB_NOCHECK) as $file ) {
-			if(is_file($file)){
-				$base = basename($file);
-				if (strtolower($base) == $base) { //the zend plugins all have lower case names
-					$plugin = substr($base, 0, -4);
-					$real[] = $plugin;
-				}
-			}
-		}
-
 		if ( $includeReal && $includeAlias ) {
 			$plugins = array_merge($real, WikiPlugin_Negotiator_Wiki_Alias::getList());
 		} elseif ( $includeReal ) {
@@ -601,7 +590,7 @@ class WikiPlugin_Negotiator_Wiki
 			$headerlib->add_jq_onready(
 				'$("#' . $id . '")
 					.click( function(event) {'
-				. '		popup_plugin_form('
+				. '		popupPluginForm('
 				. json_encode('editwiki') . ', '
 				. json_encode($this->name) . ', '
 				. json_encode($this->index) . ', '

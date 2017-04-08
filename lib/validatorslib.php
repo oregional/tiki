@@ -52,7 +52,7 @@ class Validators
 		return $validators;
 	}
 
-	function generateTrackerValidateJS( $fields_data, $prefix = 'ins_', $custom_rules = '', $custom_messages = '' )
+	function generateTrackerValidateJS( $fields_data, $prefix = 'ins_', $custom_rules = '', $custom_messages = '', $custom_handlers = '' )
 	{
 		$validationjs = 'rules: { ';
 		foreach ($fields_data as $field_value) {
@@ -91,8 +91,10 @@ class Validators
 					$validationjs .= 'data: { ';
 					$validationjs .= 'validator: "' .$field_value['validation'].'", ';
 					if ($field_value['validation'] == 'distinct' && empty($field_value['validationParam'])) {
-						if (isset($_REQUEST['itemId']) && $_REQUEST['itemId'] > 0) {
-							$current_id = $_REQUEST['itemId'];
+						global $jitRequest;
+
+						if ($jitRequest->itemId->int()) {
+							$current_id = $jitRequest->itemId->int();
 						} else {
 							$current_id = 0;
 						}
@@ -160,13 +162,23 @@ invalidHandler: function(event, validator) {
 		if (! $scrollElement.length) {
 			$scrollElement = $firstError;
 		}
+
+		if ($firstError.parents(".tab-content").length > 0) {
+			$tab = $firstError.parents(".tab-pane");
+			$(\'a[href="#\' + $tab.attr("id") + \'"]\').tab("show");
+		}
+
 		$container.animate({
 			scrollTop: containerScrollTop + $scrollElement.offset().top
 		}, 1000, function () {
 			$firstError.focus();
 		});
 	}
-}';
+}
+';
+		if ($custom_handlers) {
+			$validationjs .= ",\n$custom_handlers";
+		}
 		return $validationjs;
 	}
 }

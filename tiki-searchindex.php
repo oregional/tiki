@@ -108,7 +108,7 @@ if (count($filter) || count($postfilter)) {
 				}, $results->getFacets()
 			);
 
-			$plugin = new Search_Formatter_Plugin_SmartyTemplate(realpath('templates/searchresults-plain.tpl'));
+			$plugin = new Search_Formatter_Plugin_SmartyTemplate('searchresults-plain.tpl');
 			$plugin->setData(
 				array(
 					'prefs' => $prefs,
@@ -125,10 +125,10 @@ if (count($filter) || count($postfilter)) {
 			}
 			$plugin->setFields($fields);
 
-			$formatter = new Search_Formatter($plugin);
+			$formatter = Search_Formatter_Factory::newFormatter($plugin);
 
 			$wiki = $formatter->format($results);
-			$html = $tikilib->parse_data(
+			$html = TikiLib::lib('parser')->parse_data(
 				$wiki,
 				array(
 					'is_html' => true,
@@ -149,7 +149,7 @@ $smarty->assign('facets', $facets);
 // disallow robots to index page:
 $smarty->assign('metatag_robots', 'NOINDEX, NOFOLLOW');
 
-if ($prefs['search_use_facets'] == 'y') {
+if ($prefs['search_use_facets'] == 'y' && $prefs['unified_engine'] === 'elastic') {
 	$smarty->display("tiki-searchfacets.tpl");
 } else {
 	$smarty->display("tiki-searchindex.tpl");
@@ -224,9 +224,9 @@ function tiki_searchindex_get_results($filter, $postfilter, $offset, $maxRecords
 
 		return $resultset;
 	} catch (Search_Elastic_TransportException $e) {
-		TikiLib::lib('errorreport')->report('Search functionality currently unavailable.');
+		Feedback::error(tr('Search functionality currently unavailable.'), 'session');
 	} catch (Exception $e) {
-		TikiLib::lib('errorreport')->report($e->getMessage());
+		Feedback::error($e->getMessage(), 'session');
 	}
 
 	return new Search_ResultSet(array(), 0, 0, -1);

@@ -293,7 +293,7 @@ for ($i = 0; $i <= $numberofweeks; $i++) {
 				$smarty->assign('cellname', $le["name"]);
 				$smarty->assign('cellurl', $le["web"]);
 				$smarty->assign('cellid', $le["calitemId"]);
-				$smarty->assign('celldescription', $tikilib->parse_data($le["description"], array('is_html' => $prefs['calendar_description_is_html'] === 'y')));
+				$smarty->assign('celldescription', TikiLib::lib('parser')->parse_data($le["description"], array('is_html' => $prefs['calendar_description_is_html'] === 'y')));
 				$smarty->assign('cellmodif', $le['modifiable']);
 				$smarty->assign('cellvisible', $le['visible']);
 				$smarty->assign('cellstatus', $le['status']);
@@ -793,9 +793,6 @@ if ($prefs['feature_theme_control'] == 'y'	and isset($_REQUEST['calIds'])) {
 }
 include_once ('tiki-section_options.php');
 
-setcookie('tab', $cookietab);
-$smarty->assign('cookietab', $cookietab);
-
 ask_ticket('calendar');
 
 if (!empty($prefs['calendar_fullcalendar']) && $prefs['calendar_fullcalendar'] === 'y') {
@@ -808,7 +805,6 @@ if (!empty($prefs['calendar_fullcalendar']) && $prefs['calendar_fullcalendar'] =
 	}
 }
 
-$smarty->assign('uses_tabs', 'y');
 if (isset($_REQUEST['editmode']) && ($_REQUEST['editmode'] == 'add' || $_REQUEST['editmode'] == 'edit')) {
 	$smarty->assign('mid', 'tiki-calendar_add_event.tpl');
 } else {

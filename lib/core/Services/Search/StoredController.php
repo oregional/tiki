@@ -157,9 +157,9 @@ class Services_Search_StoredController
 
 			return $query->search($unifiedsearchlib->getIndex());
 		} catch (Search_Elastic_TransportException $e) {
-			TikiLib::lib('errorreport')->report('Search functionality currently unavailable.');
+			Feedback::error(tr('Search functionality currently unavailable.'), 'session');
 		} catch (Exception $e) {
-			TikiLib::lib('errorreport')->report($e->getMessage());
+			Feedback::error($e->getMessage(), 'session');
 		}
 	}
 	
@@ -170,7 +170,7 @@ class Services_Search_StoredController
 		$unifiedsearchlib = TikiLib::lib('unifiedsearch');
 		$dataSource = $unifiedsearchlib->getDataSource('formatting');
 
-		$plugin = new Search_Formatter_Plugin_SmartyTemplate(realpath('templates/searchresults-plain.tpl'));
+		$plugin = new Search_Formatter_Plugin_SmartyTemplate('searchresults-plain.tpl');
 		$plugin->setData(
 			array(
 				'prefs' => $prefs,
@@ -187,11 +187,11 @@ class Services_Search_StoredController
 		}
 		$plugin->setFields($fields);
 
-		$formatter = new Search_Formatter($plugin);
+		$formatter = Search_Formatter_Factory::newFormatter($plugin);
 
 		$wiki = $formatter->format($resultset);
 		$tikilib = TikiLib::lib('tiki');
-		$results = $tikilib->parse_data(
+		$results = TikiLib::lib('parser')->parse_data(
 			$wiki,
 			array(
 				'is_html' => true,

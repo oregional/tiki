@@ -631,7 +631,7 @@ function iconset_legacy()
 			'smile' => array(
 				'prepend' => 'img/smiles/',
 				'id' => 'icon_smile',
-				'append' => '.gif'
+				'append' => '.png'
 			),
 			'sort' => array(
 				'id' => 'resultset',
@@ -715,11 +715,11 @@ function iconset_legacy()
 				'id' => 'application_side_tree',
 			),
 			'thumbs-down' => array(
-				'prepend' => 'vendor/ckeditor/ckeditor/plugins/smiley/images/',
+				'prepend' => 'vendor_bundled/vendor/ckeditor/ckeditor/plugins/smiley/images/',
 				'id' => 'thumbs_down',
 			),
 			'thumbs-up' => array(
-				'prepend' => 'vendor/ckeditor/ckeditor/plugins/smiley/images/',
+				'prepend' => 'vendor_bundled/vendor/ckeditor/ckeditor/plugins/smiley/images/',
 				'id' => 'thumbs_up',
 			),
 			'title' => array(
@@ -731,6 +731,12 @@ function iconset_legacy()
 			'toggle-on' => array(
 				'id' => 'delete',
 			),
+            'toggle-left' => array(
+                'id' => 'resultset_first',
+            ),
+            'toggle-right' => array(
+                'id' => 'resultset_last',
+            ),
 			'trackers' => array(
 				'id' => 'database',
 			),

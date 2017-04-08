@@ -335,7 +335,7 @@ class CalendarLib extends TikiLib
 					'category' => $res['categoryName'],
 					'name' => $res['name'],
 					'head' => $head,
-					'parsedDescription' => $this->parse_data($res['description'], array('is_html' => $prefs['calendar_description_is_html'] === 'y')),
+					'parsedDescription' => TikiLib::lib('parser')->parse_data($res['description'], array('is_html' => $prefs['calendar_description_is_html'] === 'y')),
 					'description' => str_replace("\n|\r", '', $res['description']),
 					'calendarId' => $res['calendarId'],
 					'status' => $res['status'],
@@ -390,7 +390,7 @@ class CalendarLib extends TikiLib
 
 				$ret[$i][$j] = $res;
 				$ret[$i][$j]['head'] = $head;
-				$ret[$i][$j]['parsedDescription'] = $this->parse_data($res["description"], array('is_html' => $prefs['calendar_description_is_html'] === 'y'));
+				$ret[$i][$j]['parsedDescription'] = TikiLib::lib('parser')->parse_data($res["description"], array('is_html' => $prefs['calendar_description_is_html'] === 'y'));
 				$ret[$i][$j]['description'] = str_replace("\n|\r", "", $res["description"]);
 				$ret[$i][$j]['visible'] = 'y';
 				$ret[$i][$j]['where'] = $res['locationName'];
@@ -448,8 +448,9 @@ class CalendarLib extends TikiLib
 		$res['date_end'] = (int)$res['end'];
 
 		$res['duration'] = $res['end'] - $res['start'];
-		$res['parsed'] = $this->parse_data($res['description'], array('is_html' => $prefs['calendar_description_is_html'] === 'y'));
-		$res['parsedName'] = $this->parse_data($res['name']);
+		$parserlib = TikiLib::lib('parser');
+		$res['parsed'] = $parserlib->parse_data($res['description'], array('is_html' => $prefs['calendar_description_is_html'] === 'y'));
+		$res['parsedName'] = $parserlib->parse_data($res['name']);
 		return $res;
 	}
 
@@ -755,7 +756,8 @@ class CalendarLib extends TikiLib
      */
     function importCSV($fname, $calendarId)
 	{
-		global $user, $smarty;
+		global $user;
+		$smarty = TikiLib::lib('smarty');
 		$fields = false;
 		if ($fhandle = fopen($fname, 'r')) {
 			$fields = fgetcsv($fhandle, 1000);
@@ -880,7 +882,7 @@ class CalendarLib extends TikiLib
 		$cant = $this->getOne($query_cant, $bindvars);
 
 		foreach ( $ret as &$res ) {
-			$res['parsed'] = $this->parse_data($res['description'], array('is_html' => $prefs['calendar_description_is_html'] === 'y'));
+			$res['parsed'] = TikiLib::lib('parser')->parse_data($res['description'], array('is_html' => $prefs['calendar_description_is_html'] === 'y'));
 		}
 
     $retval = array();
@@ -945,7 +947,7 @@ class CalendarLib extends TikiLib
 		$cant = $this->getOne($query_cant, $bindvars);
 
 		foreach ( $ret as &$res ) {
-			$res['parsed'] = $this->parse_data($res['description'], array('is_html' => $prefs['calendar_description_is_html'] === 'y'));
+			$res['parsed'] = TikiLib::lib('parser')->parse_data($res['description'], array('is_html' => $prefs['calendar_description_is_html'] === 'y'));
 		}
 
 	    $retval = array();
@@ -1008,7 +1010,7 @@ class CalendarLib extends TikiLib
 		$cant = $this->getOne($query_cant, $bindvars);
 
 		foreach ( $ret as &$res ) {
-			$res['parsed'] = $this->parse_data($res['description'], array('is_html' => $prefs['calendar_description_is_html'] === 'y'));
+			$res['parsed'] = TikiLib::lib('parser')->parse_data($res['description'], array('is_html' => $prefs['calendar_description_is_html'] === 'y'));
 		}
 
 	    $retval = array();

@@ -47,7 +47,7 @@ class TikiLib extends TikiDb_Bridge
 	/** Gets a library reference
 	 *
 	 * @param $name
-	 * @return \ActivityLib|\AdminLib|\AreasLib|\ArtLib|\AttributeLib|\AutoSaveLib|\BannerLib|\BigBlueButtonLib|\BlogLib|\CacheLib|\CalendarLib|\Captcha|\CartLib|\CategLib|\Comments|\ContactLib|\ContributionLib|\CreditsLib|\CryptLib|\cssLib|\DCSLib|\EditLib|\ErrorReportLib|\FaqLib|\FederatedSearchLib|\FileGalBatchLib|\FileGalLib|\FlaggedRevisionLib|\FreetagLib|\GeoLib|\GoalEventLib|\GoalLib|\GoalRewardLib|\GroupAlertLib|\HeaderLib|\HistLib|\IconsetLib|\ImageGalsLib|\KalturaLib|\KalturaLib|\Language|\LanguageTranslations|\LdapLib|\LoginLib|\LogsLib|\LogsQueryLib|\MailinLib|\Memcachelib|\MenuLib|\Messu|\MimeLib|\ModLib|\MonitorLib|\MonitorMailLib|\MultilingualLib|\NotificationLib|\OAuthLib|\ObjectLib|\PageContentLib|\ParserLib|\PaymentLib|\PerspectiveLib|\PollLib|\PreferencesLib|\QuantifyLib|\QueueLib|\QuizLib|\RatingConfigLib|\RatingLib|\ReferencesLib|\RegistrationLib|\RelationLib|\RSSLib|\ScoreLib|\ScormLib|\SearchStatsLib|\SemanticLib|\ServiceLib|\SheetLib|\Smarty_Tiki|\SocialLib|\StatsLib|\StoredSearchLib|\StructLib|\TemplatesLib|\ThemeControlLib|\ThemeLib|\Tiki_Connect_Client|\Tiki_Connect_Server|\Tiki_Event_Manager|\Tiki_Profile_SymbolLoader|\Tiki\Object\Selector|\Tiki\Recommendation\BatchProcessor|\Tiki\Wiki\SlugManager|\TikiAccessLib|\TikiCalendarLib|\TikiDate|\TodoLib|\Tracker\Tabular\Manager|\TrackerLib|\UnifiedSearchLib|\UserMailinLib|\UserModulesLib|\UserPrefsLib|\UsersLib|\Validators|\VimeoLib|\WikiLib|\WikiLingoTikiEvents|\WizardLib|\WYSIWYGLib|\ZoteroLib
+	 * @return \ActivityLib|\AdminLib|\AreasLib|\ArtLib|\AttributeLib|\AutoSaveLib|\BannerLib|\BigBlueButtonLib|\BlogLib|\CacheLib|\CalendarLib|\Captcha|\CartLib|\CategLib|\Comments|\ContactLib|\ContributionLib|\CreditsLib|\CryptLib|\cssLib|\DCSLib|\EditLib|\ErrorReportLib|\FaqLib|\FederatedSearchLib|\FileGalBatchLib|\FileGalLib|\FlaggedRevisionLib|\FreetagLib|\GeoLib|\GoalEventLib|\GoalLib|\GoalRewardLib|\GroupAlertLib|\H5PLib|\HeaderLib|\HistLib|\IconsetLib|\ImageGalsLib|\KalturaLib|\KalturaLib|\Language|\LanguageTranslations|\LdapLib|\LoginLib|\LogsLib|\LogsQueryLib|\MailinLib|\Memcachelib|\MenuLib|\Messu|\MimeLib|\ModLib|\MonitorLib|\MonitorMailLib|\MultilingualLib|\NotificationLib|\OAuthLib|\ObjectLib|\PageContentLib|\ParserLib|\PaymentLib|\PerspectiveLib|\PollLib|\PreferencesLib|\QuantifyLib|\QueueLib|\QuizLib|\RatingConfigLib|\RatingLib|\ReferencesLib|\RegistrationLib|\RelationLib|\RSSLib|\SchedulersLib|\ScoreLib|\ScormLib|\SearchStatsLib|\SemanticLib|\ServiceLib|\SheetLib|\Smarty_Tiki|\SocialLib|\StatsLib|\StoredSearchLib|\StructLib|\TemplatesLib|\ThemeControlLib|\ThemeLib|\Tiki_Connect_Client|\Tiki_Connect_Server|\Tiki_Event_Manager|\Tiki_Profile_SymbolLoader|\Tiki\Object\Selector|\Tiki\Recommendation\BatchProcessor|\Tiki\Wiki\SlugManager|\TikiAccessLib|\TikiCalendarLib|\TikiDate|\TodoLib|\Tracker\Tabular\Manager|\TrackerLib|\UnifiedSearchLib|\UserMailinLib|\UserModulesLib|\UserPrefsLib|\UsersLib|\Validators|\VimeoLib|\WikiLib|\WizardLib|\WYSIWYGLib|\ZoteroLib
 	 * @throws Exception
 	 */
 	public static function lib($name)
@@ -114,8 +114,8 @@ class TikiLib extends TikiDb_Bridge
 
 	public function generate_unique_sequence($entropy = 100)
 	{
-		require_once 'lib/phpsec/phpsec/phpsec.rand.php';
-		return base64_encode(phpsecRand::bytes($entropy));
+		$random_value = \phpseclib\Crypt\Random::string($entropy);
+		return base64_encode($random_value);
 	}
 
 	// DB param left for interface compatibility, although not considered
@@ -125,30 +125,6 @@ class TikiLib extends TikiDb_Bridge
 	function __construct( $db = null )
 	{
 		$this->now = time();
-	}
-
-	/**
-	 * @param $data
-	 * @param array $options
-	 * @return mixed|string
-	 */
-	function parse_data($data, $options = array())
-	{
-		//to make migration easier
-		$parserlib = TikiLib::lib('parser');
-		return $parserlib->parse_data($data, $options);
-	}
-
-	/**
-	 * @param $data
-	 * @param $withReltype
-	 * @return array
-	 */
-	function get_pages($data, $withReltype = false)
-	{
-		//to make migration easier
-		$parserlib = TikiLib::lib('parser');
-		return $parserlib->get_pages($data, $withReltype);
 	}
 
 	function allocate_extra($type, $callback)
@@ -171,9 +147,10 @@ class TikiLib extends TikiDb_Bridge
 
 	/**
 	 * @param bool $url
+	 * @param array $options
 	 * @return mixed|Zend\Http\Client
 	 */
-	function get_http_client($url = false)
+	function get_http_client($url = false, $options = null)
 	{
 		global $prefs;
 
@@ -192,11 +169,22 @@ class TikiLib extends TikiDb_Bridge
 				$config["proxy_pass"] = $prefs['proxy_pass'];
 			}
 		}
-		if (strpos($url, 'https://') === 0) {
-			$config['sslverifypeer'] = false;	// zf2 only
+
+		if ($prefs['zend_http_sslverifypeer'] == 'y') {
+			$config['sslverifypeer'] = true;
+		} else {
+			$config['sslverifypeer'] = false;
+		}
+
+
+		if(is_array($options)){
+			foreach($options as $key => $value) {
+				$config[$key] = $value;
+			}
 		}
 
 		$client = new Zend\Http\Client(null, $config);
+		$client->setArgSeparator('&');
 
 		if ($url) {
 			$client = $this->prepare_http_client($client, $url);
@@ -271,7 +259,6 @@ class TikiLib extends TikiDb_Bridge
 	{
 		$url = $arguments['url'];
 
-		$client->setCookieJar();
 		$client->setUri($this->urlencode_accent($url)); // Zend\Http\Client seems to fail with accents in urls
 		$client->setMethod(Zend\Http\Request::METHOD_GET);
 		$response = $client->send();
@@ -290,7 +277,6 @@ class TikiLib extends TikiDb_Bridge
 		$url = $arguments['post_url'];
 		unset($arguments['post_url']);
 
-		$client->setCookieJar();
 		$client->setUri($this->urlencode_accent($url)); // Zend\Http\Client seems to fail with accents in urls
 		$client->setMethod(Zend\Http\Request::METHOD_GET);
 		$response = $client->send();
@@ -317,7 +303,7 @@ class TikiLib extends TikiDb_Bridge
 		$attempts = 0;
 		while ($response->isRedirect() && $attempts < 10) { // prevent redirect loop
 			$client->setUri($client->getUri());
-			$response = $client->request();
+			$response = $client->send();
 			$attempts++;
 		}
 
@@ -508,30 +494,54 @@ class TikiLib extends TikiDb_Bridge
 			}
 			return $connectionMap[$name];
 		} catch (Exception $e) {
-			TikiLib::lib('errorreport')->report($e->getMessage());
+			Feedback::error($e->getMessage(), 'session');
 		}
 	}
 
 	/*shared*/
 	// Returns IP address or IP address forwarded by the proxy if feature load balancer is set
 	/**
+     * @param $firewall true to detect ip behind a firewall
 	 * @return null|string
 	 */
-	function get_ip_address()
+	function get_ip_address($firewall = 0)
 	{
 		global $prefs;
-		if (isset($prefs['feature_loadbalancer']) && $prefs['feature_loadbalancer'] == "y") {
-			$ip = null;
+		if ($firewall || (isset($prefs['feature_loadbalancer']) && $prefs['feature_loadbalancer'] === "y")) {
 
-			if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-				$fwips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-				$ip = $fwips[0];
-			}
-			if ((empty($ip) || strtolower($ip) == 'unknown') && isset($_SERVER['REMOTE_ADDR'])) {
-				$ip = $_SERVER['REMOTE_ADDR'];
-			}
-			return $ip;
-		} elseif (isset($_SERVER['REMOTE_ADDR'])) {
+		    $header_checks = array(
+                'HTTP_CF_CONNECTING_IP',
+                'HTTP_CLIENT_IP',
+                'HTTP_PRAGMA',
+                'HTTP_XONNECTION',
+                'HTTP_CACHE_INFO',
+                'HTTP_XPROXY',
+                'HTTP_PROXY',
+                'HTTP_PROXY_CONNECTION',
+                'HTTP_VIA',
+                'HTTP_X_COMING_FROM',
+                'HTTP_COMING_FROM',
+                'HTTP_X_FORWARDED_FOR',
+                'HTTP_X_FORWARDED',
+                'HTTP_X_CLUSTER_CLIENT_IP',
+                'HTTP_FORWARDED_FOR',
+                'HTTP_FORWARDED',
+                'HTTP_CACHE_CONTROL',
+                'HTTP_X_REAL_IP',
+                'REMOTE_ADDR');
+
+            foreach ($header_checks as $key)
+                if (array_key_exists($key, $_SERVER) === true)
+                    foreach (explode(',', $_SERVER[$key]) as $ip){
+                        $ip = trim($ip);
+
+                        //filter the ip with filter functions
+                        if (filter_var($ip, FILTER_VALIDATE_IP) !== false)
+                            return $ip;
+                    }
+
+		}
+		if (isset($_SERVER['REMOTE_ADDR']) && filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP)) {
 			return $_SERVER['REMOTE_ADDR'];
 		} else {
 			return '0.0.0.0';
@@ -794,6 +804,12 @@ class TikiLib extends TikiDb_Bridge
 		$this->query($query, array($event,$object,$type));
 	}
 
+	function remove_stale_comment_watches()
+	{
+		$query = "DELETE FROM `tiki_user_watches` WHERE `event` = 'thread_comment_replied' AND `object` NOT IN (SELECT `threadId` FROM `tiki_comments`)";
+		$this->query($query);
+	}
+
 	/**
 	 * @param $group
 	 * @param $event
@@ -912,11 +928,13 @@ class TikiLib extends TikiDb_Bridge
 	 */
 	function get_user_event_watches($user, $event, $object)
 	{
-		return $this->table('tiki_user_watches')->fetchFullRow(
+		$userWatches = $this->table('tiki_user_watches');
+		return $userWatches->fetchAll(
+			$userWatches->all(),
 			array(
 				'user' => $user,
 				'event' => $event,
-				'object' => $object,
+				'object' => is_array($object) ? $userWatches->in($object) : $object,
 			)
 		);
 	}
@@ -1082,6 +1100,9 @@ class TikiLib extends TikiDb_Bridge
 						break;
 					case 'user_joins_group':
 						$res['perm']= $this->user_has_perm_on_object($res['user'], $object, 'group', 'tiki_p_group_view_members');
+						break;
+					case 'thread_comment_replied':
+						$res['perm'] = true;
 						break;
 					default:
 						// for security we deny all others.
@@ -1380,7 +1401,7 @@ class TikiLib extends TikiDb_Bridge
 	 * @param string $float
 	 * @return string
 	 */
-	function get_user_avatar($user, $float = "")
+	function get_user_avatar($user, $float = '')
 	{
 		global $prefs;
 
@@ -1433,7 +1454,8 @@ class TikiLib extends TikiDb_Bridge
 				$path = $userprefslib->get_public_avatar_path($user);
 
 				if ($path) {
-					$ret = "<img class='user-profile-picture img-rounded' src='" . htmlspecialchars($path, ENT_NOQUOTES) . "' " . $style . " alt='" . htmlspecialchars($user, ENT_NOQUOTES) . "'>";
+					$url = $this->tikiUrlOpt($path);
+					$ret = "<img class='user-profile-picture img-rounded' src='" . htmlspecialchars($url, ENT_NOQUOTES) . "' " . $style . " alt='" . htmlspecialchars($user, ENT_NOQUOTES) . "'>";
 				}
 				break;
 			case 'g':
@@ -2019,15 +2041,16 @@ class TikiLib extends TikiDb_Bridge
 	function user_has_voted($user, $id)
 	{
 		global $prefs;
-		if (!isset($_SESSION['votes'])) {
-			return false;
-		}
 
 		$ret = false;
-		$votes = $_SESSION['votes'];
-		if (is_array($votes) && in_array($id, $votes)) { // has already voted in the session (logged or not)
-			$ret = true;
+
+		if (isset($_SESSION['votes'])) {
+			$votes = $_SESSION['votes'];
+			if (is_array($votes) && in_array($id, $votes)) { // has already voted in the session (logged or not)
+				return true;
+			}
 		}
+
 		if (!$user) {
 			if ($prefs['ip_can_be_checked'] != 'y' && !isset($_COOKIE[ session_name() ])) {// cookie has not been activated too bad for him
 				$ret = true;
@@ -2146,87 +2169,6 @@ class TikiLib extends TikiDb_Bridge
 		return $vote;
 	}
 	// end of user voting methods
-
-	// Semaphore functions ////
-	/**
-	 * @param $semName
-	 * @param string $objectType
-	 * @return bool|mixed|null|string
-	 */
-	function get_semaphore_user($semName, $objectType='wiki page')
-	{
-		global $user;
-		// the old semaphores have been deleted by semaphore_is_set - this function must be called before
-		$query = "select `user` from `tiki_semaphores` where `semName`=? and `objectType`=?";
-		$result = $this->fetchAll($query, array($semName, $objectType));
-		$user_is_in = false;
-		foreach ( $result as $res ) {
-			if ($res['user'] != $user || (!$user && $res['user'] == 'anonymous')) {
-				return $res['user']; // return the other users if exist
-			} else {
-				$user_is_in = true;
-			}
-		}
-		if ($user_is_in)
-			return $user;
-		else
-			return '';
-	}
-
-	/**
-	 * @param $semName
-	 * @param $limit
-	 * @param string $objectType
-	 * @return mixed
-	 */
-	function semaphore_is_set($semName, $limit, $objectType='wiki page')
-	{
-		$lim = $this->now - $limit;
-
-		$semaphores = $this->table('tiki_semaphores');
-		$semaphores->deleteMultiple(array('timestamp' => $semaphores->lesserThan((int) $lim)));
-
-		$query = "select `semName`  from `tiki_semaphores` where `semName`=? and `objectType`=?";
-		$result = $this->query($query, array($semName, $objectType));
-		return $result->numRows();
-	}
-
-	/**
-	 * @param $semName
-	 * @param string $objectType
-	 * @return int
-	 */
-	function semaphore_set($semName, $objectType='wiki page')
-	{
-		global $user;
-
-		if ($user == '') {
-			$user = 'anonymous';
-		}
-
-		$semaphores = $this->table('tiki_semaphores');
-		$semaphores->delete(array('semName' => $semName,'objectType' => $objectType));
-		$semaphores->insert(
-			array(
-				'semName' => $semName,
-				'timestamp' => $this->now,
-				'user' => $user,
-				'objectType' => $objectType,
-			)
-		);
-		return $this->now;
-	}
-
-	/**
-	 * @param $semName
-	 * @param $lock
-	 * @param string $objectType
-	 */
-	function semaphore_unset($semName, $lock, $objectType='wiki page')
-	{
-		$semaphores = $this->table('tiki_semaphores');
-		$semaphores->delete(array('semName' => $semName,'timestamp' => (int) $lock,'objectType' => $objectType));
-	}
 
 	/**
 	 * @param int $offset
@@ -4007,6 +3949,7 @@ class TikiLib extends TikiDb_Bridge
 	function create_page($name, $hits, $data, $lastModif, $comment, $user = 'admin', $ip = '0.0.0.0', $description = '', $lang='', $is_html = false, $hash=null, $wysiwyg=NULL, $wiki_authors_style='', $minor=0, $created='')
 	{
 		global $prefs, $tracer;
+		$parserlib = TikiLib::lib('parser');
 
         $tracer->trace('tikilib.create_page', "** invoked");
 
@@ -4023,7 +3966,7 @@ class TikiLib extends TikiDb_Bridge
 			}
 		}
 		// Collect pages before modifying data
-		$pointedPages = $this->get_pages($data, true);
+		$pointedPages = $parserlib->get_pages($data, true);
 		$this->check_alias($data, $name);
 		if (!isset($_SERVER["SERVER_NAME"])) {
 			$_SERVER["SERVER_NAME"] = $_SERVER["HTTP_HOST"];
@@ -4036,7 +3979,6 @@ class TikiLib extends TikiDb_Bridge
         }
 
         $tracer->trace('tikilib.create_page', "** TikiLib::lib...");
-        $parserlib = TikiLib::lib('parser');
         $tracer->trace('tikilib.create_page', "** invoking process_save_plugins, \$parserlib=".get_class($parserlib));
 		$data = $parserlib->process_save_plugins(
 			$data,
@@ -4064,7 +4006,7 @@ class TikiLib extends TikiDb_Bridge
 
 		$insertData = array(
 			'pageName' => $name,
-			'pageSlug' => TikiLib::lib('slugmanager')->generate($prefs['wiki_url_scheme'] ?: 'urlencode', $name, $prefs['url_only_ascii'] === 'y'),
+			'pageSlug' => TikiLib::lib('slugmanager')->generate($prefs['wiki_url_scheme'] ?: 'dash', $name, $prefs['url_only_ascii'] === 'y'),
 			'hits' => (int) $hits,
 			'data' => $data,
 			'description' => $description,
@@ -4250,7 +4192,8 @@ class TikiLib extends TikiDb_Bridge
 			return false;
 		} else {
 			$page_info = $result->fetchRow();
-			$page_info['parsed'] = $this->parse_data($page_info['parsed'], array('is_html' => $page_info['is_html'], 'print'=>'y', 'page'=>$pageName));
+			$page_info['parsed'] = TikiLib::lib('parser')->parse_data($page_info['parsed'], array('is_html' => $page_info['is_html'], 'print'=>'y', 'page'=>$pageName));
+			$page_info['h'] = 1;
 		}
 		return $page_info;
 	}
@@ -4303,10 +4246,7 @@ class TikiLib extends TikiDb_Bridge
 					unset($this->cache_page_info[$keys[$num]]);
 				}
 			}
-            $row['outputType'] = '';
-            if ($prefs['feature_wikilingo'] == 'y') {
-                $row['outputType'] = $this->getOne ("SELECT `outputType` FROM `tiki_output` WHERE `entityId` = ? AND `objectType` = ? AND `version` = ?", array($row['pageName'], 'wikiPage', $row['version']));
-            }
+            $row['outputType'] = '';	// TODO remove as redundant?
 
 			$this->cache_page_info[$pageNameEncode] = $row;
 			return $this->cache_page_info[$pageNameEncode];
@@ -4372,7 +4312,7 @@ class TikiLib extends TikiDb_Bridge
 			});'
 		);
 		return "<a class=\"convert-mailto\" href=\"mailto:nospam@example.com\" data-encode-name=\"$name\" data-encode-domain=\"$domain\">$name ".tra("at", "", true)." $domain</a>";
-	}
+		}
 
 	//Updates a dynamic variable found in some object
 	/*Shared*/
@@ -4453,12 +4393,13 @@ class TikiLib extends TikiDb_Bridge
 	{
 		global $prefs;
 		$histlib = TikiLib::lib('hist');
+		$parserlib = TikiLib::lib('parser');
 
 		if (!$edit_user) $edit_user = 'anonymous';
 
 		$this->invalidate_cache($pageName);
 		// Collect pages before modifying edit_data (see update of links below)
-		$pages = $this->get_pages($edit_data, true);
+		$pages = $parserlib->get_pages($edit_data, true);
 		$this->check_alias($edit_data, $pageName);
 		if (!$this->page_exists($pageName))
 			return false;
@@ -4494,7 +4435,6 @@ class TikiLib extends TikiDb_Bridge
 			$html = 1;
 		}
 
-		$parserlib = TikiLib::lib('parser');
 		$edit_data = $parserlib->process_save_plugins(
 			$edit_data,
 			array(
@@ -4654,13 +4594,15 @@ class TikiLib extends TikiDb_Bridge
 			array(
 				'type' => 'wiki page',
 				'object' => $pageName,
-				'namespace' => $wikilib->get_namespace($pageName), 
+				'namespace' => $wikilib->get_namespace($pageName),
 				'reply_action' => 'comment',
 				'user' => $GLOBALS['user'],
 				'page_id' => $info['page_id'],
 				'version' => $version,
+				'old_version' => $old_version,
 				'data' => $edit_data,
 				'old_data' => $info['data'],
+				'edit_comment' => $edit_comment,
 			)
 		);
 
@@ -5620,14 +5562,13 @@ class TikiLib extends TikiDb_Bridge
 	function return_bytes( $val )
 	{
 		$val = trim($val);
-		$last = strtolower($val{strlen($val)-1});
-		switch ( $last ) {
-			// The 'G' modifier is available since PHP 5.1.0
-			case 'g': $val *= 1024;
-			case 'm': $val *= 1024;
-			case 'k': $val *= 1024;
+		$bytes = (int) $val;
+		$lastCharacter = strtolower($val{strlen($val)-1});
+		$units = array('k' => 1, 'm' => 2, 'g' => 3);
+		if (array_key_exists($lastCharacter, $units)) {
+			$bytes = $bytes * (1024 ** $units[$lastCharacter]);
 		}
-		return $val;
+		return $bytes;
 	}
 
 	/**
@@ -5667,7 +5608,7 @@ class TikiLib extends TikiDb_Bridge
 		$flags = array();
 		$h = opendir("img/flags/");
 		while ($file = readdir($h)) {
-			if (strstr($file, ".gif")) {
+			if (strstr($file, ".png")) {
 				$parts = explode('.', $file);
 				$flags[] = $parts[0];
 			}
@@ -5731,22 +5672,9 @@ class TikiLib extends TikiDb_Bridge
 		if ($prefs['search_parsed_snippet'] == 'y') {
 
 			$data = preg_replace('/{(:?make)?toc[^}]*}/', '', $data);
-			//standard wiki parse
-			if ($outputType == '') {
-				$_REQUEST['redirectpage'] = 'y'; //do not interpret redirect
-				$data = $this->parse_data($data, array('is_html' => $is_html, 'stripplugins' => true, 'parsetoc' => true));
-			}
 
-			//wikiLingo parse
-			else if (strtolower($outputType) == 'wikilingo' && $prefs['feature_wikilingo'] == 'y') {
-				$_REQUEST['redirectpage'] = 'y'; //do not interpret redirect
-				if ($this->wikiLingo == null) {
-					$this->wikiLingo = new WikiLingo\Parser();
-					require_once('lib/wikiLingo_tiki/WikiLingoEvents.php');
-					(new WikiLingoEvents($this->wikiLingo, false));
-				}
-				$data = $this->wikiLingo->parse($data);
-			}
+			$_REQUEST['redirectpage'] = 'y'; //do not interpret redirect
+			$data = TikiLib::lib('parser')->parse_data($data, array('is_html' => $is_html, 'stripplugins' => true, 'parsetoc' => true));
 		}
 
 
@@ -5977,17 +5905,25 @@ JS;
 	}
 
 	/**
+	 * @param bool $descendants The default is to get all descendents of the jailed categories, but for unified search
+	 *                          we only need the "root" jailed categories as the search does a deep_categories search on them
 	 * @return array
 	 */
-	function get_jail()
+	function get_jail($descendants = true)
 	{
 		global $prefs;
 		// if jail is zero, we should allow non-categorized objects to be seen as well, i.e. consider as no jail
-		if ( $prefs['feature_categories'] == 'y' && ! empty( $prefs['category_jail'] ) && $prefs['category_jail'] != array(0 => 0) ) {
-			$categlib = TikiLib::lib('categ');
+		if (! empty( $prefs['feature_categories'] ) &&  $prefs['feature_categories'] == 'y' &&
+				! empty( $prefs['category_jail'] ) && $prefs['category_jail'] != array(0 => 0) ) {
+
 			$expanded = array();
-			foreach ( $prefs['category_jail'] as $categId ) {
-				$expanded = array_merge($expanded, $categlib->get_category_descendants($categId));
+			if ($descendants) {
+				$categlib = TikiLib::lib('categ');
+				foreach ($prefs['category_jail'] as $categId) {
+					$expanded = array_merge($expanded, $categlib->get_category_descendants($categId));
+				}
+			} else {
+				$expanded = $prefs['category_jail'];
 			}
 			return $expanded;
 		} else {
@@ -6058,6 +5994,7 @@ JS;
 
 		$delimiter = array_shift($delimiters);
 		$temp = explode($delimiter, $string);
+
 		$array = array();
 		$keep = false;
 
@@ -6065,7 +6002,7 @@ JS;
 
 		foreach ($temp as $v) {
 			$filtered = str_replace($ignore_chars, '', $v);
-			if ($filtered == '') {
+			if ($filtered == '' && $v != '') {
 				if (! $keep) {
 					$array[count($array) - 1] .= $delimiter;
 				}
@@ -6304,7 +6241,7 @@ JS;
 				break;
 			case "uilightness":
 				$result['backgroundColor'] = '#F6A828';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#1C94C4';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#333';
@@ -6312,7 +6249,7 @@ JS;
 				break;
 			case "uidarkness":
 				$result['backgroundColor'] = '#333';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = 'white';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = 'white';
@@ -6320,7 +6257,7 @@ JS;
 				break;
 			case "smoothness":
 				$result['backgroundColor'] = '#E6E6E6';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#212121';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#222';
@@ -6328,7 +6265,7 @@ JS;
 				break;
 			case "start":
 				$result['backgroundColor'] = '#2191c0';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#acdd4a';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = 'white';
@@ -6336,7 +6273,7 @@ JS;
 				break;
 			case "redmond":
 				$result['backgroundColor'] = '#C5DBEC';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#2E6E9E';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#222';
@@ -6344,7 +6281,7 @@ JS;
 				break;
 			case "sunny":
 				$result['backgroundColor'] = '#FEEEBD';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#0074C7';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#383838';
@@ -6352,7 +6289,7 @@ JS;
 				break;
 			case "overcast":
 				$result['backgroundColor'] = '#C9C9C9';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#212121';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#333';
@@ -6360,7 +6297,7 @@ JS;
 				break;
 			case "lefrog":
 				$result['backgroundColor'] = '#285C00';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = 'white';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = 'white';
@@ -6368,7 +6305,7 @@ JS;
 				break;
 			case "flick":
 				$result['backgroundColor'] = '#DDD';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#0073EA';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#444';
@@ -6376,7 +6313,7 @@ JS;
 				break;
 			case "peppergrinder":
 				$result['backgroundColor'] = '#ECEADF';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#654B24';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#1F1F1F';
@@ -6384,7 +6321,7 @@ JS;
 				break;
 			case "eggplant":
 				$result['backgroundColor'] = '#3D3644';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = 'white';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = 'white';
@@ -6392,7 +6329,7 @@ JS;
 				break;
 			case "darkhive":
 				$result['backgroundColor'] = '#444';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#0972A5';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = 'white';
@@ -6400,7 +6337,7 @@ JS;
 				break;
 			case "cupertino":
 				$result['backgroundColor'] = '#D7EBF9';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#2694E8';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#362B36';
@@ -6408,7 +6345,7 @@ JS;
 				break;
 			case "southstreet":
 				$result['backgroundColor'] = '#F5F3E5';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#459E00';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#312E25';
@@ -6416,7 +6353,7 @@ JS;
 				break;
 			case "blitzer":
 				$result['backgroundColor'] = '#EEE';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#C00';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#333';
@@ -6424,7 +6361,7 @@ JS;
 				break;
 			case "humanity":
 				$result['backgroundColor'] = '#EDE4D4';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#B85700';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#1E1B1D';
@@ -6432,7 +6369,7 @@ JS;
 				break;
 			case "hotsneaks":
 				$result['backgroundColor'] = '#35414F';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#E1E463';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#93C3CD';
@@ -6440,7 +6377,7 @@ JS;
 				break;
 			case "excitebike":
 				$result['backgroundColor'] = '#EEE';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#E69700';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#1484E6';
@@ -6448,7 +6385,7 @@ JS;
 				break;
 			case "vader":
 				$result['backgroundColor'] = '#121212';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#ADADAD';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#EEE';
@@ -6456,7 +6393,7 @@ JS;
 				break;
 			case "dotluv":
 				$result['backgroundColor'] = '#111';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#0b3e6f';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#D9D9D9';
@@ -6464,7 +6401,7 @@ JS;
 				break;
 			case "mintchoc":
 				$result['backgroundColor'] = '#453326';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#BAEC7E';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#ffffff';
@@ -6472,7 +6409,7 @@ JS;
 				break;
 			case "blacktie":
 				$result['backgroundColor'] = '#333333';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#a3a3a3';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#eeeeee';
@@ -6480,7 +6417,7 @@ JS;
 				break;
 			case "trontastic":
 				$result['backgroundColor'] = '#222222';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#9fda58';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#ffffff';
@@ -6488,7 +6425,7 @@ JS;
 				break;
 			case "swankypurse":
 				$result['backgroundColor'] = '#261803';
-				$result['backgroundImage'] = 'vendor/jquery/jquery-s5/images/bg.png';
+				$result['backgroundImage'] = 'vendor_bundled/vendor/jquery/jquery-s5/images/bg.png';
 				$result['headerFontColor'] = '#eacd86';
 				$result['headerBackgroundColor'] = '';
 				$result['slideFontColor'] = '#efec9f';
@@ -6563,7 +6500,8 @@ JS;
 
 	function check_alias($edit, $page) {
 		$smarty = TikiLib::lib('smarty');
-		foreach ($this->get_pages($edit, true) as $pointedPage => $types) {
+		$parserlib = TikiLib::lib('parser');
+		foreach ($parserlib->get_pages($edit, true) as $pointedPage => $types) {
 			if (isset($types[0]) && $types[0] == 'alias') {
 				$alias = $this->table('tiki_object_relations')->fetchColumn('source_itemId', array('target_itemId' => $pointedPage));
 				if(($key = array_search($page, $alias)) !== false) { unset($alias[$key]); }
@@ -6575,6 +6513,19 @@ JS;
 				}
 			}
 		}
+	}
+
+	/**
+	 * @param $arr - array of data to convert to csv
+	 * @return string - csv formatted string
+	 */
+	function str_putcsv($arr) {
+		$fh = fopen('php://temp', 'rw');
+		fputcsv($fh, $arr);
+		rewind($fh);
+		$csv = stream_get_contents($fh);
+		fclose($fh);
+		return trim($csv);
 	}
 }
 // end of class ------------------------------------------------------

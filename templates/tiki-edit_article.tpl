@@ -9,22 +9,12 @@
 	{/if}
 {/title}
 <div class="t_navbar margin-bottom-md">
-	{button href="tiki-list_articles.php"  _type="link" class="btn btn-link" _icon_name="list" _text="{tr}List Articles{/tr}"}
-	{button href="tiki-view_articles.php"  _type="link" class="btn btn-link" _icon_name="articles" _text="{tr}View Articles{/tr}"}
+	{button href="tiki-list_articles.php" _type="link" class="btn btn-link" _icon_name="list" _text="{tr}List Articles{/tr}"}
+	{button href="tiki-view_articles.php" _type="link" class="btn btn-link" _icon_name="articles" _text="{tr}View Articles{/tr}"}
 </div>
 {if $preview}
 	<h2>{tr}Preview{/tr}</h2>
 	{include file='article.tpl'}
-{/if}
-{if !empty($errors)}
-	<div class="alert-warning">
-		{tr}One of the email addresses that was input is invalid{/tr}
-		<br>
-		{foreach from=$errors item=m name=errors}
-			{$m}
-			{if !$smarty.foreach.errors.last}<br>{/if}
-		{/foreach}
-	</div>
 {/if}
 <form enctype="multipart/form-data" method="post" action="tiki-edit_article.php" id='editpageform' role="form" class="form form-horizontal">
 	<input type="hidden" name="articleId" value="{$articleId|escape}">
@@ -41,11 +31,11 @@
 	{tabset}
 		{tab name="{tr}Content{/tr}"}
 			<h2>{tr}Content{/tr}</h2>
-			<div class="form-group  margin-side-0">
+			<div class="form-group margin-side-0">
 				<label for="title">{tr}Title{/tr}</label>
 				<input type="text" name="title" value="{$arttitle|escape}" maxlength="255" class="form-control">
 			</div>
-			<div class="form-group  margin-side-0">
+			<div class="form-group margin-side-0">
 				<label for="heading">{tr}Heading{/tr}</label>
 				{if $types.$type.heading_only eq 'y'}
 					{textarea name="heading" rows="5" class="form-control" id="subheading"}{$heading}{/textarea}
@@ -207,11 +197,11 @@
 		{tab name="{tr}Image{/tr}"}
 			<h2>{tr}Image{/tr}</h2>
 			<div class="form-group {if $types.$type.show_image neq 'y'}hidden{/if}">
-				<input type="hidden" name="MAX_FILE_SIZE" value="1000000">
+				<input type="hidden" name="MAX_FILE_SIZE" value="{$prefs.article_image_file_size_max}">
 				<label for="userfile1" class="control-label col-md-4">{tr}Own Image{/tr}</label>
 				<div class="col-md-8">
 					<input class="form-control" name="userfile1" type="file" onchange="document.getElementById('useImage').checked = true;">
-					<span class="help-block">{tr}If not the topic image{/tr}</span>
+					<span class="help-block">{tr}If not the topic image{/tr} - {tr}Max file size : {$prefs.article_image_file_size_max/1000} KB{/tr}</span>
 				</div>
 			</div>
 			{if $hasImage eq 'y'}
@@ -290,7 +280,7 @@
 						{tr}Attach existing article ID as translation{/tr}
 					</label>
 					<div class="col-md-2">
-						<input name="translationOf" type="text" class="form-control">
+						<input name="translationOf" type="text" class="form-control"{if !empty($translations[1].objId)}value="{$translations[1].objId|escape}"{/if}>
 					</div>
 				</div>
 			{/if}
@@ -301,13 +291,13 @@
 				</div>
 			</div>
 			<div class="form-group {if $types.$type.show_subtitle neq 'y'}hidden{/if}">
-				<label for="subtitle"  class="control-label col-md-4">{tr}Subtitle{/tr}</label>
+				<label for="subtitle" class="control-label col-md-4">{tr}Subtitle{/tr}</label>
 				<div class="col-md-8">
 					<input type="text" name="subtitle" value="{$subtitle|escape}" class="form-control">
 				</div>
 			</div>
 			<div class="form-group {if $types.$type.show_linkto neq 'y'}hidden{/if}">
-				<label for="linkto"  class="control-label col-md-4">{tr}Source{/tr}</label>
+				<label for="linkto" class="control-label col-md-4">{tr}Source{/tr}</label>
 				<div class="col-md-8">
 					<input type="url" name="linkto" value="{$linkto|escape}" class="form-control" placeholder="{tr}http://...{/tr}">
 					{if $linkto neq ''}

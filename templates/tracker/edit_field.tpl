@@ -53,7 +53,7 @@
 						</select>
 					{elseif $def.selector_type}
 						{if $def.separator}
-							{object_selector_multi type=$def.selector_type _separator=$def.separator _simplename="option~`$param`" _simplevalue=$options[$param] _simpleid="option-`$param`" _parent=$def.parent _parentkey=$def.parentkey}
+							{object_selector_multi type=$def.selector_type _separator=$def.separator _simplename="option~`$param`" _simplevalue=$options[$param] _simpleid="option-`$param`" _parent=$def.parent _parentkey=$def.parentkey _sort=$def.sort_order}
 						{else}
 							{object_selector type=$def.selector_type _simplename="option~`$param`" _simplevalue=$options[$param] _simpleid="option-`$param`" _parent=$def.parent _parentkey=$def.parentkey}
 						{/if}
@@ -73,6 +73,20 @@
 						{elseif $def.separator}
 							<div class="help-block">{tr}Separate multiple with &quot;{$def.separator}&quot;{/tr}</div>
 						{/if}
+					{/if}
+					{if $def.depends}
+					{jq}
+						$("input[name='option~{{$def.depends.field|escape}}'],textarea[name='option~{{$def.depends.field|escape}}'],select[name='option~{{$def.depends.field|escape}}']")
+						.change(function(){
+							var val = $(this).val();
+							var fg = $("input[name='option~{{$param|escape}}'],textarea[name='option~{{$param|escape}}'],select[name='option~{{$param|escape}}']").closest('.form-group');
+							if( val {{if $def.depends.op}}{{$def.depends.op}}{{else}}==={{/if}} {{$def.depends.value|json_encode}} || ( !{{$def.depends.value|json_encode}} && val ) ) {
+								fg.show();
+							} else {
+								fg.hide();
+							}
+						}).change();
+					{/jq}
 					{/if}
 				</div>
 			{/foreach}
@@ -111,6 +125,7 @@
 					<option value="r"{if $field.isHidden eq 'r'} selected="selected"{/if}>{tr}Visible by all but not in RSS feeds{/tr}</option>
 					<option value="y"{if $field.isHidden eq 'y'} selected="selected"{/if}>{tr}Visible after creation by administrators only{/tr}</option>
 					<option value="p"{if $field.isHidden eq 'p'} selected="selected"{/if}>{tr}Editable by administrators only{/tr}</option>
+					<option value="a"{if $field.isHidden eq 'a'} selected="selected"{/if}>{tr}Editable after creation by administrators only{/tr}</option>
 					<option value="c"{if $field.isHidden eq 'c'} selected="selected"{/if}>{tr}Editable by administrators and creator only{/tr}</option>
 					<option value="i"{if $field.isHidden eq 'i'} selected="selected"{/if}>{tr}Immutable after creation{/tr}</option>
 				</select>
@@ -122,11 +137,17 @@
 			<div class="form-group">
 				<label for="visible_by" class="groupselector control-label">{tr}Visible by{/tr}</label>
 				<input type="text" name="visible_by" value="{foreach from=$field.visibleBy item=group}{$group|escape}, {/foreach}" class="form-control">
+				<div class="help-block">
+					{tr}List of Group names with permission to see this field{/tr}. {tr}Separated by comma (,){/tr}
+				</div>
 			</div>
 
 			<div class="form-group">
 				<label for="editable_by" class="groupselector control-label">{tr}Editable by{/tr}</label>
 				<input type="text" name="editable_by" value="{foreach from=$field.editableBy item=group}{$group|escape}, {/foreach}" class="form-control">
+				<div class="help-block">
+					{tr}List of Group names with permission to edit this field{/tr}. {tr}Separated by comma (,){/tr}
+				</div>
 			</div>
 
 			<div class="form-group">

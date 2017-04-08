@@ -10,14 +10,14 @@ function prefs_file_list()
 	return array(
 		'file_galleries_comments_per_page' => array(
 			'name' => tra('Default number per page'),
-            'description' => tra('Number of comments per page'),
+			'description' => tra('Number of comments per page'),
 			'type' => 'text',
 			'size' => '5',
 			'default' => 10,
 		),
 		'file_galleries_comments_default_ordering' => array(
-			'name' => tra('Default ordering'),
-            'description' => tra('default ordering algorithm'),
+			'name' => tra('Default order'),
+			'description' => tra('default ordering algorithm'),
 			'type' => 'list',
 			'options' => array(
 				'commentDate_desc' => tra('Newest first'),
@@ -27,11 +27,10 @@ function prefs_file_list()
 			'default' => 'points_desc',
 		),
 		'file_galleries_use_jquery_upload' => array(
-			'name' => tra('Use jQuery Upload'),
-            'description' => tra('Use the improved Tiki 15+ upload page'),
+			'name' => tra('Use jQuery upload'),
+			'description' => tra('Use the improved Tiki 15+ upload page'),
 			'type' => 'flag',
 			'default' => 'y',
-			'tags' => array('experimental'),
 			'dependencies' => array(
 				'feature_file_galleries',
 				'feature_jquery_ui',

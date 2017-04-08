@@ -28,11 +28,19 @@ test = { mode: function () {}, indentation: function() {} }
 		//load modes first
 		//tiki first, where are our priorities!
 		$js .= @file_get_contents("lib/codemirror_tiki/mode/tiki/tiki.js");
- 		$css .= @file_get_contents("lib/codemirror_tiki/mode/tiki/tiki.css");
+ 		$css .= @file_get_contents("themes/base_files/feature_css/codemirror_mode_tiki.css");
 
-		foreach (glob('vendor/codemirror/codemirror/mode/*', GLOB_ONLYDIR) as $dir) {
+		foreach (glob('vendor_bundled/vendor/codemirror/codemirror/mode/*', GLOB_ONLYDIR) as $dir) {
 			foreach (glob($dir.'/*.js', GLOB_NOCHECK) as $jsFile) {
-				if(is_file($jsFile)){
+				if(
+					is_file($jsFile) && (
+						$prefs['tiki_minify_javascript'] !== 'y' ||
+						(
+							strpos($jsFile, 'powershell.js') === false		// FIXME temporary workaound for errors in codemirror 5.19.0
+							&& strpos($jsFile, 'swift.js') === false		// FIXME temporary workaound for errors in codemirror 5.19.0
+						)
+					)
+				){
 					$js .= "//" . $jsFile . "\n";
 					$js .= "try {\n" . @file_get_contents($jsFile) . "\n} catch (e) { };\n";
 				}
@@ -46,7 +54,7 @@ test = { mode: function () {}, indentation: function() {} }
 		}
 
 		//load themes
-		foreach (glob('vendor/codemirror/codemirror/theme/*.css') as $cssFile) {
+		foreach (glob('vendor_bundled/vendor/codemirror/codemirror/theme/*.css') as $cssFile) {
 			$css .= @file_get_contents($cssFile);
 		}
 

@@ -16,15 +16,6 @@ function wikiplugin_toc_info()
 		'introduced' => 3,
 		'lateParse' => true,
 		'params' => array(
-			'maxdepth' => array(
-				'name' => tra('Maximum Depth'),
-				'description' => tr('Maximum number of levels to display. On very large structures, this should be
-					limited. %0 means no limit (and is the default).', '<code>0</code>'),
-				'since' => '3.0',
-				'required' => false,
-				'filter' => 'digits',
-				'default' => 0,
-			),
 			'structId' => array(
 				'name' => tra('Structure ID'),
 				'description' => tra('By default, structure for the current page will be displayed. Alternate
@@ -34,6 +25,16 @@ function wikiplugin_toc_info()
 				'filter' => 'digits',
 				'default' => '',
 				'profile_reference' => 'structure',
+			),
+			'pagename' => array(
+				'name' => tra('Page Name'),
+				'description' => tra('By default, the table of contents for the current page will be displayed.
+					Alternate page may be provided.'),
+				'since' => '5.0',
+				'required' => false,
+				'filter' => 'pagename',
+				'default' => '',
+				'profile_reference' => 'wiki_page',
 			),
 			'order' => array(
 				'name' => tra('Order'),
@@ -48,9 +49,22 @@ function wikiplugin_toc_info()
 					array('text' => tra('Descending'), 'value' => 'desc')
 				)
 			),
+			'sortalpha' => array(
+				'name' => tra('Sort Order'),
+				'description' => tr('Order for the first Level of pages that will be displayed. Order by structure is the default.'),
+				'since' => '15.3.',
+				'required' => false,
+				'filter' => 'alpha',
+				'default' => 'struct',
+				'options' => array(
+					array('text' => '', 'value' => ''),
+					array('text' => tra('Structure Order'), 'value' => 'struct'),
+					array('text' => tra('Alphabetic Order'), 'value' => 'alpha')
+				)
+			),
 			'showdesc' => array(
 				'name' => tra('Show Description'),
-				'description' => tra('Show the page description instead of the page name'),
+				'description' => tra('Display the page description in front of the page name'),
 				'since' => '3.0',
 				'required' => false,
 				'filter' => 'digits',
@@ -88,15 +102,21 @@ function wikiplugin_toc_info()
 					array('text' => tra('Admin'), 'value' => 'admin'),
  				)
 			),
-			'pagename' => array(
-				'name' => tra('Page Name'),
-				'description' => tra('By default, the table of contents for the current page will be displayed.
-					Alternate page may be provided.'),
-				'since' => '5.0',
+            'mindepth' => array(
+                'name' => tra('Start Level'),
+                'description' => tr('Set the level starting from which page names are displayed. %0 or %1 (the default) means from level 1. Starting from %0 (and not 1).', '<code>0</code>','<code>empty</code>'),
+                'since' => '15.3.',
+                'required' => false,
+                'filter' => 'digits',
+                'default' => 0,
+            ),
+			'maxdepth' => array(
+				'name' => tra('Maximum Level Depth'),
+				'description' => tr('Set the number of levels to display. %0 means only 1 level will be displayed and %1 mean no limit (and is the default).', '<code>0</code>','<code>empty</code>'),
+				'since' => '3.0',
 				'required' => false,
-				'filter' => 'pagename',
-				'default' => '',
-				'profile_reference' => 'wiki_page',
+				'filter' => 'digits',
+				'default' => 0,
 			),
 		),
 	);
@@ -111,6 +131,8 @@ function wikiplugin_toc( $data, $params )
 		'type' => 'plain',
 		'structId' => '',
 		'maxdepth' => 0,
+		'mindepth' => 0,
+		'sortalpha' => 'struct',
 		'numberPrefix' => '',
 		'pagename' => '',
 	);
@@ -125,7 +147,7 @@ function wikiplugin_toc( $data, $params )
 	if ($prefs['feature_jquery_ui'] === 'y' && $type === 'admin') {
 		TikiLib::lib('header')
 				->add_jsfile('lib/structures/tiki-edit_structure.js')
-				->add_jsfile('vendor/jquery/plugins/nestedsortable/jquery.ui.nestedSortable.js');
+				->add_jsfile('vendor_bundled/vendor/jquery/plugins/nestedsortable/jquery.ui.nestedSortable.js');
 
 		$smarty = TikiLib::lib('smarty');
 		$smarty->loadPlugin('smarty_function_button');
@@ -154,14 +176,14 @@ function wikiplugin_toc( $data, $params )
 			$page_info = $structlib->s_get_page_info($pageName_ref_id);
 			$structure_info = $structlib->s_get_structure_info($pageName_ref_id);
 			if (isset($page_info)) {
-				$html = $structlib->get_toc($pageName_ref_id, $order, $showdesc, $shownum, $numberPrefix, $type, '', $maxdepth, $structure_info['pageName']);
+				$html = $structlib->get_toc($pageName_ref_id, $order, $showdesc, $shownum, $numberPrefix, $type, '', $maxdepth, $mindepth, $sortalpha, $structure_info['pageName']);
 				return "~np~$button $html $button~/np~";
 			}
 		}
 		return '';
 	} else {
 		$structure_info = $structlib->s_get_structure_info($structId);
-		$html = $structlib->get_toc($structId, $order, $showdesc, $shownum, $numberPrefix, $type, '', $maxdepth, $structure_info['pageName']);
+		$html = $structlib->get_toc($structId, $order, $showdesc, $shownum, $numberPrefix, $type, '', $maxdepth, $mindepth, $sortalpha, $structure_info['pageName']);
 
 		return "~np~$button $html $button~/np~";
 	}

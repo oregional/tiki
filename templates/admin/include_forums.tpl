@@ -1,17 +1,15 @@
 {* $Id$ *}
 <form class="form-horizontal" method="post" action="tiki-admin.php?page=forums">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 	<div class="t_navbar margin-bottom-md clearfix">
-		<a role="button" class="btn btn-link tips" href="tiki-admin_forums.php" title=":{tr}List{/tr}">
+		<a role="button" class="btn btn-link tips" href="tiki-admin_forums.php" title=":{tr}Forums listing{/tr}">
 			{icon name="list"} {tr}Forums{/tr}
 		</a>
-		<div class="pull-right">
-			<input type="submit" class="btn btn-primary btn-sm" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-		</div>
+		{include file='admin/include_apply_top.tpl'}
 	</div>
 	{tabset name="admin_forums"}
 		{tab name="{tr}General Settings{/tr}"}
-			<h2>{tr}General Settings{/tr}</h2>
+			<br>
 			<fieldset>
 				<legend>{tr}Activate the feature{/tr}</legend>
 				{preference name=feature_forums visible="always"}
@@ -22,7 +20,6 @@
 				<legend>
 					{tr}Features{/tr}
 				</legend>
-				<input type="hidden" name="forumprefs" />
 				{preference name=feature_forum_rankings}
 				{preference name=feature_forum_parse}
 				<div class="adminoptionboxchild" id="feature_forum_parse_childcontainer">
@@ -45,10 +42,11 @@
 				{preference name=forum_inbound_mail_ignores_perms}
 				{preference name=forum_inbound_mail_parse_html}
 				{preference name=forum_match_regex}
+				{preference name=forum_moderator_notification}
+				{preference name=forum_moderator_email_approve}
 			</fieldset>
 			<fieldset>
 				<legend>{tr}Threads{/tr}</legend>
-				<input type="hidden" name="forumthreadprefs" />
 				{preference name=forum_thread_defaults_by_forum}
 				{preference name=forum_thread_user_settings}
 				<div class="adminoptionboxchild" id="forum_thread_user_settings_childcontainer">
@@ -72,8 +70,7 @@
 			</fieldset>
 		{/tab}
 		{tab name="{tr}Forum Listing{/tr}"}
-			<h2>{tr}Forum Listing{/tr}</h2>
-			<input type="hidden" name="forumlistprefs" />
+			<br>
 			{preference name=forums_ordering}
 			{preference name=forum_list_topics}
 			{preference name=forum_list_posts}
@@ -90,7 +87,5 @@
 			</div>
 		{/tab}
 	{/tabset}
-	<div class="t_navbar margin-bottom-md text-center">
-		<input type="submit" class="btn btn-primary btn-sm" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

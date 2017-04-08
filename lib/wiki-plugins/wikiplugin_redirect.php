@@ -88,7 +88,7 @@ function wikiplugin_redirect($data, $params)
 		$areturn = tra("REDIRECT plugin: redirect loop detected!");
 	} else if (isset(TikiLib::lib('parser')->option['print']) && TikiLib::lib('parser')->option['print'] == 'y') {
 		$info = $tikilib->get_page_info($location);
-		return $tikilib->parse_data($info['data'], TikiLib::lib('parser')->option);
+		return TikiLib::lib('parser')->parse_data($info['data'], TikiLib::lib('parser')->option);
 	} else {
 
 		if (isset($perspective)) {
@@ -101,6 +101,7 @@ function wikiplugin_redirect($data, $params)
 		
 				if ( $perspectivelib->perspective_exists($perspective) ) {
 					$_SESSION['current_perspective'] = $perspective;
+					$_SESSION['current_perspective_name'] = $perspectivelib->get_perspective_name($_SESSION['current_perspective']);
 				}
 				if (empty($page) && empty($url)) {
 					$url =  $base_host . $_SERVER['REQUEST_URI'];

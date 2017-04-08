@@ -109,7 +109,6 @@ $pageRenderer->runSetups();
 ask_ticket('index-raw');
 
 // Display the Index Template
-$smarty->assign('dblclickedit', 'y');
 
 // If the url has the param "download", ask the browser to download it (instead of displaying it)
 if ( isset($_REQUEST['download']) && $_REQUEST['download'] !== 'n' ) {
@@ -119,7 +118,12 @@ if ( isset($_REQUEST['download']) && $_REQUEST['download'] !== 'n' ) {
 		$filename = $page;
 	}
 	$filename = str_replace(array('?',"'",'"',':','/','\\'), '_', $filename);	// clean some bad chars
-	header("Content-type: text/plain; charset=utf-8");
+	// add &css to the URL to transfer it as text/css mime type
+	if ( isset($_REQUEST['css']) && $_REQUEST['css'] !== 'n' ) {
+		header("Content-type: text/css; charset=utf-8");
+	} else {
+		header("Content-type: text/plain; charset=utf-8");
+	}
 	header("Content-Disposition: attachment; filename=\"$filename\"");
 }
 

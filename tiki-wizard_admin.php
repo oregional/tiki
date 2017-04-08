@@ -102,7 +102,10 @@ if ($useDefaultPrefs) {
     require_once('lib/wizard/pages/upgrade_new_in_15.php');
     $pages[] = new UpgradeWizardNewIn15();
 
-    require_once('lib/wizard/pages/upgrade_doc_page_iframe.php');
+	require_once('lib/wizard/pages/upgrade_new_in_16.php');
+	$pages[] = new UpgradeWizardNewIn16();
+
+	require_once('lib/wizard/pages/upgrade_doc_page_iframe.php');
     $pages[] = new UpgradeWizardDocPageIframe();
 
     require_once('lib/wizard/pages/upgrade_send_feedback.php');
@@ -146,10 +149,7 @@ if ($useDefaultPrefs) {
 	require_once('lib/wizard/pages/admin_structures.php'); 
 	$pages[] = new AdminWizardStructures();
 
-	require_once('lib/wizard/pages/admin_jcapture.php'); 
-	$pages[] = new AdminWizardJCapture();
-
-	require_once('lib/wizard/pages/admin_files.php'); 
+	require_once('lib/wizard/pages/admin_files.php');
 	$pages[] = new AdminWizardFiles();
 
 	require_once('lib/wizard/pages/admin_files_storage.php'); 
@@ -237,14 +237,6 @@ foreach ($pages as $page) {
 	$stepNr++;
 }
 $toc .= '</ul>';
-	// Hide the left and right sidebars when the admin wizard is run
-	$headerlib = TikiLib::lib('header');
-	$headerlib->add_js(
-<<<JS
-	hideCol('col2','left', 'col1');
-	hideCol('col3','right', 'col1');
-JS
-);
 
 if ($reqStepNr > 0) {
 	$smarty->assign('wizard_toc', $toc);

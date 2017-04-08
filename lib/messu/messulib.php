@@ -192,7 +192,7 @@ class Messu extends TikiLib
 					}
 
 				} catch (Zend\Mail\Exception\ExceptionInterface $e) {
-					TikiLib::lib('errorreport')->report($e->getMessage());
+					Feedback::error($e->getMessage(), 'session');
 					return false;
 				}
 			}
@@ -266,13 +266,21 @@ class Messu extends TikiLib
 	 * Get the number of messages in the users mailbox or mail archive (from
 	 * which depends on $dbsource)
 	 */
-	function count_messages($user, $dbsource = 'messages')
+	function count_messages($user, $dbsource = 'messages', $unreadOnly=false, $newSince=0)
 	{
-		if ($dbsource == '')
+		if ($dbsource == '') {
 			$dbsource = 'messages';
+		}
 
 		$bindvars = array($user);
 		$query_cant = 'select count(*) from `messu_' . $dbsource . '` where `user`=?';
+		if ($unreadOnly == true) {
+			$query_cant .= ' and `isRead`="n"';
+		}
+		if (!empty($newSince)) {
+			$query_cant .= ' and `date` >= ?';
+			$bindvars[] = $newSince;
+		}
 		$cant = $this->getOne($query_cant, $bindvars);
 		return $cant;
 	}
@@ -457,7 +465,7 @@ class Messu extends TikiLib
 		$query = 'select * from `messu_' . $dbsource . '` where `user`=? and `msgId`=?';
 		$result = $this->query($query, $bindvars);
 		$res = $result->fetchRow();
-		$res['parsed'] = $this->parse_data($res['body']);
+		$res['parsed'] = TikiLib::lib('parser')->parse_data($res['body']);
 		$res['len'] = strlen($res['parsed']);
 
 		if (empty($res['subject']))
@@ -507,7 +515,7 @@ class Messu extends TikiLib
 		$ret = [];
 
 		while ($res = $result->fetchRow()) {
-			$res['parsed'] = $this->parse_data($res['body']);
+			$res['parsed'] = TikiLib::lib('parser')->parse_data($res['body']);
 			$res['len'] = strlen($res['parsed']);
 			if (empty($res['subject']))
 				$res['subject'] = tra('NONE');

@@ -264,6 +264,25 @@
 </div>
 </form>
 
+<h2>{tr}Tiki Security{/tr}</h2>
+{assign var=sensitive_data_box_title value="{tr}Sensitive Data Exposure{/tr}"}
+{if $sensitive_data_detected_files}
+{remarksbox type='error' title="{$sensitive_data_box_title}" close='n'}
+	<p>{tr}Tiki detected that there are temporary files in the db folder which may expose credentials or other sensitive information.{/tr}</p>
+	<ul>
+		{foreach from=$sensitive_data_detected_files item=file}
+			<li>
+				{$file}
+			</li>
+		{/foreach}
+	</ul>
+{/remarksbox}
+{else}
+{remarksbox type='info' title="{$sensitive_data_box_title}" close='n'}
+	<p>{tr}Tiki did not detect temporary files in the db folder which may expose credentials or other sensitive information.{/tr}</p>
+{/remarksbox}
+{/if}
+
 <h2>{tr}File Gallery Search Indexing{/tr}</h2>
 {icon name='help' href='https://doc.tiki.org/Search+within+files'} <em>{tr _0='<a href="https://doc.tiki.org/Search+within+files">' _1='</a>'}More information %0 here %1{/tr}</em>
 {if $prefs.fgal_enable_auto_indexing eq 'y'}
@@ -322,3 +341,46 @@
 
 <h2>{tr}PHP Info{/tr}</h2>
 {tr}For more detailed information about your PHP installation see <a href="tiki-phpinfo.php">Admin->phpinfo</a>{/tr}.
+
+<h2>{tr}BOM Detected Files{/tr}</h2>
+<p>{tr}Scanned files:{/tr} {$bom_total_files_scanned}</p>
+<p>{tr}BOM files detected:{/tr}</p>
+<ul>
+	{foreach from=$bom_detected_files item=file}
+		<li>
+			{$file}
+		</li>
+	{/foreach}
+</ul>
+
+<h2>{tr}TRIM{/tr}</h2>
+{tr}For more detailed information about Tiki Remote Instance Manager please check <a href="https://doc.tiki.org/TRIM">doc.tiki.org</a>{/tr}.
+
+{if trim_capable}
+	<h3>Master server</h3>
+	<div class="table-responsive">
+		<table class="table">
+			<tr>
+				<th>{tr}Requirements{/tr}</th>
+				<th>{tr}Status{/tr}</th>
+			</tr>
+			{foreach from=$trim_requirements key=key item=item}
+				<tr>
+					<td class="text">{$key}</td>
+					<td class="text">
+						{if $item}
+							{icon name='ok' iclass='text-success'}
+						{else}
+							{icon name='remove' iclass='text-danger'}
+						{/if}
+					</td>
+				</tr>
+			{/foreach}
+
+		</table>
+	</div>
+{else}
+	{remarksbox type='error' title='{tr}OS not supported{/tr}' close='n'}
+		<p>{tr}Apparently tiki is running on a Windows based server. This feature is not supported natively.{/tr}</p>
+	{/remarksbox}
+{/if}

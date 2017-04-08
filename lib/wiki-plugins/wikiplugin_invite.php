@@ -62,7 +62,6 @@ function wikiplugin_invite( $data, $params)
 		}
 	}
 	$errors = array();
-	$feedbacks = array();
 	if (isset($_REQUEST['invite'])) {
 		if (empty($_REQUEST['email'])) {
 			$errors[] = tra('The following mandatory fields are missing').' '.tra('Email address');
@@ -119,7 +118,7 @@ function wikiplugin_invite( $data, $params)
 
 			return $data;
 		} else {
-			$smarty->assign_by_ref('errors', $errors);
+			Feedback::error(['mes' => $errors]);
 			$smarty->assign_by_ref('email', $_REQUEST['email']);
 			if (!empty($_REQUEST['groups'])) $smarty->assign_by_ref('groups', $_REQUEST['groups']);
 			if (!empty($_REQUEST['message'])) $smarty->assign_by_ref('message', $_REQUEST['message']);

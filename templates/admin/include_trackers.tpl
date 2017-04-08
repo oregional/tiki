@@ -1,39 +1,29 @@
 <form class="form-horizontal" action="tiki-admin.php?page=trackers" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 
 	<div class="row">
 		<div class="form-group col-lg-12 clearfix">
 			<a role="button" class="btn btn-link" href="tiki-list_trackers.php" title="{tr}List{/tr}">
 				{icon name="list"} {tr}Trackers{/tr}
 			</a>
-			<div class="pull-right">
-				<input type="submit" class="btn btn-primary btn-sm" name="trkset" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-			</div>
+			{include file='admin/include_apply_top.tpl'}
 		</div>
 	</div>
 
 	{tabset}
 
 		{tab name="{tr}Settings{/tr}"}
-			<h2>{tr}Settings{/tr}</h2>
+			<br>
 			<fieldset>
 				<legend>{tr}Activate the feature{/tr}</legend>
 				{preference name=feature_trackers visible="always"}
 			</fieldset>
 			<fieldset class="table">
 				<legend>{tr}Tracker settings{/tr}</legend>
-				{preference name=user_selector_threshold}
-				{preference name=user_selector_realnames_tracker}
-				{preference name=tiki_object_selector_threshold}
 				{preference name=feature_reports}
 				{preference name="tracker_remote_sync"}
 				{preference name="tracker_tabular_enabled"}
-				{preference name="tracker_refresh_itemlink_detail"}
 				{preference name="tracker_clone_item"}
-				{preference name="wikiplugin_insert"}
-				<div class="adminoptionboxchild" id="wikiplugin_insert_childcontainer">
-					{preference name=tracker_insert_allowed}
-				</div>
 				{preference name=allocate_memory_tracker_export_items}
 				{preference name=allocate_time_tracker_export_items}
 				{preference name=allocate_time_tracker_clear_items}
@@ -42,13 +32,23 @@
 				<div class="adminoptionboxchild" id="ajax_inline_edit_childcontainer">
 					{preference name=ajax_inline_edit_trackerlist}
 				</div>
-				{preference name=tracker_change_field_type}
+				{preference name=tracker_report_resize_button}
 				{preference name=tracker_show_comments_below}
 				{preference name=tracker_legacy_insert}
 				{preference name=tracker_status_in_objectlink}
 				{preference name=tracker_always_notify}
 				{preference name=feature_sefurl_tracker_prefixalias}
 				{preference name=tracker_prefixalias_on_links}
+			</fieldset>
+			<fieldset class="table">
+				<legend>{tr}Field settings{/tr}</legend>
+				{preference name=user_selector_threshold}
+				{preference name=user_selector_realnames_tracker}
+				{preference name=tiki_object_selector_threshold}
+				{preference name="tracker_refresh_itemlink_detail"}
+				{preference name=fgal_tracker_existing_search}
+				{preference name=unified_trackerfield_keys}
+				{preference name=tracker_change_field_type}
 			</fieldset>
 
 			<fieldset class="admin">
@@ -62,41 +62,28 @@
 
 			<fieldset class="table">
 				<legend>{tr}Tracker attachment preferences{/tr}</legend>
-					<table class="table">
-						<tr>
-							<td>
-								{tr}Use database to store files:{/tr}
-							</td>
-							<td>
-								<input type="radio" name="t_use_db" value="y" {if $prefs.t_use_db eq 'y'}checked="checked"{/if}/>
-							</td>
-						</tr>
-
-						<tr>
-							<td>
-								{tr}Use a directory to store files:{/tr}</td>
-							<td>
-								<input type="radio" name="t_use_db" value="n" {if $prefs.t_use_db eq 'n'}checked="checked"{/if}/> {tr}Path:{/tr}
-								<br>
-								<input type="text" name="t_use_dir" value="{$prefs.t_use_dir|escape}" size="50" />
-							</td>
-						</tr>
-
-					</table>
+				{preference name='t_use_db'}
+				<div class="adminoptionboxchild t_use_db_childcontainer n">
+					{preference name='t_use_dir'}
+				</div>
 			</fieldset>
 			<fieldset class="admin">
-				<legend>{tr}Tracker Force-Fill Feature{/tr}</legend>
+				<legend>{tr}Tracker force-fill feature{/tr}</legend>
 				{preference name=tracker_force_fill}
 				{preference name=tracker_force_tracker_id}
 				{preference name=tracker_force_mandatory_field}
 				{preference name=tracker_force_tracker_fields}
+				{preference name=user_force_avatar_upload}
 			</fieldset>
 		{/tab}
 
 		{tab name="{tr}Plugins{/tr}"}
-			<h2>{tr}Plugins{/tr}</h2>
+			<br>
 			<fieldset class="table">
-				<legend>{tr}Plugins{/tr}</legend>
+				{preference name=wikiplugin_insert}
+				<div class="adminoptionboxchild" id="wikiplugin_insert_childcontainer">
+					{preference name=tracker_insert_allowed}
+				</div>
 				{preference name=wikiplugin_tracker}
 				{preference name=wikiplugin_trackerlist}
 				{preference name=wikiplugin_trackerfilter}
@@ -117,9 +104,9 @@
 		{/tab}
 
 		{tab name="{tr}Field Types{/tr}"}
-			<h2>{tr}Field Types{/tr}</h2>
+			<br>
 			<fieldset class="table">
-				<legend>{tr}Field Types{/tr}</legend>
+				<legend>{tr}Field types{/tr}</legend>
 				{foreach from=$fieldPreferences item=name}
 					{preference name=$name}
 				{/foreach}
@@ -131,7 +118,7 @@
 	<div class="row">
 		<div class="form-group col-lg-12 clearfix">
 			<div class="text-center">
-				<input type="submit" class="btn btn-primary btn-sm" name="trkset" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
+				<input type="submit" class="btn btn-primary btn-sm tips timeout" name="trkset" title=":{tr}Apply changes{/tr}" value="{tr}Apply{/tr}">
 			</div>
 		</div>
 	</div>
@@ -143,8 +130,9 @@
 	<div class="table">
 		{if $attachements}
 			<form action="tiki-admin.php?page=trackers" method="post">
-				<input type="text" name="find" value="{$find|escape}" />
-				<input type="submit" class="btn btn-default btn-sm" name="action" value="{tr}Find{/tr}" />
+				{include file='access/include_ticket.tpl'}
+				<input type="text" name="find" value="{$find|escape}">
+				<input type="submit" class="btn btn-default btn-sm timeout" name="action" value="{tr}Find{/tr}">
 			</form>
 		{/if}
 
@@ -211,14 +199,16 @@
 			<tr>
 				<td>
 					<form action="tiki-admin.php?page=trackers" method="post">
-						<input type="hidden" name="all2db" value="1" />
-						<input type="submit" class="btn btn-default btn-sm" name="action" value="{tr}Change all to db{/tr}" />
+						{include file='access/include_ticket.tpl'}
+						<input type="hidden" name="all2db" value="1">
+						<input type="submit" class="btn btn-default btn-sm timeout" name="action" value="{tr}Change all to db{/tr}">
 					</form>
 				</td>
 				<td>
 					<form action="tiki-admin.php?page=trackers" method="post">
-						<input type="hidden" name="all2file" value="1" />
-						<input type="submit" class="btn btn-default btn-sm" name="action" value="{tr}Change all to file{/tr}" />
+						{include file='access/include_ticket.tpl'}
+						<input type="hidden" name="all2file" value="1">
+						<input type="submit" class="btn btn-default btn-sm timeout" name="action" value="{tr}Change all to file{/tr}">
 					</form>
 				</td>
 			</tr>

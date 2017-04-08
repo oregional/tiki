@@ -13,50 +13,108 @@
 	{include file='tiki-ajax_header.tpl'}
 {/if}
 
-		<div class="container">
+		<div class="container{if $smarty.session.fullscreen eq 'y'}-fluid{/if}">
 
-			<div class="row" id="row-middle">
-
-				<div class="{if	zone_is_empty('left') and zone_is_empty('right')}col-md-12 {elseif
-						zone_is_empty('left')}col-md-9 {elseif 
-						zone_is_empty('right')}col-md-9 col-md-push-3 {else}col-md-8 col-md-push-2 {/if}col1" id="col1">
-	{if $prefs.module_zones_pagetop eq 'fixed' or ($prefs.module_zones_pagetop ne 'n' && ! zone_is_empty('pagetop'))}
-		{modulelist zone=pagetop}
-	{/if}
-	{error_report}
-					<div class="pull-right">
+			<div class="row row-middle" id="row-middle">
+				{if zone_is_empty('left') and zone_is_empty('right')}
+					<div class="col-md-12 col1" id="col1">
+						{if $prefs.module_zones_pagetop eq 'fixed' or ($prefs.module_zones_pagetop ne 'n' && ! zone_is_empty('pagetop'))}
+							{modulelist zone=pagetop}
+						{/if}
+						{feedback}
 						{block name=quicknav}{/block}
+						{block name=title}{/block}
+						{block name=navigation}{/block}
+						{block name=content}{/block}
+						{if $prefs.module_zones_pagebottom eq 'fixed' or ($prefs.module_zones_pagebottom ne 'n' && ! zone_is_empty('pagebottom'))}
+							{modulelist zone=pagebottom}
+						{/if}
 					</div>
-	{block name=title}{/block}
-	{block name=navigation}{/block}
-	{block name=content}{/block}
-	{if $prefs.module_zones_pagebottom eq 'fixed' or ($prefs.module_zones_pagebottom ne 'n' && ! zone_is_empty('pagebottom'))}
-		{modulelist zone=pagebottom}
-	{/if}
-				</div> {* col1 *}
-	{if zone_is_empty('left') and zone_is_empty('right')}
-		{* show nothing *}
-	{elseif zone_is_empty('left')}
-				<div class="col-md-3" id="col3">
-		{modulelist zone=right}
-				</div>
-	{elseif zone_is_empty('right')}
-				<div class="col-md-3 col-md-pull-9" id="col2">
-		{modulelist zone=left}
-				</div>
-	{else}
-				<div class="col-md-2 col-md-pull-8" id="col2">
-		{modulelist zone=left}
-				</div>
-				<div class="col-md-2" id="col3">
-		{modulelist zone=right}
-				</div>
-	{/if} 
+				{elseif zone_is_empty('left') or $prefs.feature_left_column eq 'n'}
+					<div class="col-md-12 text-right side-col-toggle">
+						{if $prefs.feature_right_column eq 'user'}
+							{$icon_name = (not empty($smarty.cookies.hide_zone_right)) ? 'toggle-left' : 'toggle-right'}
+							{icon name=$icon_name class='toggle_zone right' href='#' title='{tr}Toggle right modules{/tr}'}
+						{/if}
+					</div>
+					<div class="col-md-9 col1" id="col1">
+						{if $prefs.module_zones_pagetop eq 'fixed' or ($prefs.module_zones_pagetop ne 'n' && ! zone_is_empty('pagetop'))}
+							{modulelist zone=pagetop}
+						{/if}
+						{feedback}
+						{block name=quicknav}{/block}
+						{block name=title}{/block}
+						{block name=navigation}{/block}
+						{block name=content}{/block}
+						{if $prefs.module_zones_pagebottom eq 'fixed' or ($prefs.module_zones_pagebottom ne 'n' && ! zone_is_empty('pagebottom'))}
+							{modulelist zone=pagebottom}
+						{/if}
+					</div>
+					<div class="col-md-3" id="col3">
+						{modulelist zone=right}
+					</div>
+				{elseif zone_is_empty('right') or $prefs.feature_right_column eq 'n'}
+					<div class="col-md-12 text-left side-col-toggle">
+						{if $prefs.feature_left_column eq 'user'}
+							{$icon_name = (not empty($smarty.cookies.hide_zone_left)) ? 'toggle-right' : 'toggle-left'}
+							{icon name=$icon_name class='toggle_zone left' href='#' title='{tr}Toggle left modules{/tr}'}
+						{/if}
+					</div>
+					<div class="col-md-9 col-md-push-3 col1" id="col1">
+						{if $prefs.module_zones_pagetop eq 'fixed' or ($prefs.module_zones_pagetop ne 'n' && ! zone_is_empty('pagetop'))}
+							{modulelist zone=pagetop}
+						{/if}
+						{feedback}
+						{block name=quicknav}{/block}
+						{block name=title}{/block}
+						{block name=navigation}{/block}
+						{block name=content}{/block}
+						{if $prefs.module_zones_pagebottom eq 'fixed' or ($prefs.module_zones_pagebottom ne 'n' && ! zone_is_empty('pagebottom'))}
+							{modulelist zone=pagebottom}
+						{/if}
+					</div>
+					<div class="col-md-3 col-md-pull-9" id="col2">
+						{modulelist zone=left}
+					</div>
+				{else}
+					<div class="col-md-6 text-left side-col-toggle">
+						{if $prefs.feature_left_column eq 'user'}
+							{$icon_name = (not empty($smarty.cookies.hide_zone_left)) ? 'toggle-right' : 'toggle-left'}
+							{icon name=$icon_name class='toggle_zone left' href='#' title='{tr}Toggle left modules{/tr}'}
+						{/if}
+					</div>
+					<div class="col-md-6 text-right side-col-toggle">
+						{if $prefs.feature_right_column eq 'user'}
+							{$icon_name = (not empty($smarty.cookies.hide_zone_right)) ? 'toggle-left' : 'toggle-right'}
+							{icon name=$icon_name class='toggle_zone right' href='#' title='{tr}Toggle right modules{/tr}'}
+						{/if}
+					</div>
+					<div class="col-md-8 col-md-push-2 col1" id="col1">
+						{if $prefs.module_zones_pagetop eq 'fixed' or ($prefs.module_zones_pagetop ne 'n' && ! zone_is_empty('pagetop'))}
+							{modulelist zone=pagetop}
+						{/if}
+						{feedback}
+						{block name=quicknav}{/block}
+						{block name=title}{/block}
+						{block name=navigation}{/block}
+						{block name=content}{/block}
+						{if $prefs.module_zones_pagebottom eq 'fixed' or ($prefs.module_zones_pagebottom ne 'n' && ! zone_is_empty('pagebottom'))}
+							{modulelist zone=pagebottom}
+						{/if}
+					</div>
+					<div class="col-md-2 col-md-pull-8" id="col2">
+						{modulelist zone=left}
+					</div>
+					<div class="col-md-2" id="col3">
+						{modulelist zone=right}
+					</div>
+				{/if}
 			</div> {* row *}
 		</div> {* container *}
 
+{if $smarty.session.fullscreen ne 'y'}
 		<footer class="footer main-footer" id="footer">
-			<div class="container">
+			<div class="container{if $smarty.session.fullscreen eq 'y'}-fluid{/if}">
 				<div class="footer_liner">
 {modulelist zone=bottom class=row} <!-- div.modules -->
 				</div>
@@ -64,7 +122,7 @@
 		</footer>
 
 		<nav class="navbar navbar-default navbar-fixed-top" role="navigation" id="navbar-fixed-top">
-			<div class="container">
+			<div class="container{if $smarty.session.fullscreen eq 'y'}-fluid{/if}">
 				<div class="navbar-header">
 					<button type="button" class="navbar-toggle" data-toggle="collapse"
 					data-target="#navbar-collapse-social">
@@ -77,46 +135,47 @@
 				</div> {* navbar-header *}
 
 				<div class="collapse navbar-collapse" id="navbar-collapse-social">
-						{modulelist zone="topbar" id="topbar_modules_social"}
 
 						<ul class="nav navbar-nav navbar-right">
-{if $user}
+	{if $user}
 							<li>
 								<a href="{if $prefs.feature_sefurl eq 'y'}logout{else}tiki-logout.php{/if}">{tr}Log out{/tr}</a>
 							</li>
-{else}
+	{else}
 							<li class="dropdown">
 								<a href="#" class="dropdown-toggle" data-toggle="dropdown">{tr}Log in{/tr} <span
 								class="caret"></span></a>
 								<ul class="dropdown-menu">
 									<li>
 										<div>
-	{module
-		module=login_box
-		mode="module"
-		show_register=""
-		show_forgot=""
-		error=""
-		flip=""
-		decorations="n"
-		nobox="y"
-		notitle="y"
-	}
+		{module
+			module=login_box
+			mode="module"
+			show_register=""
+			show_forgot=""
+			error=""
+			flip=""
+			decorations="n"
+			nobox="y"
+			notitle="y"
+		}
 										</div>
 									</li>
 								</ul>
 							</li>
-	{if $prefs.allowRegister eq 'y'}
+		{if $prefs.allowRegister eq 'y'}
 							<li>
 								<a href="{if $prefs.feature_sefurl eq 'y'}register{else}tiki-register.php{/if}">{tr}Register{/tr}</a>
 							</li>
+		{/if}
 	{/if}
-{/if}
 						</ul>
+					{modulelist zone="topbar" id="topbar_modules_social" style="float:left"}
 				</div> {* navbar-collapse-social *}
 			</div> {* container *}
 
 		</nav>
+{/if}
 
 {include file='footer.tpl'}
 	</body>

@@ -3,19 +3,17 @@
 {remarksbox type="tip" title="{tr}Tip{/tr}"}{tr}Please see the <a class='alert-link' target='tikihelp' href='http://dev.tiki.org/Performance'>Performance page</a> on Tiki's developer site.{/tr}{/remarksbox}
 
 <form class="admin form-horizontal" id="performance" name="performance" action="tiki-admin.php?page=performance" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 	<div class="row">
 		<div class="form-group col-lg-12 clearfix">
-			<div class="pull-right">
-				<input type="submit" class="btn btn-primary btn-sm" name="performance" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
+			{include file='admin/include_apply_top.tpl'}
 		</div>
 	</div>
 
 	{tabset}
 
 		{tab name="{tr}Performance{/tr}"}
-			<h2>{tr}Performance{/tr}</h2>
+			<br>
 			{preference name=tiki_minify_javascript}
 			<div class="adminoptionboxchild" id="tiki_minify_javascript_childcontainer">
 				{preference name=tiki_minify_late_js_files}
@@ -42,7 +40,7 @@
 			{preference name=users_serve_avatar_static}
 
 			<fieldset>
-				<legend>{tr}PHP Settings{/tr}</legend>
+				<legend>{tr}PHP settings{/tr}</legend>
 				<p>{tr}Some PHP.INI settings that can increase performance{/tr}</p>
 				<div class="adminoptionboxchild">
 					<p>
@@ -59,7 +57,7 @@
 		{/tab}
 
 		{tab name="{tr}Bytecode Cache{/tr}"}
-			<h2>{tr}Bytecode Cache{/tr}</h2>
+			<br>
 			{if $opcode_cache}
 				<p>{tr _0=$opcode_cache}Using <strong>%0</strong>. These stats affect all PHP applications running on the server.{/tr}</p>
 
@@ -118,14 +116,14 @@
 		{/tab}
 
 		{tab name="{tr}Wiki{/tr}"}
-			<h2>{tr}Wiki{/tr}</h2>
+			<br>
 			{preference name=wiki_cache}
 			{preference name=feature_wiki_icache}
 			{preference name=wiki_ranking_reload_probability}
 		{/tab}
 
 		{tab name="{tr}Database{/tr}"}
-			<h2>{tr}Database{/tr}</h2>
+			<br>
 			{preference name=log_sql}
 			<div class="adminoptionboxchild" id="log_sql_childcontainer">
 				{preference name=log_sql_perf_min}
@@ -133,7 +131,7 @@
 		{/tab}
 
 		{tab name="{tr}Memcache{/tr}"}
-			<h2>{tr}Memcache{/tr}</h2>
+			<br>
 			{preference name=memcache_enabled}
 			<div class="adminoptionboxchild" id="memcache_enabled_childcontainer">
 				{preference name=memcache_compress}
@@ -147,12 +145,12 @@
 		{/tab}
 
 		{tab name="{tr}Plugins{/tr}"}
-			<h2>{tr}Plugins{/tr}</h2>
+			<br>
 			{preference name=wikiplugin_snarf_cache}
 		{/tab}
 
-		{tab name="{tr}Major slowdown{/tr}"}
-			<h2>{tr}Major slowdown{/tr}</h2>
+		{tab name="{tr}Major Slowdown{/tr}"}
+			<br>
 			{remarksbox type="note" title="{tr}Major slowdown{/tr}"}
 				{tr}These are reported to slow down Tiki. If you have a high-volume site, you may want to deactivate them{/tr}
 			{/remarksbox}
@@ -168,13 +166,13 @@
 		{/tab}
 
 		{tab name="{tr}Sessions{/tr}"}
-			<h2>{tr}Sessions{/tr}</h2>
+			<br>
 			{preference name=session_silent}
 			{preference name=tiki_cachecontrol_nosession}
 		{/tab}
 
 		{tab name="{tr}Newsletter{/tr}"}
-			<h2>{tr}Newsletter{/tr}</h2>
+			<br>
 			{preference name=newsletter_throttle}
 			<div class="adminoptionboxchild" id="newsletter_throttle_childcontainer">
 				{preference name=newsletter_pause_length}
@@ -182,8 +180,8 @@
 			</div>
 		{/tab}
 
-		{tab name="{tr}Time and memory limits{/tr}"}
-			<h2>{tr}Time and memory limits{/tr}</h2>
+		{tab name="{tr}Time and Memory Limits{/tr}"}
+			<br>
 			{preference name=allocate_memory_tracker_export_items}
 			{preference name=allocate_time_tracker_export_items}
 			{preference name=allocate_time_tracker_clear_items}
@@ -192,12 +190,5 @@
 		{/tab}
 
 	{/tabset}
-
-	<div class="row">
-		<div class="form-group col-lg-12 clearfix">
-			<div class="text-center">
-				<input type="submit" class="btn btn-primary btn-sm" name="performance" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
-		</div>
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

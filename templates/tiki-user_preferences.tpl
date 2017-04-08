@@ -14,13 +14,6 @@
 		{button href="tiki-user_information.php?view_user=$thisuser" _type="link" _text="{tr}User Information{/tr}"}
 	</div>
 {/if}
-{if $tikifeedback}
-	<div class="simplebox highlight">
-		{section name=n loop=$tikifeedback}
-			<div>{$tikifeedback[n].mes}</div>
-		{/section}
-	</div>
-{/if}
 {tabset name="mytiki_user_preference"}
 	{if $prefs.feature_userPreferences eq 'y'}
 		{tab name="{tr}Personal Information{/tr}"}
@@ -331,7 +324,7 @@
 						{/if}
 					</div>
 				</div>
-				<div class="clearfix">
+				<div class="form-group clearfix">
 					<div class="checkbox col-md-8 col-md-push-4">
 						<label>
 							<input type="checkbox" name="display_12hr_clock" {if $user_prefs.display_12hr_clock eq 'y'}checked="checked"{/if}>{tr}Use 12-hour clock in time selectors{/tr}
@@ -341,13 +334,6 @@
 						<div class="checkbox col-md-8 col-md-push-4">
 							<label>
 								<input type="checkbox" name="show_mouseover_user_info" {if $show_mouseover_user_info eq 'y'}checked="checked"{/if}>{tr}Display info tooltip on mouseover for every user who allows his/her information to be public{/tr}
-							</label>
-						</div>
-					{/if}
-					{if $prefs.feature_wiki eq 'y'}
-						<div class="checkbox col-md-8 col-md-push-4">
-							<label>
-								<input type="checkbox" name="user_dbl" {if $user_prefs.user_dbl eq 'y'}checked="checked"{/if}>{tr}Use double-click to edit pages{/tr}
 							</label>
 						</div>
 					{/if}
@@ -444,6 +430,17 @@
 				{/if}
 				<legend>{tr}My Account{/tr}</legend>
 				<div class="clearfix">
+					{if $prefs.xmpp_feature eq 'y'}
+						<div class="form-group">
+							<label class="control-label col-md-4" for="xmpp_password">
+								{tr}XMPP account password{/tr}
+							</label>
+							<div class="col-md-8">
+								<input type="password" name="xmpp_password" id="xmpp_password" value="{$user_prefs.xmpp_password}">
+							</div>
+						</div>
+					{/if}
+
 					{if $prefs.feature_wiki eq 'y'}
 						<div class="checkbox col-md-8 col-md-push-4">
 							<label>
@@ -521,11 +518,20 @@
 					</div>
 				{/if}
 				<div class="form-group">
+						<label class="control-label col-md-4" for="remember_closed_rboxes">
+							{tr}Keep closed remarksbox hidden{/tr}
+						</label>
+						<div class="col-md-8">
+							<input type="checkbox" name="remember_closed_rboxes" id="remember_closed_rboxes" {if $user_prefs.remember_closed_rboxes eq 'y'}checked="checked"{/if}>
+							<p class="text-info">
+								{tr}Remember which remarksbox (alert box) you have closed and don't show them again.{/tr}<br>
+							</p>
+						</div>
 					<label class="control-label col-md-4">
 						{tr}Reset remark boxes visibility{/tr}
 					</label>
 					<div class="col-md-8">
-						{button _text="{tr}Reset{/tr}" _onclick="if (confirm('{tr}This will reset the visibility of all the tips, notices and warning remarks boxes you have closed.{/tr}')) {ldelim}deleteCookie('rbox');{rdelim}return false;"}
+						{button _text="{tr}Reset{/tr}" _onclick="if (confirm('{tr}This will reset the visibility of all the tips, notices and warning remarks boxes you have closed.{/tr}')) {ldelim}deleteCookie('rbox');{rdelim}return false;" _class='btn-sm'}
 					</div>
 				</div>
 				<div class="submit text-center">

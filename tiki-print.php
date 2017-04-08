@@ -43,6 +43,12 @@ $access->check_permission('tiki_p_view', '', 'wiki page', $page);
 // Now increment page hits since we are visiting this page
 $tikilib->add_hit($page);
 
+if ($prefs['print_wiki_authors'] === 'y') {
+	// Get the authors style for this page
+	$wiki_authors_style = ($prefs['wiki_authors_style_by_page'] == 'y' && $info['wiki_authors_style'] != '') ? $info['wiki_authors_style'] : $prefs['wiki_authors_style'];
+	$smarty->assign('wiki_authors_style', $wiki_authors_style);
+}
+
 if (isset($prefs['wiki_feature_copyrights']) && $prefs['wiki_feature_copyrights'] == 'y' && isset($prefs['wikiLicensePage'])) {
 	// insert license if wiki copyrights enabled
 	$license_info = $tikilib->get_page_info($prefs['wikiLicensePage']);
@@ -76,7 +82,12 @@ if ($prefs['feature_wiki_structure'] == 'y') {
 		}
 	}
 }
-$pdata = $tikilib->parse_data($info["data"], array('is_html' => $info["is_html"], 'print' => 'y', 'namespace' => $info["namespace"]));
+$pdata = TikiLib::lib('parser')->parse_data($info["data"], array('is_html' => $info["is_html"], 'print' => 'y', 'namespace' => $info["namespace"]));
+
+//replacing bootstrap classes for print version.
+
+$pdata=str_replace(array('col-sm','col-md','col-lg'),'col-xs',$pdata);
+
 $smarty->assign_by_ref('parsed', $pdata);
 $smarty->assign_by_ref('lastModif', $info["lastModif"]);
 if (empty($info["user"])) {
@@ -99,10 +110,11 @@ $smarty->assign('display', isset($_REQUEST['display']) ? $_REQUEST['display'] : 
 if (isset($_REQUEST['display']) && $_REQUEST['display'] == 'pdf') {
 	require_once 'lib/pdflib.php';
 	$generator = new PdfGenerator();
-	$pdf = $generator->getPdf('tiki-print.php', array('page' => $page));
-	if (empty($pdf)) {
-		$access->display_error($page, "Unable to generate PDF");
+	if (!empty($generator->error)) {
+		Feedback::error($generator->error, 'session');
+		$access->redirect($page);
 	} else {
+		$pdf = $generator->getPdf('tiki-print.php', array('page' => $page),$pdata);
 		$length = strlen($pdf);
 		header('Cache-Control: private, must-revalidate');
 		header('Pragma: private');

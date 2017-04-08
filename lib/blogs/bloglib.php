@@ -410,7 +410,7 @@ class BlogLib extends TikiDb_Bridge
 
 		while ($res = $result->fetchRow()) {
 			$imgId = $res['imgId'];
-			$res['link'] = "<img src='tiki-view_blog_post_image.php?imgId=$imgId' border='0' alt='image' />";
+			$res['link'] = "<img src='tiki-view_blog_post_image.php?imgId=$imgId' alt='image' />";
 			$parts = parse_url($_SERVER['REQUEST_URI']);
 			$path = str_replace('tiki-blog_post.php', 'tiki-view_blog_post_image.php', $parts['path']);
 			$res['absolute'] = $tikilib->httpPrefix(). $path . "?imgId=$imgId";
@@ -480,6 +480,8 @@ class BlogLib extends TikiDb_Bridge
 
 			$result = $this->query($query, array($title, $description, $user, $public, $lastModif, $maxPosts, $heading, $use_title, $use_title_in_post, $use_description, $use_breadcrumbs, $use_author, $add_date, $use_find, $allow_comments, $show_avatar, $alwaysOwner, $post_heading, $show_related, $related_max, $use_excerpt, $blogId));
 			$tikilib->object_post_save(array('type'=>'blog', 'object'=>$blogId), array('content'=>$heading));
+			$query2 = "UPDATE `tiki_objects` SET `name`=? ,`description`=? WHERE `itemId`=? AND `type`='blog'";
+			$this->query($query2, array($title, $description, $blogId));
 		} else {
 			if ($created == 0) {
 				$created = $tikilib->now;
@@ -1287,7 +1289,26 @@ class BlogLib extends TikiDb_Bridge
 			}
 			unset( $arrString );
 		}
-  		return( $blogItems );
+		return( $blogItems );
 	}
+
+	/**
+	 * Return blogId from postId
+	 *
+	 * @param int $postId
+	 *
+	 * @return int $blogId or false
+	 */
+	function get_blogId_from_post($postId) {
+		$query = "SELECT `blogId` FROM `tiki_blog_posts` WHERE postId=?";
+		$result = $this->query($query, array($postId));
+		if ($result->numRows()) {
+			$res = $result->fetchRow();
+			return $res['blogId'];
+		} else {
+			return false;
+		}
+	}
+
 }
 

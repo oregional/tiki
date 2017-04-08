@@ -259,9 +259,9 @@ class ImageAbstract
 			}
 		}
 
-		$name = "lib/images/icons/$extension.$format";
+		$name = "img/icons/mime/large/$extension.$format";
 		if ( ! file_exists($name) ) {
-			$name = "lib/images/icons/unknown.$format";
+			$name = "img/icons/mime/large/unknown.$format";
 		}
 
 		if ( ! $keep_original && $format != 'svg' ) {
@@ -269,7 +269,9 @@ class ImageAbstract
 			if ( $format != $icon_format ) {
 				$icon->convert($icon_format);
 			}
-			$icon->resize($x, $y);
+			if ($x < $this->_get_width() && $y < $this->_get_height()) {
+				$icon->resize($x, $y);
+			}
 
 			return $icon->display();
 		} else {

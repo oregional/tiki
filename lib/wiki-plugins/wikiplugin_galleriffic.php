@@ -143,9 +143,9 @@ function wikiplugin_galleriffic($data, $params)
 		return '';
 	}
 	$headerlib = TikiLib::lib('header');
-	$headerlib->add_cssfile('lib/jquery_tiki/galleriffic/css/galleriffic-2.css');		// tiki needs modified css otherwise .content gets hidden
-	$headerlib->add_jsfile('vendor/jquery/plugins/galleriffic/js/jquery.galleriffic.js');
-	$headerlib->add_jsfile('vendor/jquery/plugins/galleriffic/js/jquery.opacityrollover.js');
+	$headerlib->add_cssfile('themes/base_files/feature_css/galleriffic.css');		// tiki needs modified css otherwise .content gets hidden
+	$headerlib->add_jsfile('vendor_bundled/vendor/jquery/plugins/galleriffic/js/jquery.galleriffic.js');
+	$headerlib->add_jsfile('vendor_bundled/vendor/jquery/plugins/galleriffic/js/jquery.opacityrollover.js');
 	$playLinkText = tra('Play Slideshow');
 	$pauseLinkText = tra('Pause Slideshow');
 	$prevLinkText = '&lsaquo; '.tra('Previous Photo');

@@ -129,7 +129,7 @@ reset()
 	fi
 	[[ -z $DB_DETECTED ]] && echo "WARNING: Could not detect database for instance"
 	if [[ -z "${APASSWORD}" ]]; then APASSWORD="12345"; fi
-	mysql -e "UPDATE users_users SET password='admin', hash= md5('${APASSWORD}') WHERE login='admin';" $DB_DETECTED && echo "SUCCESS: Admin password reset to ${APASSWORD} in database ${DB_DETECTED}" || echo "ERROR: admin password not reset in database ${DB_DETECTED}"
+	mysql -e "UPDATE users_users SET hash= md5('${APASSWORD}') WHERE login='admin';" $DB_DETECTED && echo "SUCCESS: Admin password reset to ${APASSWORD} in database ${DB_DETECTED}" || echo "ERROR: admin password not reset in database ${DB_DETECTED}"
 }
 
 update()
@@ -137,6 +137,8 @@ update()
 	startlog
 	echo "UPDATE" > $INSTANCE_LOCK
 	cd $INSTANCE_DIR
+	log "Doing SVN upgrade (just in case)"
+	svn upgrade
 	log "SVN upping"
 	svn up
 	log "Running setup.sh"

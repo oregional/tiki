@@ -19,6 +19,11 @@ $inputConfiguration = array(
 );
 require_once ('tiki-setup.php');
 
+if (Language::isRTL()) {
+    $prefs['feature_bidi'] =  'y';
+    TikiLib::lib('header')->add_cssfile('vendor_bundled/vendor/morteza/bootstrap-rtl/dist/css/bootstrap-rtl.min.css', 99); // 99 is high rank order as it should load after all other css files
+}
+
 $access->check_feature('change_password');
 
 if (empty($_REQUEST['user']) || !$userlib->user_exists($_REQUEST['user'])) {
@@ -74,7 +79,7 @@ if (isset($_REQUEST["change"])) {
 		}
 	}
 	// Check that provided user name could log in with old password, otherwise display error and exit
-	list($isvalid, $_REQUEST["user"], $error) = $userlib->validate_user($_REQUEST["user"], $_REQUEST["oldpass"], '', '');
+	list($isvalid, $_REQUEST["user"], $error) = $userlib->validate_user($_REQUEST["user"], $_REQUEST["oldpass"]);
 	if (!$isvalid) {
 		$smarty->assign('msg', tra("Invalid old password"));
 		$smarty->assign('errortype', 'no_redirect_login');
@@ -102,18 +107,20 @@ if (isset($_REQUEST["change"])) {
 		$cryptlib->onChangeUserPassword($_REQUEST["oldpass"], $_REQUEST["pass"]);
 	}
 
+	$homePageUrl = $prefs['tikiIndex'];	// set up in lib/setup/default_homepage.php
+
 	// Check if a wizard should be run.
 	// If a wizard is run, it will return to the $url location when it has completed. Thus no code after $wizardlib->onLogin will be executed
 	$wizardlib = TikiLib::lib('wizard');
 	$force = $_REQUEST["user"] == 'admin';
-	$wizardlib->onLogin($user, $prefs['tikiIndex'], $force);
+	$wizardlib->onLogin($user, $homePageUrl, $force);
 
 	// Go to homepage or url_after_validation
 	$accesslib = TikiLib::lib('access');
 	if (!empty($prefs['url_after_validation']) && !empty($_REQUEST['new_user_validation'])) {
 		$access->redirect($prefs['url_after_validation']);
 	} else {
-		$accesslib->redirect($prefs['tikiIndex']);
+		$accesslib->redirect($homePageUrl);
 	}
 }
 ask_ticket('change-password');

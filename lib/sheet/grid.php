@@ -196,7 +196,7 @@ class TikiSheet
 	/** TikiSheet
 	 * Initializes the data container.
 	 */
-	function TikiSheet() {
+	function __construct() {
 		$this->dataGrid = array();
 		$this->calcGrid = array();
 		$this->cellInfo = array();
@@ -349,6 +349,7 @@ class TikiSheet
 				$handler = new TikiSheetDatabaseHandler($childSheetId, $date );
 				$childSheet = new TikiSheet();
 				$childSheet->import($handler);
+				$childSheet->parseValues = true;
 				$data .= $childSheet->getTableHtml( false );
 			}
 		}
@@ -1079,7 +1080,7 @@ class TikiSheetTrackerHandler extends TikiSheetDataHandler
 
 				$sheet->setValue( $i == 0 ? $key : $field );
 
-				$sheet->setSize( 1, 1 );
+				$sheet->setColSpan( 1, 1 );
 				$j++;
 			}
 			$i++;
@@ -1122,7 +1123,7 @@ class TikiSheetSimpleArrayHandler extends TikiSheetDataHandler
 {
 	public $values = array();
 
-	function TikiSheetSimpleArrayHandler( $simpleArray = array() )
+	function __construct( $simpleArray = array() )
 	{
 		$this->values = $simpleArray['values'];
 		$this->name = $simpleArray['name'];
@@ -1156,7 +1157,7 @@ class TikiSheetSimpleArrayHandler extends TikiSheetDataHandler
 
 				$sheet->setValue( $i == 0 ? $key : $col );
 
-				$sheet->setSize( 1, 1 );
+				$sheet->setColSpan( 1, 1 );
 				$j++;
 			}
 			$i++;
@@ -1231,7 +1232,7 @@ class TikiSheetCSVExcelHandler extends TikiSheetDataHandler
 					}
 				}
 
-				$sheet->setSize( 1, 1 );
+				$sheet->setColSpan( 1, 1 );
 			}
 		}
 
@@ -1605,7 +1606,7 @@ class TikiSheetExcelHandler extends TikiSheetDataHandler
                                 }
 							}
 						}
-						$sheet->setSize( $width, $height );
+						$sheet->setColSpan( $width, $height );
 					}
 			}
 
@@ -1895,7 +1896,7 @@ class TikiSheetOutputHandler extends TikiSheetDataHandler
 				$data =  $sheet->dataGrid[$beginRow][$beginCol];
 				if ($sheet->parseValues == 'y' && mb_ereg_match('[^A-Za-z0-9\s]', $data)) {	// needs to be multibyte regex here
 					global $tikilib;
-					$data = $tikilib->parse_data($data, array('suppress_icons' => true));
+					$data = TikiLib::lib('parser')->parse_data($data, array('suppress_icons' => true));
 				}
 				$this->output = $data;
 				return true;
@@ -2028,7 +2029,7 @@ class TikiSheetOutputHandler extends TikiSheetDataHandler
 					global $tikilib;
 					// only parse if we have non-alphanumeric or space chars
 					if (mb_ereg_match('[^A-Za-z0-9\s]', $data)) {	// needs to be multibyte regex here
-						$data = $tikilib->parse_data($data, array('suppress_icons' => true));
+						$data = TikiLib::lib('parser')->parse_data($data, array('suppress_icons' => true));
 					}
 					if (strpos($data, '<p>') === 0) {	// remove containing <p> tag
 						$data = substr($data, 3);

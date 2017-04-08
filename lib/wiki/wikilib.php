@@ -86,6 +86,22 @@ class WikiLib extends TikiLib
 		return $slug;
 	}
 
+	/**
+	 * Return a Slug, if set, or the page name supplied as result
+	 *
+	 * @param string $page
+	 * @return string
+	 */
+	function get_slug_by_page($page)
+	{
+		$pages = TikiDb::get()->table('tiki_pages');
+		$slug = $pages->fetchOne('pageSlug', ['pageName' => $page]);
+		if ($slug){
+			return $slug;
+		}
+		return $page;
+	}
+
 	public function get_creator($name)
 	{
 		return $this->getOne('select `creator` from `tiki_pages` where `pageName`=?', array($name));
@@ -198,9 +214,14 @@ class WikiLib extends TikiLib
 	 * @param string $copyName
 	 * @return bool
 	 */
-	public function wiki_duplicate_page($name, $copyName = null)
+	public function wiki_duplicate_page($name, $copyName = null, $dupCateg=true, $dupTags=true)
 	{
+		global $user;
+		global $prefs;
+
 		$tikilib = TikiLib::lib('tiki');
+		$userlib = TikiLib::lib('user');
+		$globalperms = Perms::get();
 
 		$info = $tikilib->get_page_info($name);
 
@@ -212,7 +233,7 @@ class WikiLib extends TikiLib
 			$copyName = $name . ' (' . $tikilib->now . ')';
 		}
 
-		return $tikilib->create_page(
+		$copyPage = $tikilib->create_page(
 			$copyName,
 			0,
 			$info['data'],
@@ -224,6 +245,47 @@ class WikiLib extends TikiLib
 			$info['lang'],
 			$info['is_html']
 		);
+
+		if ($copyPage) {
+			$warnings = array();
+			if ($dupCateg && $prefs['feature_categories'] === 'y') {
+
+				if ($globalperms->modify_object_categories) {
+					$categlib = TikiLib::lib('categ');
+					$categories = $categlib->get_object_categories('wiki page', $name);
+					Perms::bulk(array( 'type' => 'category' ), 'object', $categories);
+
+					foreach ($categories as $catId) {
+						$perms = Perms::get(array( 'type' => 'category', 'object' => $catId));
+
+						if ($perms->add_object) {
+							$categlib->categorizePage($copyName, $catId);
+						} else {
+							$warnings[] = tr("You don't have permission to use category '%0'.", $categlib->get_category_name($catId));
+						}
+					}
+				} else {
+					$warnings[] = tr("You don't have permission to edit categories.");
+				}
+			}
+
+			if ($dupTags && $prefs['feature_freetags'] === 'y' && $globalperms->freetags_tag) {
+				$freetaglib = TikiLib::lib('freetag');
+				$freetags = $freetaglib->get_tags_on_object($name, 'wiki page');
+
+				foreach ($freetags['data'] as $tag) {
+					$freetaglib->tag_object($user, $copyName, 'wiki page', $tag['tag']);
+				}
+			} else {
+				$warnings[] = tr("You don't have permission to edit tags.");
+			}
+
+			if (count($warnings) > 0) {
+				Feedback::warning(array('mes' => $warnings), 'session');
+			}
+		}
+
+		return $copyPage;
 	}
 
 	// This method renames a wiki page
@@ -820,6 +882,7 @@ class WikiLib extends TikiLib
 		$logslib = TikiLib::lib('logs');
 		$logslib->add_action('Removed last version', $page, 'wiki page', $comment);
 		//get_strings tra("Removed last version");
+		return true;
 	}
 
 	/**
@@ -1055,7 +1118,7 @@ class WikiLib extends TikiLib
 		return $parent_pages;
 	}
 
-	public function list_plugins($with_help = false, $area_id = 'editwiki')
+	public function list_plugins($with_help = false, $area_id = 'editwiki', $onlyEnabled = true)
 	{
 		$parserlib = TikiLib::lib('parser');
 
@@ -1069,12 +1132,16 @@ class WikiLib extends TikiLib
 
 				$plugins = array();
 				foreach ($list as $name) {
-					$pinfo['help'] = $this->get_plugin_description($name, $enabled, $commonKey);
-					$pinfo['name'] = TikiLib::strtoupper($name);
+					$pinfo = [
+						'help' => $this->get_plugin_description($name, $enabled, $commonKey),
+						'name' => TikiLib::strtoupper($name),
+					];
 
-					if ( $enabled ) {
+					if (! $onlyEnabled || $enabled) {
 						$info = $parserlib->plugin_info($name);
 						$pinfo['title'] = $info['name'];
+						unset($info['name']);
+						$pinfo = array_merge($pinfo, $info);
 
 						$plugins[] = $pinfo;
 					}
@@ -1095,7 +1162,7 @@ class WikiLib extends TikiLib
 			);
 			return $plugins;
 		} else {
-			// Only used by PluginManager ... what is that anyway?
+			// Only used by WikiPluginPluginManager
 			$files = array();
 
 			if (is_dir(PLUGINS_DIR)) {
@@ -1119,7 +1186,6 @@ class WikiLib extends TikiLib
 	//
 	public function get_plugin_description($name, &$enabled, $area_id = 'editwiki')
 	{
-		$tikilib = TikiLib::lib('tiki');
 		$parserlib = TikiLib::lib('parser');
 
 		if ( ( ! $info = $parserlib->plugin_info($name) ) && $parserlib->plugin_exists($name, true) ) {
@@ -1131,7 +1197,7 @@ class WikiLib extends TikiLib
 			}
 
 			$ret = $func_name();
-			return $tikilib->parse_data($ret);
+			return $parserlib->parse_data($ret);
 		} else {
 			$smarty = TikiLib::lib('smarty');
 			$enabled = true;
@@ -1284,7 +1350,7 @@ class WikiLib extends TikiLib
 		if ($listpages['cant']) {
 			foreach ($listpages['data'] as $from) {
 				$info = $tikilib->get_page_info($from['pageName']);
-				$pages = $tikilib->get_pages($info['data'], true);
+				$pages = TikiLib::lib('parser')->get_pages($info['data'], true);
 				foreach ($pages as $to => $types) {
 					$tikilib->replace_link($from['pageName'], $to, $types);
 					//echo '<br />FROM:'.$from['pageName']." TO: $to "; print_r($types);
@@ -1495,28 +1561,36 @@ class WikiLib extends TikiLib
 					// Enable Auto TOC
 					$headerlib->add_jsfile('lib/jquery_tiki/autoToc.js');
 
+					//Get autoToc offset
+					$tocOffset = !empty($prefs['wiki_toc_offset']) ? $prefs['wiki_toc_offset'] : 10;
+
 					// Show/Hide the static inline TOC
 					$isAddInlineToc = isset($prefs['wiki_inline_auto_toc']) ? $prefs['wiki_inline_auto_toc'] === 'y' : false;
 					if ($isAddInlineToc) {
 						// Enable static, inline TOC
-						$headerlib->add_css('div#outerToc-static {display: block;}');
+						//$headerlib->add_css('#autotoc {display: block;}');
 
-						// Postion TOC top/left/right
-						$tocPos = !empty($prefs['wiki_inline_toc_pos']) ? $prefs['wiki_inline_toc_pos'] : 'right';
+						//Add top margin
+						$headerlib->add_css('#autotoc {margin-top:' . $tocOffset . 'px;}');
+
+						// Postion inline TOC top/left/right
+						$tocPos = !empty($prefs['wiki_toc_pos']) ? $prefs['wiki_toc_pos'] : 'right';
 						switch(strtolower($tocPos)) {
 							case 'top':
-								$headerlib->add_css('div#outerToc-static {border: 0px;}');
+								$headerlib->add_css('#autotoc {border: 0px;}');
 								break;
 							case 'left':
-								$headerlib->add_css('div#outerToc-static {float: left;}');
+								$headerlib->add_css('#autotoc {float: left;margin-right:15px;}');
 								break;
 							case 'right':
 							default:
-								$headerlib->add_css('div#outerToc-static {float: right;}');
+								$headerlib->add_css('#autotoc {float: right;margin-left:15px;}');
 								break;
 						}
-					} else {
-						$headerlib->add_css('div#outerToc-static {display: none;}');
+					} else {//Not inline TOC
+						//$headerlib->add_css('#autotoc {display: none;}');
+						//Adds the offset for the affix
+						$headerlib->add_css('.affix {top:' . $tocOffset . 'px;}');
 					}
 				}
 			}
@@ -1846,76 +1920,13 @@ class WikiLibOutput
     public $parsedValue;
     public $options;
 
-    private static $init = false;
-    private static $wikiLingo;
-    private static $wikiLingoScripts;
-
     public function __construct($info, $originalValue, $options = array())
     {
-        $tikilib = TikiLib::lib('tiki');
-        $prefslib = TikiLib::lib('prefs');
-        $headerlib = TikiLib::lib('header');
-
         //TODO: info may have an override, we need to build it in using MYSQL
         $this->info = $info;
         $this->originalValue = $originalValue;
         $this->options = $options;
 
-        $feature_wikilingo = $prefslib->getPreference('feature_wikilingo')['value'];
-
-        if($feature_wikilingo === 'y'
-            && isset($info['outputType']) && $info['outputType'] == 'wikiLingo') {
-
-            if (self::$init) {
-                $scripts = self::$wikiLingoScripts;
-                $wikiLingo = self::$wikiLingo;
-            } else {
-                self::$init = true;
-                $scripts = self::$wikiLingoScripts = new WikiLingo\Utilities\Scripts(TikiLib::tikiUrl() . "vendor/wikilingo/wikilingo/");
-                $wikiLingo = self::$wikiLingo = new WikiLingo\Parser($scripts);
-	            require_once('lib/wikiLingo_tiki/WikiLingoEvents.php');
-	            (new WikiLingoEvents($wikiLingo));
-            }
-
-            if (isset($_POST['protocol']) && $_POST['protocol'] === 'futurelink')
-            {
-                $this->parsedValue = '';
-            } else {
-                $this->parsedValue = $wikiLingo->parse($this->originalValue);
-
-                //recover from failure, but DO NOT just output
-                if ($this->parsedValue === null)
-                {
-                    $possibleCause = '';
-                    if (!empty($wikiLingo->pluginStack)) {
-                        foreach ($wikiLingo->pluginStack as $pluginName) {
-                            $possibleCause .= "<li>" . tr('Unclosed Plugin: ') . $pluginName . "</li>";
-                        }
-                    }
-                    $errors = htmlspecialchars(implode($wikiLingo->lexerErrors + $wikiLingo->parserErrors, "\n"));
-
-                    $this->parsedValue = '<pre><code>' . htmlspecialchars($this->originalValue) . '</code></pre>' .
-                        '<div class="ui-state-error">' . tr("wikiLingo markup could not be parsed.") .
-                            '<br />' .
-                            (!empty($possibleCause) ? "<ul>" . $possibleCause . "</ul>" : '') .
-                            tr('Error Details: ') . '<pre><code>' . $errors . '</code></pre>' .
-                        '</div>';
-                }
-                //transfer scripts over to headerlib
-                //css is already processed at this point, as it is in the header, at the top, so we expose it here
-                $this->parsedValue .= $scripts->renderCss();
-
-                //js
-                foreach($scripts->scripts as $script) {
-                    $headerlib->add_js($script);
-                }
-                //js files
-                foreach($scripts->scriptLocations as $scriptLocation) {
-                    $headerlib->add_jsfile($scriptLocation);
-                }
-            }
-        } else {
-            $this->parsedValue = $tikilib->parse_data($this->originalValue, $this->options = $options);
-        }
+		$this->parsedValue = TikiLib::lib('parser')->parse_data($this->originalValue, $this->options = $options);
     }
 }

@@ -69,12 +69,24 @@ class Table_Code_MainOptions extends Table_Code_Manager
 					if (isset($info['filter']['placeholder'])) {
 						$allcols[$col]['data']['placeholder'] = $info['filter']['placeholder'];
 					}
+					// add special filter type
+					if (isset($info['filter']['type']) && $info['filter']['type'] === 'dropdown' && !isset($info['filter']['options'])) {
+						if( !empty($allcols[$col]['addClass']) ) {
+							$allcols[$col]['addClass'] = array_filter($allcols[$col]['addClass'], function($class){ return !strstr($class, 'sorter-'); });
+						}
+						$allcols[$col]['addClass'][] = 'sorter-dropdown';
+						$allcols[$col]['addClass'][] = 'filter-parsed';
+						$allcols[$col]['addClass'][] = 'filter-match';
+					}
 				}
 			}
 			//column select
 			if (parent::$s['colselect']['type'] === true) {
 				if (isset($info['priority'])) {
 					$allcols[$col]['attr']['data-priority'] = $info['priority'];
+				}
+				if (! empty($info['hidden'])) {
+					$allcols[$col]['addClass'][] = 'columnSelector-false';
 				}
 			}
 		}
@@ -173,7 +185,7 @@ class Table_Code_MainOptions extends Table_Code_Manager
 		if (!empty(parent::$s['sorts']['sortlist'])) {
 			$mo[] = 'sortList : [[' . parent::$s['sorts']['sortlist']['col'] . ',' . parent::$s['sorts']['sortlist']['dir']. ']]';
 		} elseif (parent::$sorts && parent::$sortcol) {
-			$sl = '';
+			$sl = [];
 			$i = 0;
 			foreach (parent::$s['columns'] as $col => $info) {
 				$info = !empty($info['sort']) ? $info['sort'] : [];

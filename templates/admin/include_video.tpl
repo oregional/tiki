@@ -1,10 +1,10 @@
 <form class="form-horizontal" action="tiki-admin.php?page=video" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 
 	{tabset name="admin_video"}
 
 		{tab name="{tr}Kaltura{/tr}"}
-			<h2>{tr}Kaltura{/tr}</h2>
+			<br>
 			{remarksbox type="info" title="{tr}Kaltura Registration{/tr}"}
 				{tr}To get a Kaltura Partner ID:{/tr} {tr}Setup your own instance of Kaltura Community Edition (CE){/tr} or <a href="http://corp.kaltura.com/about/signup">{tr}get an account via Kaltura.com{/tr}</a>
 			{/remarksbox}
@@ -15,9 +15,7 @@
 
 			<div class="row">
 				<div class="form-group col-lg-12 clearfix">
-					<div class="pull-right">
-						<input type="submit" class="btn btn-default btn-sm" name="video" value="{tr}Change preferences{/tr}">
-					</div>
+					{include file='admin/include_apply_top.tpl'}
 				</div>
 			</div>
 
@@ -32,7 +30,7 @@
 			</fieldset>
 
 			<fieldset>
-				<legend>{tr}Enable related Tracker field types{/tr}</legend>
+				<legend>{tr}Enable related tracker field types{/tr}</legend>
 				{preference name=trackerfield_kaltura}
 			</fieldset>
 
@@ -42,7 +40,7 @@
 			</fieldset>
 
 			<fieldset>
-				<legend>{tr}Kaltura Partner Settings{/tr}</legend>
+				<legend>{tr}Kaltura partner settings{/tr}</legend>
 				{preference name=kaltura_partnerId}
 				{preference name=kaltura_adminSecret}
 				{preference name=kaltura_secret}
@@ -51,7 +49,7 @@
 			<br>
 
 			<fieldset>
-				<legend>{tr}Kaltura Dynamic Player{/tr}</legend>
+				<legend>{tr}Kaltura dynamic player{/tr}</legend>
 				{preference name=kaltura_kdpUIConf}
 				{preference name=kaltura_kdpEditUIConf}
 				{$kplayerlist}
@@ -60,11 +58,11 @@
 			<br>
 
 			<fieldset>
-				<legend>{tr}Kaltura Contribution Wizard{/tr}</legend>
+				<legend>{tr}Kaltura contribution wizard{/tr}</legend>
 				{$kcwText}
 				<div class="adminoptionbox">
 					{tr}You can manually edit these values in lib/videogals/standardTikiKcw.xml{/tr}<br>
-					{tr}Recreate KCW "uiConf"{/tr} {button _text="{tr}Update{/tr}" kcw_rebuild=1 _keepall='y' _auto_args='*'}
+					{tr}Recreate KCW "uiConf"{/tr} {button _class="timeout" _text="{tr}Update{/tr}" kcw_rebuild=1 _keepall='y' _auto_args='*'}
 				</div>
 			</fieldset>
 
@@ -76,24 +74,16 @@
 			</fieldset>
 
 			<br>
-
-			<div align="center" style="padding:1em;">
-				<input type="submit" class="btn btn-default btn-sm" name="video" value="{tr}Change preferences{/tr}" />
-			</div>
 		{/tab}
 
 		{tab name="{tr}Interface{/tr}" key=interface}
-			<h2>{tr}Interface{/tr}</h2>
+			<br>
 			<fieldset class="table clearfix featurelist">
 				<legend> {tr}jQuery plugins and add-ons{/tr} </legend>
 				{preference name=jquery_fitvidjs}
 			</fieldset>
-
-			<div align="center" style="padding:1em;">
-				<input type="submit" class="btn btn-primary btn-sm" name="features" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
 		{/tab}
 
 	{/tabset}
-
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

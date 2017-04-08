@@ -8,21 +8,16 @@
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
 // $Id$
 
+
 $section = 'admin';
 
 require_once ('tiki-setup.php');
 $adminlib = TikiLib::lib('admin');
 
-if (! empty($_SESSION['tikifeedback'])) {
-	$tikifeedback = $_SESSION['tikifeedback'];
-	$_SESSION['tikifeedback'] = array();
-} else {
-	$tikifeedback = array();
-	$_SESSION['tikifeedback'] = array();
-}
 $auto_query_args = array('page');
 
 $access->check_permission('tiki_p_admin');
+$check = $access->checkAuthenticity();
 $logslib = TikiLib::lib('logs');
 
 /**
@@ -37,13 +32,12 @@ $logslib = TikiLib::lib('logs');
 function add_feedback( $name, $message, $st, $num = null )
 {
 	TikiLib::lib('prefs')->addRecent($name);
-
-	$_SESSION['tikifeedback'][] = array(
-		'num' => $num,
+	
+	Feedback::add(['num' => $num,
 		'mes' => $message,
 		'st' => $st,
 		'name' => $name,
-	);
+		'tpl' => 'pref',], 'session');
 }
 
 /**
@@ -58,7 +52,6 @@ function simple_set_toggle($feature)
 	global $prefs;
 	$logslib = TikiLib::lib('logs');
 	$tikilib = TikiLib::lib('tiki');
-	$smarty = TikiLib::lib('smarty');
 	if (isset($_REQUEST[$feature]) && $_REQUEST[$feature] == 'on') {
 		if ((!isset($prefs[$feature]) || $prefs[$feature] != 'y')) {
 			// not yet set at all or not set to y
@@ -76,8 +69,7 @@ function simple_set_toggle($feature)
 			}
 		}
 	}
-	$cachelib = TikiLib::lib('cache');
-	$cachelib->invalidate('allperms');
+	TikiLib::lib('cache')->invalidate('allperms');
 }
 
 /**
@@ -94,7 +86,6 @@ function simple_set_value($feature, $pref = '', $isMultiple = false)
 	global $prefs;
 	$logslib = TikiLib::lib('logs');
 	$tikilib = TikiLib::lib('tiki');
-	$smarty = TikiLib::lib('smarty');
 	$old = $prefs[$feature];
 	if (isset($_REQUEST[$feature])) {
 		if ($pref != '') {
@@ -117,47 +108,29 @@ function simple_set_value($feature, $pref = '', $isMultiple = false)
 	}
 	if (isset($_REQUEST[$feature]) && $old != $_REQUEST[$feature]) {
 		add_feedback($feature, ($_REQUEST[$feature]) ? tr('%0 set', $feature) : tr('%0 unset', $feature), 2);
-		$logslib->add_action('feature', $feature, 'system', $old .'=>'.isset($_REQUEST['feature'])?$_REQUEST['feature']:'');
-	}
-	$cachelib = TikiLib::lib('cache');
-	$cachelib->invalidate('allperms');
-}
-
-/**
- * simple_set_int
- *
- * @param mixed $feature
- * @access public
- * @return void
- */
-function simple_set_int($feature)
-{
-	global $prefs;
-	$logslib = TikiLib::lib('logs');
-	$tikilib = TikiLib::lib('tiki');
-	$smarty = TikiLib::lib('smarty');
-	if (isset($_REQUEST[$feature]) && is_numeric($_REQUEST[$feature])) {
-		$old = $prefs[$feature];
-		if ($old != $_REQUEST[$feature]) {
-			$tikilib->set_preference($feature, $_REQUEST[$feature]);
-			add_feedback($feature, tr('%0 set', $feature), 2);
-			$logslib->add_action('feature', $feature, 'system', $old . '=>' . $_REQUEST['feature']);
+		$msg = '';
+		if (is_array($_REQUEST[$feature]) && is_array($old)) {
+			$newCount = count($_REQUEST[$feature]);
+			$oldCount = count($old);
+			if ($newCount > $oldCount) {
+				$added = $newCount - $oldCount;
+				$item = $added == 1 ? tr('item added') : tr('items added');
+				$msg = $added . ' ' . $item;
+			} else if ($oldCount > $newCount) {
+				$deleted = $oldCount - $newCount;
+				$item = $deleted == 1 ? tr('item deleted') : tr('items deleted');
+				$msg = $deleted . ' ' . $item;
+			}
+		} else {
+			$msg = $old . ' => ' . $_REQUEST[$feature];
 		}
+		$logslib->add_action('feature', $feature, 'system', $msg);
 	}
+	TikiLib::lib('cache')->invalidate('allperms');
 }
 
-/**
- * byref_set_value
- *
- * @param mixed $feature
- * @param string $pref
- * @access public
- * @return void
- */
-function byref_set_value($feature, $pref = '')
-{
-	simple_set_value($feature, $pref);
-}
+$blackL = TikiLib::lib('blacklist');
+
 
 $crumbs[] = new Breadcrumb(tra('Control Panels'), tra('Sections'), 'tiki-admin.php', 'Admin+Home', tra('Help on Configuration Sections', '', true));
 // Default values for AdminHome
@@ -173,12 +146,44 @@ if ( isset ($_REQUEST['pref_filters']) ) {
 	$prefslib->setFilters($_REQUEST['pref_filters']);
 }
 
+
+/**
+ * If blacklist preferences have been updated and its also not being disabled
+ * Then update the database with the selection.
+ **/
+
+
+
+if (isset($_POST['pass_blacklist'])) {    // if preferences were updated and blacklist feature is enabled (or is being enabled)
+    $pass_blacklist_file = $jitPost->pass_blacklist_file->striptags();
+    $userfile = explode('-',$pass_blacklist_file);
+    $userfile = $userfile[3];
+    if ($userfile){                       // if the blacklist is a user generated file
+    	$passDir = 'storage/pass_blacklists/';
+    }else {
+	    $passDir = 'lib/pass_blacklists/';
+    }
+    if ($pass_blacklist_file === 'auto') {
+        if ($_POST['min_pass_length']  != $GLOBALS['prefs']['min_pass_length'] ||
+            $_POST['pass_chr_num']     != $GLOBALS['prefs']['pass_chr_num']    ||
+            $_POST['pass_chr_special'] != $GLOBALS['prefs']['pass_chr_special']){       // if blacklist is auto and an option is changed that could effect the selection
+            $prefname = implode('-',$blackL->selectBestBlacklist($_POST['pass_chr_num'],$_POST['pass_chr_special'],$_POST['min_pass_length']));
+            $filename = $passDir . $prefname . '.txt';
+            $tikilib->set_preference('pass_auto_blacklist', $prefname);
+	        $blackL->loadBlacklist(dirname($_SERVER['SCRIPT_FILENAME']) . '/' . $filename);
+        }
+    }else if ($pass_blacklist_file != $GLOBALS['prefs']['pass_blacklist_file']){        // if manual selection mode has been changed
+        $filename = $passDir . $pass_blacklist_file . '.txt';
+	    $blackL->loadBlacklist(dirname($_SERVER['SCRIPT_FILENAME']) . '/' . $filename);
+
+    }
+}
+
 $temp_filters = isset($_REQUEST['filters']) ? explode(' ', $_REQUEST['filters']) : null;
 $smarty->assign('pref_filters', $prefslib->getFilters($temp_filters));
 
 if ( isset( $_REQUEST['lm_preference'] ) ) {
-	$check = key_check(null, false);
-	if ($check === true) {
+	if ($access->ticketMatch()) {
 		$changes = $prefslib->applyChanges((array) $_REQUEST['lm_preference'], $_REQUEST);
 		foreach ( $changes as $pref => $val ) {
 			if ($val['type'] == 'reset') {
@@ -210,31 +215,24 @@ if ( isset( $_REQUEST['lm_preference'] ) ) {
 				}
 			}
 		}
-	} else {
-		$smarty->assign('csrferror',
-			tr('Bad request - potential cross-site request forgery (CSRF) detected. Operation blocked. The security ticket may have expired - try reloading the page in this case.'));
 	}
 }
 
 if ( isset( $_REQUEST['lm_criteria'] ) ) {
-	$check = key_get(null, null, null, false);
-	$smarty->assign('ticket', $check['ticket']);
 	set_time_limit(0);
 	try {
 		$smarty->assign('lm_criteria', $_REQUEST['lm_criteria']);
-		$results = $prefslib->getMatchingPreferences($_REQUEST['lm_criteria'], $temp_filters);
+		$results = $prefslib->getMatchingPreferences($_REQUEST['lm_criteria']);
 		$results = array_slice($results, 0, 50);
 		$smarty->assign('lm_searchresults', $results);
-		$smarty->assign('lm_error', '');
 	} catch(ZendSearch\Lucene\Exception\ExceptionInterface $e) {
-		$smarty->assign('lm_criteria', $_REQUEST['lm_criteria']);
-		$smarty->assign('lm_error', $e->getMessage());
+		Feedback::warning(['mes' => $e->getMessage(), 'title' => tr('Search error')]);
+		$smarty->assign('lm_criteria', '');
 		$smarty->assign('lm_searchresults', '');
 	}
 } else {
 	$smarty->assign('lm_criteria', '');
 	$smarty->assign('lm_searchresults', '');
-	$smarty->assign('lm_error', '');
 }
 
 $smarty->assign('indexNeedsRebuilding', $prefslib->indexNeedsRebuilding());
@@ -247,7 +245,7 @@ if (isset($_REQUEST['prefrebuild'])) {
 $admin_icons = array(
 	"general" => array(
 		'title' => tr('General'),
-		'description' => tr('Global site configuration, date formats, admin password, etc.'),
+		'description' => tr('Global site configuration, date formats, etc.'),
 		'help' => 'General Admin',
 	),
 	"features" => array(
@@ -260,11 +258,11 @@ $admin_icons = array(
 		'description' => tr('User registration, remember me cookie settings and authentication methods'),
 		'help' => 'Login Config',
 	),
-	"community" => array(
-		'title' => tr('Community'),
-		'description' => tr('User specific features and settings'),
-		'help' => 'Community',
-	),
+    "user" => array(
+        'title' => tr('User Settings'),
+        'description' => tr('User related preferences like info and picture, features, messages and notification, files, etc'),
+        'help' => 'User Settings',
+    ),
 	"profiles" => array(
 		'title' => tr('Profiles'),
 		'description' => tr('Repository configuration, browse and apply profiles'),
@@ -285,16 +283,16 @@ $admin_icons = array(
 		'description' => tr('Module appearance settings'),
 		'help' => 'Module',
 	),
-	"metatags" => array(
-		'title' => tr('Meta Tags'),
-		'description' => tr('Information to include in the header of each page'),
-		'help' => 'Meta Tags',
-	),
-	"i18n" => array(
-		'title' => tr('i18n'),
-		'description' => tr('Internationalization and localization - multilingual features'),
-		'help' => 'i18n',
-	),
+    "i18n" => array(
+        'title' => tr('i18n'),
+        'description' => tr('Internationalization and localization - multilingual features'),
+        'help' => 'i18n',
+    ),
+    "metatags" => array(
+        'title' => tr('Meta Tags'),
+        'description' => tr('Information to include in the header of each page'),
+        'help' => 'Meta Tags',
+    ),
 	"maps" => array(
 		'title' => tr('Maps'),
 		'description' => tr('Settings and features for maps'),
@@ -448,12 +446,6 @@ $admin_icons = array(
 		'description' => tr('Message settings'),
 		'help' => 'Inter-User Messages',
 	),
-	"userfiles" => array(
-		'title' => tr('User Files'),
-		'disabled' => $prefs['feature_userfiles'] != 'y',
-		'description' => tr('User files settings'),
-		'help' => 'User Files',
-	),
 	"webmail" => array(
 		'title' => tr('Webmail'),
 		'disabled' => $prefs['feature_webmail'] != 'y',
@@ -514,6 +506,11 @@ $admin_icons = array(
 		'description' => tr('Configure social networks integration'),
 		'help' => 'Social Networks',
 	),
+    "community" => array(
+        'title' => tr('Community'),
+        'description' => tr('User specific features and settings'),
+        'help' => 'Community',
+    ),
 	"share" => array(
 		'title' => tr('Share'),
 		'disabled' => $prefs['feature_share'] != 'y',
@@ -526,14 +523,17 @@ $admin_icons = array(
 		'description' => tr('Configure statistics reporting for your site usage'),
 		'help' => 'Statistics',
 	),
+	"print" => array(
+		'title' => tr('Print Settings'),
+		'description' => tr('Settings and features for print versions and pdf generation'),
+		'help' => 'Print',
+	),
 );
 
 if (isset($_REQUEST['page'])) {
 	$adminPage = $_REQUEST['page'];
-	$check = key_get(null, null, null, false);
-	$smarty->assign('ticket', $check['ticket']);
 	// Check if the associated incude_*.php file exists. If not, check to see if it might exist in the Addons.
-	// If it exists, include the associated file and generate the ticket.
+	// If it exists, include the associated file
 	$utilities = new TikiAddons_Utilities();
 	if (file_exists("admin/include_$adminPage.php")) {
 		include_once ("admin/include_$adminPage.php");
@@ -561,8 +561,10 @@ if (isset($_REQUEST['page'])) {
 			$smarty->assign('include', 'addon_inactive');
 		}
 	}
-
-	if (!empty($changes) && key_check(null, false)) {
+	//for most admin include page forms, need to redirect as changes to one pref can affect display of others
+	//however other forms that perform actions other than changing preferences should not redirect to avoid infinite loops
+	//for these add a hidden input named redirect with a value of 0
+	if ($access->ticketMatch() && (!isset($_REQUEST['redirect']) || $_REQUEST['redirect'] === 1)) {
 		$access->redirect($_SERVER['REQUEST_URI'], '', 200);
 	}
 
@@ -639,7 +641,6 @@ $smarty->assign('mysqlSSL', $isSSL);
 
 $smarty->assign('admin_icons', $admin_icons);
 
-$smarty->assign_by_ref('tikifeedback', $tikifeedback);
 // disallow robots to index page:
 $smarty->assign('metatag_robots', 'NOINDEX, NOFOLLOW');
 // Display the template
@@ -650,4 +651,7 @@ $smarty->assign('crumb', count($crumbs) - 1);
 include_once ('installer/installlib.php');
 $installer = new Installer;
 $smarty->assign('db_requires_update', $installer->requiresUpdate());
+$smarty->assign('installer_not_locked', $installer->checkInstallerLocked());
+$smarty->assign('search_index_outdated', \TikiLib::lib('unifiedsearch')->isOutdated());
+
 $smarty->display('tiki.tpl');

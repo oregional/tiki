@@ -141,7 +141,7 @@ class Search_Query implements Search_Query_Interface
 			if ($from2) {
 				$from = $from2;
 			} else {
-				TikiLib::lib('errorreport')->report(tra('filterRange: "from" value not parsed'));
+				Feedback::error(tra('filterRange: "from" value not parsed'), 'session');
 			}
 		}
 		if (!is_numeric($to)) {
@@ -149,15 +149,27 @@ class Search_Query implements Search_Query_Interface
 			if ($to2) {
 				$to = $to2;
 			} else {
-				TikiLib::lib('errorreport')->report(tra('filterRange: "to" value not parsed'));
+				Feedback::error(tra('filterRange: "to" value not parsed'), 'session');
 			}
 		}
 
+		/* make the range filter work regardless of ordering - if from > to, swap */
+		if ($to < $from) {
+			$temp = $to;
+			$to = $from;
+			$from = $temp;
+		}
 		$this->addPart(new Search_Expr_Range($from, $to), 'timestamp', $field);
 	}
 
 	function filterTextRange($from, $to, $field = 'title')
 	{
+		/* make the range filter work regardless of ordering - if from > to, swap */
+		if ( strcmp($from, $to) > 0 ) {
+			$temp = $to;
+			$to = $from;
+			$from = $temp;
+		}
 		$this->addPart(new Search_Expr_Range($from, $to), 'plaintext', $field);
 	}
 
@@ -220,6 +232,11 @@ class Search_Query implements Search_Query_Interface
 			)
 		);
 		$this->expr->addPart($part);
+	}
+
+	function filterDistance($distance, $lat, $lon, $field = 'geo_point')
+	{
+		$this->addPart(new Search_Expr_Distance($distance, $lat, $lon), 'geo_distance', $field);
 	}
 
 	private function addPart($query, $type, $field)
@@ -303,14 +320,16 @@ class Search_Query implements Search_Query_Interface
 			$this->sortOrder = null;
 			$resultset = $index->find($this, $this->start, $this->count);
 		} catch(Exception $e) {
-			TikiLib::lib('errorreport')->report($e->getMessage());
+			Feedback::error($e->getMessage(), 'session');
 			return Search_ResultSet::create([]);
 		}
 
 		$resultset->applyTransform(function ($entry) {
 			if (! isset($entry['_index']) || ! isset($this->foreignQueries[$entry['_index']])) {
 				foreach ($this->transformations as $trans) {
-					$entry = $trans($entry);
+					if (is_callable($trans)) {
+						$entry = $trans($entry);
+					}
 				}
 			}
 
@@ -321,7 +340,9 @@ class Search_Query implements Search_Query_Interface
 			$resultset->applyTransform(function ($entry) use ($query, $indexName) {
 				if (isset($entry['_index']) && $entry['_index'] == $indexName) {
 					foreach ($query->transformations as $trans) {
-						$entry = $trans($entry);
+						if (is_callable($trans)) {
+							$entry = $trans($entry);
+						}
 					}
 				}
 
@@ -339,7 +360,9 @@ class Search_Query implements Search_Query_Interface
 
 		foreach ($res as $row) {
 			foreach ($this->transformations as $trans) {
-				$row = $trans($row);
+				if (is_callable($trans)) {
+					$row = $trans($row);
+				}
 			}
 
 			yield $row;

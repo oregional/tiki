@@ -83,7 +83,8 @@ class Category_Manipulator
 	
 	/*
 	 * Check wether the given permission is allowed for the given categories.
-	 * Note: The group in question requires also the _global_ permission 'modify_object_categories'.
+	 * Note: The group in question requires also the _global_ permission 'modify_object_categories'
+	 * which could be given to a parent object like parent Tracker of a TrackerItem.
 	 * @param array $categories - requested categories
 	 * @param string  $permission - required permission for that category. Ie. 'add_category'
 	 * @return array $authorizedCategories - filterd list of given $categories that have proper permissions set.
@@ -92,7 +93,7 @@ class Category_Manipulator
 	{
 		$objectperms = Perms::get(array('type' => $this->objectType, 'object' => $this->objectId));
 		$canModifyObject = $objectperms->modify_object_categories;
-		
+
 		$out = array();
 		foreach ($categories as $categ) {
 			$perms = Perms::get(array('type' => 'category', 'object' => $categ));

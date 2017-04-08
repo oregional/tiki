@@ -598,6 +598,9 @@ class CartLib
 		foreach ( $_SESSION['cart'] as $info ) {
 			$total += floatval($info['quantity']) * floatval($info['price']);
 		}
+		if ($total < 0) {
+			$total = 0;
+		}
 
 		$this->total_no_discount = $total;
 
@@ -868,7 +871,7 @@ class CartLib
 		}
 		if ($user && $prefs['payment_cart_orders'] == 'y' || !$user && $prefs['payment_cart_anonymous'] == 'y') {
 			if (! $orderprofile) {
-				TikiLib::lib('errorreport')->report(tra('Advanced Shopping Cart setup error: Orders profile missing.'));
+				Feedback::error(tra('Advanced Shopping Cart setup error: Orders profile missing.'), 'session');
 				return false;
 			}
 			$profileinstaller = new Tiki_Profile_Installer();
@@ -1061,7 +1064,7 @@ class CartLib
 			$info['hash'] = md5($code.time());
 			$info['code'] = $code;
 			$info['quantity'] = $quantity;
-			$info['price'] = number_format(abs($info['price']), 2, '.', '');
+			$info['price'] = number_format($info['price'], 2, '.', '');
 			$info['inputedprice'] = number_format(abs($childInputedPrice), 2, '.', '');
 
 			if ( ! isset( $info['href'] ) ) {

@@ -146,10 +146,7 @@ $smarty->assign('nbViewedConfs', $nbViewedConfs);
 if (empty($nbViewedConfs)) {
 	$cookietab = 2;
 }
-if (!empty($cookietab)) {
-	setcookie('tab', $cookietab);
-	$smarty->assign('cookietab', $cookietab);
-}
+
 $smarty->assign_by_ref('actionlogConf', $confs);
 
 if (!empty($_REQUEST['actionId']) && $tiki_p_admin == 'y') {
@@ -408,7 +405,7 @@ if (isset($_REQUEST['list']) || isset($_REQUEST['export']) || isset($_REQUEST['g
 	}
 	$smarty->assign_by_ref('actionlogs', $actions);
 	if (isset($_REQUEST['unit'])) $url.= '&amp;unit=' . $_REQUEST['unit'];
-	$smarty->assign('url', "&amp;list=y$url#Report");
+	$smarty->assign('url', "&amp;list=y$url#List");
 	if ($prefs['feature_contribution'] == 'y') {
 		if (empty($_REQUEST['contribTime'])) $_REQUEST['contribTime'] = 'w';
 		$contributionStat = $logslib->get_stat_contribution($actions, $startDate, $endDate, $_REQUEST['contribTime']);

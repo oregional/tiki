@@ -13,12 +13,19 @@
 //@topbar-row-sidemargins: -15px;
 
 body {
-	background: url('@{imagePath}body-bg_fw.png') repeat-x #214D68
+	background: #214d68 url('@{imagePath}body-bg_fw.png') repeat-x;
+}
+
+body.tiki.navbar-padding {
+	padding-top: 84px;
+}
+body.fullscreen.tiki.navbar-padding {
+	padding-top: 0;
 }
 
 .container,
 #autosave_preview {
-	background: #fff;
+	background: #ffffff;
 }
 
 .btn-default {
@@ -26,11 +33,11 @@ body {
 }
 
 .top_modules {
-	color: #fff;
+	color: #ffffff;
 	background: #214d68 url('@{imagePath}headerbg.jpg') repeat-x 0 100%;
 	a,
 	.btn-link {
-		color: #fff;
+		color: #ffffff;
 	}
 }
 
@@ -45,13 +52,16 @@ body {
 .topbar .nav > li,
 .siteloginbar_popup .dropdown-menu {
 	background: #2498c7;
-	background: -moz-linear-gradient(top, #2498c7 0%, #047aa8 4%, #1b98c6 39%, #32b5e1 65%, #32bbe9 70%, #44d1fe 100%);
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #2498c7), color-stop(4%, #047aa8), color-stop(39%, #1b98c6), color-stop(65%, #32b5e1), color-stop(70%, #32bbe9), color-stop(100%, #44d1fe));
 	background: -webkit-linear-gradient(top, #2498c7 0%, #047aa8 4%, #1b98c6 39%, #32b5e1 65%, #32bbe9 70%, #44d1fe 100%);
 	background: -o-linear-gradient(top, #2498c7 0%, #047aa8 4%, #1b98c6 39%, #32b5e1 65%, #32bbe9 70%, #44d1fe 100%);
-	background: -ms-linear-gradient(top, #2498c7 0%, #047aa8 4%, #1b98c6 39%, #32b5e1 65%, #32bbe9 70%, #44d1fe 100%);
 	background: linear-gradient(to bottom, #2498c7 0%, #047aa8 4%, #1b98c6 39%, #32b5e1 65%, #32bbe9 70%, #44d1fe 100%);
 	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#2498c7', endColorstr='#44d1fe', GradientType=0);
+}
+
+.top_modules .navbar-default {
+	background: transparent;
+	border: none;
 }
 
 .navbar-inverse {
@@ -67,6 +77,12 @@ body {
 	}
 }
 
+.navbar-fixed-top .container,
+.navbar-fixed-top .container .navbar-default {
+	background: transparent;
+	border: none;
+}
+
 input,
 .jumbotron {
 	border: 1px solid;
@@ -75,13 +91,13 @@ input,
 
 .wikitext {
 	h1 {
-		color: #000;
+		color: #000000;
 		line-height: .9em;
 	}
 	h2 {
-		color: #309FC0;
+		color: #309fc0;
 		line-height: .9em;
-		border-bottom: solid 1px #3090C0;
+		border-bottom: solid 1px #3090c0;
 		text-transform: uppercase;
 	}
 	h3 {
@@ -93,11 +109,11 @@ input,
 		font-style: normal;
 	}
 	h4 {
-		border-bottom: dashed 1px #CCF0FF;
-		color: #3F3F3F;
+		border-bottom: dashed 1px #ccf0ff;
+		color: #3f3f3f;
 	}
 	h5 {
-		color: #6F6F6F;
+		color: #6f6f6f;
 		font-style: italic;
 	}
 	h6 {
@@ -107,8 +123,8 @@ input,
 
 .wikitext.nopagetitle {
 	h1 {
-		color: #309FC0;
-		border-bottom: solid 1px #3090C0;
+		color: #309fc0;
+		border-bottom: solid 1px #3090c0;
 		text-transform: uppercase;
 	}
 	h2 {
@@ -118,12 +134,12 @@ input,
 		text-transform: none;
 	}
 	h3 {
-		border-bottom: dashed 1px #CCF0FF;
-		color: #3F3F3F;
+		border-bottom: dashed 1px #ccf0ff;
+		color: #3f3f3f;
 		font-style: normal;
 	}
 	h4 {
-		color: #6F6F6F;
+		color: #6f6f6f;
 		font-style: italic;
 		border-bottom: none;
 	}
@@ -135,7 +151,7 @@ input,
 h1.pagetitle > a,
 h1.pagetitle > a:visited,
 h1.pagetitle > a:hover {
-	color: #000;
+	color: #000000;
 	text-decoration: none;
 }
 
@@ -150,9 +166,9 @@ h1.pagetitle > a:hover {
 
 #bottom_modules {
 	background: #2e3035;
-	color: #999;
+	color: #999999;
 	.panel-title {
-		color: #999;
+		color: #999999;
 	}
 	a:hover,
 	a:focus {

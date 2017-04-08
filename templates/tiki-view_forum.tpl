@@ -8,7 +8,7 @@
 	{$libeg = ''}
 	{$liend = ''}
 {/if}
-{if !$tsAjax}
+{if !$ts.ajax}
 	{$forum_info.name|addonnavbar:'forum'}
 	{block name=title}
 		{title help="forums" admpage="forums" url=$forum_info.forumId|sefurl:'forum'}{$forum_info.name|addongroupname}{/title}
@@ -90,7 +90,7 @@
 								{tr}Unlock{/tr}
 							{/self_link}
 						{else}
-							{self_link lock='y' _icon_name='lock'  _menu_text='y' _menu_icon='y'}
+							{self_link lock='y' _icon_name='lock' _menu_text='y' _menu_icon='y'}
 								{tr}Lock{/tr}
 							{/self_link}
 						{/if}
@@ -124,7 +124,6 @@
 		<a class="link" href="{$forumId|sefurl:'forum'}">{$forum_info.name|addongroupname|escape}</a>
 	</div>
 
-	{include file='utilities/feedback.tpl'}
 	{if $tiki_p_forum_post_topic eq 'y'}
 		{if $comment_preview eq 'y'}
 			<br><br>
@@ -379,7 +378,7 @@
 		</div> <!-- end forumpost -->
 	{/if}
 	{if $prefs.feature_forum_content_search eq 'y' and $prefs.feature_search eq 'y'}
-        <div class="row margin-bottom-md">
+		<div class="row margin-bottom-md">
 		<div class="col-md-5 col-md-offset-7">
 			<form id="search-form" class="form" role="form" method="get" action="tiki-search{if $prefs.feature_forum_local_tiki_search eq 'y'}index{else}results{/if}.php">
 				<div class="form-group">
@@ -397,7 +396,7 @@
 				</div>
 			</form>
 		</div>
-        </div>
+		</div>
 	{/if}
 {/if}
 {if $tiki_p_admin_forum eq 'y' && ($comments_coms|@count > 0 || $queued > 0 || $reported > 0)}
@@ -477,8 +476,8 @@
 	<input type="hidden" name="thread_sort_mode" value="{$thread_sort_mode|escape}">
 	<input type="hidden" name="forumId" value="{$forumId|escape}">
 	{* Use css menus as fallback for item dropdown action menu if javascript is not being used *}
-	<div id="{$ts_tableid}-div" class="{if $js === 'y'}table-responsive{/if} ts-wrapperdiv" {if $tsOn}style="visibility:hidden;"{/if}>
-		<table id="{$ts_tableid}" class="table normal table-striped table-hover table-forum" data-count="{$comments_cant|escape}">
+	<div id="{$ts.tableid}-div" class="{if $js === 'y'}table-responsive{/if} ts-wrapperdiv" {if $ts.enabled}style="visibility:hidden;"{/if}>
+		<table id="{$ts.tableid}" class="table normal table-striped table-hover table-forum" data-count="{$comments_cant|escape}">
 			{block name=forum-header}
 			<thead>
 				<tr>
@@ -587,7 +586,7 @@
 						{if $forum_info.topic_smileys eq 'y'}
 							<td class="icon">
 								{if strlen($comments_coms[ix].smiley) > 0}
-									<img src='img/smiles/{$comments_coms[ix].smiley}' alt=''>
+									<img src='img/smiles/{$comments_coms[ix].smiley}'>
 								{else}
 									&nbsp;{$comments_coms[ix].smiley}
 								{/if}
@@ -717,18 +716,18 @@
 					</tr>
 					{/block}
 				{sectionelse}
-					{if !$tsOn || ($tsOn && $tsAjax)}
-						{norecords _colspan=$cntcol _text="No topics found"}
+					{if !$ts.enabled || ($ts.enabled && $ts.ajax)}
+						{norecords _colspan=$cntcol _text="{tr}No topics found{/tr}"}
 					{else}
-						{norecords _colspan=$cntcol _text="Retrieving topics..."}
+						{norecords _colspan=$cntcol _text="{tr}Retrieving topics...{/tr}"}
 					{/if}
 				{/section}
 			</tbody>
 		</table>
 	</div>
 </form>
-{if !$tsAjax}
-	{if !$tsOn}
+{if !$ts.ajax}
+	{if !$ts.enabled}
 		{pagination_links cant=$comments_cant step=$comments_per_page offset=$comments_offset offset_arg='comments_offset'}{/pagination_links}
 	{/if}
 	{if $forum_info.forum_last_n > 0 && count($last_comments)}
@@ -755,13 +754,13 @@
 		<br>
 	{/if}
 
-	{if !$tsOn}
+	{if !$ts.enabled}
 		<div class="col-md-8" styles="padding-top:15px">
 			<div class="panel panel-default" id="filter-panel">
 				<div class="panel-heading filter-panel-heading">
 					<h4 class="panel-title">
 						<a data-toggle="collapse" href="#filterCollapse" class="collapsed">
-							Filter Posts
+							{tr}Filter Posts{/tr}
 						</a>
 					</h4>
 				</div>
@@ -792,7 +791,7 @@
 							</div>
 							{if $prefs.feature_forum_topics_archiving eq 'y'}
 								<div class="form-group">
-									<label class="col-md-4 control-label input-sm" for="show_archived">Show archived posts</label>
+									<label class="col-md-4 control-label input-sm" for="show_archived">{tr}Show archived posts{/tr}</label>
 									<div class="col-md-8">
 										<input type="checkbox" id="show_archived" name="show_archived" {if $show_archived eq 'y'}checked="checked"{/if}>
 									</div>
@@ -800,21 +799,21 @@
 							{/if}
 							{if $user}
 								<div class="form-group">
-									<label class="col-md-4 control-label input-sm" for="filter_poster">Containing posts by</label>
+									<label class="col-md-4 control-label input-sm" for="filter_poster">{tr}Containing posts by{/tr}</label>
 									<div class="col-md-8">
 										<select id="filter_poster" class="form-control input-sm" name="poster">
 											<option value=""{if empty($smarty.request.poster)} selected="selected"{/if}>
-												All posts
+												{tr}All posts{/tr}
 											</option>
 											<option value="_me" {if isset($smarty.request.poster) and $smarty.request.poster eq '_me'} selected="selected"{/if}>
-												Me
+												{tr}Me{/tr}
 											</option>
 										</select>
 									</div>
 								</div>
 							{/if}
 							<div class="form-group">
-								<label class="col-md-4 control-label input-sm" for="filter_type">Type</label>
+								<label class="col-md-4 control-label input-sm" for="filter_type">{tr}Type{/tr}</label>
 								<div class="col-md-8">
 									<select id="filter_type" name="filter_type" class="form-control input-sm">
 										<option value=""{if empty($smarty.request.filter_type)}selected="selected"{/if}>
@@ -836,7 +835,7 @@
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="col-md-4 control-label input-sm" for="filter_replies">Replies</label>
+								<label class="col-md-4 control-label input-sm" for="filter_replies">{tr}Replies{/tr}</label>
 								<div class="col-md-8">
 									<select id="filter_replies" name="reply_state" class="form-control input-sm">
 										<option value=""{if empty($smarty.request.reply_state)} selected="selected"{/if}>

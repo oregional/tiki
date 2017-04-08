@@ -1,5 +1,5 @@
 {* $Id$ *}
-{title url="tiki-view_tracker.php?trackerId=$trackerId" adm="trackers"}{$tracker_info.name}{/title}
+{title url=$trackerId|sefurl:'tracker' adm="trackers"}{$tracker_info.name}{/title}
 {if !empty($tracker_info.description)}
 	{if $tracker_info.descriptionIsParsed eq 'y'}
 		<div class="description help-block">{wiki}{$tracker_info.description}{/wiki}</div>
@@ -7,7 +7,7 @@
 		<div class="description help-block">{$tracker_info.description|escape|nl2br}</div>
 	{/if}
 {/if}
-<div class="t_navbar">
+<div class="t_navbar margin-bottom-md">
 	{if $tiki_p_create_tracker_items eq 'y' && $prefs.tracker_legacy_insert neq 'y'}
 		<a class="btn btn-default" href="{bootstrap_modal controller=tracker action=insert_item trackerId=$trackerId}">
 			{icon name="create"} {tr}Create Item{/tr}
@@ -79,7 +79,7 @@
 			{/if}
 			{if $tiki_p_export_tracker eq "y"}
 				<li>
-					<a class="export dialog" href="{service controller=tracker action=export trackerId=$trackerId}">
+					<a class="export dialog" href="{service controller=tracker action=export trackerId=$trackerId filterfield=$filterfield filtervalue=$filtervalue}">
 						{icon name="export"} {tr}Export{/tr}
 					</a>
 				</li>
@@ -91,12 +91,19 @@
 							data: {
 								controller: 'tracker',
 								action: 'export',
-								trackerId: {{$trackerId}}
+								trackerId: {{$trackerId}},
+								filterfield: '{{$filterfield}}',
+								filtervalue: {{$filtervalue|json_encode}}
 							}
 						});
 						return false;
 					});
 				{/jq}
+			{/if}
+			{if $tiki_p_admin_trackers eq "y"}
+				<li>
+					{permission_link mode=text type=tracker id=$trackerId permType=trackers}
+				</li>
 			{/if}
 		</ul>
 		{if $js == 'n'}</li></ul>{/if}
@@ -248,7 +255,7 @@
 															{icon name="post" _menu_text='y' _menu_icon='y' alt="{tr}View/Edit{/tr}"}
 														</a>{$liend}
 													{/if}
-													{if $tiki_p_create_tracker_items eq 'y'}
+													{if $tiki_p_create_tracker_items eq 'y' and $prefs.tracker_clone_item eq 'y'}
 														{$libeg}<a href="{bootstrap_modal controller=tracker action=clone_item trackerId=$trackerId itemId=$items[user].itemId}"
 															onclick="$('[data-toggle=popover]').popover('hide');"
 														>
@@ -256,13 +263,13 @@
 														</a>{$liend}
 													{/if}
 													{$libeg}<a href="{bootstrap_modal controller=tracker action=remove_item trackerId=$trackerId itemId=$items[user].itemId}"
-													   onclick="$('[data-toggle=popover]').popover('hide');"
+														onclick="$('[data-toggle=popover]').popover('hide');"
 													>
 														{icon name="delete" _menu_text='y' _menu_icon='y' alt="{tr}Delete{/tr}"}
 													</a>{$liend}
 													{if $tiki_p_admin_trackers eq 'y'}
 														{$libeg}<a href="tiki-tracker_view_history.php?itemId={$items[user].itemId}"
-														   onclick="$('[data-toggle=popover]').popover('hide');"
+															onclick="$('[data-toggle=popover]').popover('hide');"
 														>
 															{icon name="history" _menu_text='y' _menu_icon='y' alt="{tr}History{/tr}"}
 														</a>{$liend}
@@ -324,7 +331,7 @@
 					$("#newItemForm").validate({
 						{{$validationjs}},
 						ignore: '.ignore',
-						submitHandler: function(){process_submit(this.currentForm);}
+						submitHandler: function(){return process_submit(this.currentForm);}
 					});
 				{/jq}
 			{/if}

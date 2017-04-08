@@ -98,10 +98,14 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 					);
 				} elseif ($entry instanceof Search_Type_Whole || $entry instanceof Search_Type_MultivaluePlain) {
 					return array(
-						"type" => "string",
-						"index" => "not_analyzed",
+						"type" => $this->connection->getVersion() >= 5 ? "keyword" : "string",
+						"index" => $this->connection->getVersion() >= 5 ? true : "not_analyzed",
 						"fields" => array(
-							"sort" => array(
+							"sort" => $this->connection->getVersion() >= 5 ?
+							array(
+								"type" => "keyword",
+								"ignore_above" => 200,
+							) : array(
 								"type" => "string",
 								"analyzer" => "sortable",
 							),
@@ -121,6 +125,11 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 						"type" => "nested",
 						"dynamic" =>  true,
 					);
+				} elseif ($entry instanceof Search_Type_GeoPoint) {
+					return array(
+						"type" => "geo_point",
+						"index" => $this->connection->getVersion() >= 5 ? true : "not_analyzed",
+					);
 				} elseif ($entry instanceof Search_Type_DateTime) {
 					return array(
 						"type" => "date",
@@ -135,13 +144,17 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 					);
 				} else {
 					return array(
-						"type" => "string",
+						"type" => $this->connection->getVersion() >= 5 ? "text" : "string",
 						"term_vector" => "with_positions_offsets",
 						"fields" => array(
-							"sort" => array(
+							"sort" => $this->connection->getVersion() >= 5 ?
+							array(
+								"type" => "text",
+								"analyzer" => "sortable",
+								"fielddata" => true,
+							) : array(
 								"type" => "string",
 								"analyzer" => "sortable",
-								"ignore_above" => 200,
 							),
 							"nsort" => array(
 								"type" => "float",
@@ -177,7 +190,7 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 				'analyzer' => [
 					'default' => [
 						'tokenizer' => $this->camelCase ? 'camel' : 'standard',
-						'filter' => ['standard', 'lowercase', 'asciifolding', 'tiki_stop', 'porterStem'],
+						'filter' => ['standard', 'lowercase', 'asciifolding', 'tiki_stop', $this->connection->getVersion() >= 5 ? 'porter_stem' : 'porterStem'],
 					],
 					'sortable' => [
 						'tokenizer' => 'keyword',
@@ -243,13 +256,13 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 		$builder = new Search_Elastic_OrderBuilder;
 		$orderPart = $builder->build($query->getSortOrder());
 
-		$builder = new Search_Elastic_FacetBuilder($this->facetCount);
+		$builder = new Search_Elastic_FacetBuilder($this->facetCount, $this->connection->getVersion() >= 2.0);
 		$facetPart = $builder->build($query->getFacets());
 
 		$builder = new Search_Elastic_RescoreQueryBuilder;
 		$rescorePart = $builder->build($query->getExpr());
 
-		$builder = new Search_Elastic_QueryBuilder;
+		$builder = new Search_Elastic_QueryBuilder($this);
 		$builder->setDocumentReader($this->createDocumentReader());
 		$queryPart = $builder->build($query->getExpr());
 
@@ -384,7 +397,7 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 		$builder = new Search_Elastic_OrderBuilder;
 		$orderPart = $builder->build($query->getSortOrder());
 
-		$builder = new Search_Elastic_QueryBuilder;
+		$builder = new Search_Elastic_QueryBuilder($this);
 		$builder->setDocumentReader($this->createDocumentReader());
 		$queryPart = $builder->build($query->getExpr());
 
@@ -447,15 +460,12 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 	function getMatchingQueries(array $document)
 	{
 		list($type, $object, $document) = $this->generateDocument($document);
-		$result = $this->connection->percolate($this->index, $type, $document);
-		return array_map(function ($item) {
-			return $item->_id;
-		}, $result->matches);
+		return $this->connection->percolate($this->index, $type, $document);
 	}
 
 	function store($name, Search_Expr_Interface $expr)
 	{
-		$builder = new Search_Elastic_QueryBuilder;
+		$builder = new Search_Elastic_QueryBuilder($this);
 		$builder->setDocumentReader($this->createDocumentReader());
 		$doc = $builder->build($expr);
 
@@ -470,6 +480,24 @@ class Search_Elastic_Index implements Search_Index_Interface, Search_Index_Query
 	function setFacetCount($count)
 	{
 		$this->facetCount = (int) $count;
+	}
+
+	public function getFieldMapping($field) {
+		$index = $this->index;
+		try {
+			$mapping = $this->connection->rawApi("/$index/_mapping/field/$field");
+		} catch (Search_Elastic_Exception $e) {
+			$mapping = false;
+		}
+		if( is_object($mapping) ) {
+			$mapping = reset($mapping);
+			$mapping = isset($mapping->mappings) ? $mapping->mappings : $mapping; // v2 vs v5
+			$mapping = reset($mapping);
+			if( isset($mapping->$field->mapping->$field) ) {
+				return $mapping->$field->mapping->$field;
+			}
+		}
+		return new stdClass;
 	}
 }
 

@@ -22,8 +22,8 @@ ini_set('display_errors', 1);
 
 // Check that PHP version is sufficient
 
-if (version_compare(PHP_VERSION, '5.5.0', '<')) {
-	$title = 'PHP 5.5 is required';
+if (version_compare(PHP_VERSION, '5.6.0', '<')) {
+	$title = 'PHP 5.6 is required';
 	$content = '<p>Please contact your system administrator ( if you are not the one ;) ). Your version: '.PHP_VERSION.' <br /> <br /> '.'Please also visit <a href="tiki-check.php">Server Check</a>'.'</p>';
 	createPage($title, $content);
 }
@@ -130,7 +130,7 @@ function createPage($title, $content)
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<link type="text/css" rel="stylesheet" href="vendor/twitter/bootstrap/dist/css/bootstrap.css" />
+		<link type="text/css" rel="stylesheet" href="vendor_bundled/vendor/twitter/bootstrap/dist/css/bootstrap.css" />
 		<title>$title</title>
 	</head>
 	<body class="container text-center">

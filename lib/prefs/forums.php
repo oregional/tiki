@@ -9,8 +9,8 @@ function prefs_forums_list()
 {
 	return array(
 		'forums_ordering' => array(
-			'name' => tra('Default Ordering'),
-            'description' => tra(''),
+			'name' => tra('Default order'),
+			'description' => tra(''),
 			'type' => 'list',
 			'options' => array(
 				'created_asc' => tra('Creation date (asc)'),

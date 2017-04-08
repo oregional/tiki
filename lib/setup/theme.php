@@ -45,7 +45,7 @@ if (!empty($_SESSION['try_theme'])) {
 //START loading theme related items
 
 //1) Always add default bootstrap JS and make some preference settings
-$headerlib->add_jsfile('vendor/twitter/bootstrap/dist/js/bootstrap.js');
+$headerlib->add_jsfile('vendor_bundled/vendor/twitter/bootstrap/dist/js/bootstrap.js');
 $headerlib->add_jsfile('lib/jquery_tiki/tiki-bootstrapmodalfix.js');
 
 if ($prefs['feature_fixed_width'] === 'y') {
@@ -60,7 +60,7 @@ if ($prefs['feature_fixed_width'] === 'y') {
 $headerlib->add_cssfile("themes/base_files/css/tiki_base.css");
 
 //3) Always add bundled font-awesome css for the default icon fonts
-$headerlib->add_cssfile('vendor/fortawesome/font-awesome/css/font-awesome.min.css');
+$headerlib->add_cssfile('vendor_bundled/vendor/fortawesome/font-awesome/css/font-awesome.min.css');
 
 //4) Add Addon custom css first, so it can be overridden by themes
 foreach (TikiAddons::getPaths() as $path) {
@@ -92,7 +92,10 @@ else {
 	//first load the main theme css
 	$theme_css = $themelib->get_theme_css($theme_active);
 	if ($theme_css) {
-		$headerlib->add_cssfile($theme_css);
+		// exclude the main theme css if the option's css also includes it (pref is set)
+		if ($prefs['theme_option_includes_main'] != 'y' || empty($theme_option_active)) {
+			$headerlib->add_cssfile($theme_css);
+		}
 		//than load the theme option css file if needed
 		if (!empty($theme_option_active)) {
 			$option_css = $themelib->get_theme_css($theme_active, $theme_option_active);
@@ -125,6 +128,34 @@ if (empty($custom_css)) {
 }
 if (is_readable($custom_css)) {
 	$headerlib->add_cssfile($custom_css, 53);
+}
+if (!isset($prefs['site_favicon_enable']) || $prefs['site_favicon_enable'] === 'y') {    // if favicons are disabled in preferences, skip the lot of it.
+    $favicon_path = $themelib->get_theme_path($prefs['theme'], $prefs['theme_option'], 'favicon-16x16.png', 'favicons/');
+    if ($favicon_path) {  // if there is a 16x16 png favicon in the theme folder, then find and display others if they exist
+        $headerlib->add_link('icon', $favicon_path, '16x16', 'image/png');
+        $favicon_path = (dirname($favicon_path)); // get_theme_path makes a lot of system calls, so just remember what dir to look in.
+        if (is_file($favicon_path.'/apple-touch-icon.png'))
+            $headerlib->add_link('apple-touch-icon', $favicon_path.'/apple-touch-icon.png', '180x180');
+        if (is_file($favicon_path.'/favicon-32x32.png'))
+            $headerlib->add_link('icon', $favicon_path.'/favicon-32x32.png', '32x32', 'image/png');
+        if (is_file($favicon_path.'/manifest.json'))
+            $headerlib->add_link('manifest', $favicon_path.'/manifest.json');
+		if (is_file($favicon_path.'/favicon.ico'))
+			$headerlib->add_link('shortcut icon', $favicon_path.'/favicon.ico');
+        if (is_file($favicon_path.'/safari-pinned-tab.svg'))
+            $headerlib->add_link('mask-icon', $favicon_path.'/safari-pinned-tab.svg', '', '', '#5bbad5');
+        if (is_file($favicon_path.'/browserconfig.xml'))
+            $headerlib->add_meta('msapplication-config', $favicon_path.'/browserconfig.xml');
+    }else{    // if no 16x16 png favicon exists, diplay tiki icons
+        $headerlib->add_link('icon', 'themes/base_files/favicons/favicon-16x16.png', '16x16', 'image/png');
+        $headerlib->add_link('apple-touch-icon', 'themes/base_files/favicons/apple-touch-icon.png', '180x180');
+        $headerlib->add_link('icon', 'themes/base_files/favicons/favicon-32x32.png', '32x32', 'image/png');
+        $headerlib->add_link('manifest', 'themes/base_files/favicons/manifest.json');
+		$headerlib->add_link('shortcut icon', 'themes/base_files/favicons/favicon.ico');
+        $headerlib->add_link('mask-icon', 'themes/base_files/favicons/safari-pinned-tab.svg', '', '', '#5bbad5');
+        $headerlib->add_meta('msapplication-config', 'themes/base_files/favicons/browserconfig.xml');
+    }
+    unset($favicon_path);  // no longer needed, so bye bye
 }
 
 //8) produce $iconset to be used for generating icons

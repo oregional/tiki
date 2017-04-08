@@ -31,7 +31,7 @@ class Comments extends TikiLib
 			'threadId' => $threadId,
 			'user' => $user,
 		);
-		$reported->delete($data);
+		$reported->delete(array('threadId' => $data['threadId']));
 
 		$reported->insert(array_merge($data, array('timestamp' => $this->now, 'reason' => $reason)));
 	}
@@ -628,10 +628,15 @@ class Comments extends TikiLib
 	
 	/* queue management */
 	function replace_queue($qId, $forumId, $object, $parentId, $user, $title, $data, $type = 'n', $topic_smiley = '', $summary = '',
-			$topic_title = '', $in_reply_to = '', $anonymous_name='', $tags='', $email=''
+			$topic_title = '', $in_reply_to = '', $anonymous_name='', $tags='', $email='', $threadId=0
 	)
 	{
 		// timestamp
+		if ($threadId) {
+			$timestamp = (int) $this->table('tiki_comments')->fetchOne('commentDate', array('threadId' => $threadId));
+		} else {
+			$timestamp = (int) $this->now;
+		}
 
 		$hash2 = md5($title . $data);
 
@@ -656,18 +661,30 @@ class Comments extends TikiLib
 			'topic_title' => $topic_title,
 			'topic_smiley' => $topic_smiley,
 			'summary' => $summary,
-			'timestamp' => (int)$this->now,
+			'timestamp' => $timestamp,
 			'in_reply_to' => $in_reply_to,
 			'tags' => $tags,
 			'email' => $email
 		);
 
 		if ($qId) {
+			unset($data['timestamp']);
+
 			$queue->update($data, array('qId' => $qId));
 
 			return $qId;
 		} else {
+			if ($threadId) {
+				// Existing thread being updated so delete previous queue before adding new one
+				if ($toDelete = TikiLib::lib('attribute')->get_attribute('forum post', $threadId, 'tiki.forumpost.queueid')) {
+					$this->remove_queued($toDelete);
+				}
+			}
 			$qId = $queue->insert($data);
+		}
+
+		if ($qId && $threadId) {
+			TikiLib::lib('attribute')->set_attribute('forum post', $threadId, 'tiki.forumpost.queueid', $qId);
 		}
 
 		return $qId;
@@ -715,6 +732,7 @@ class Comments extends TikiLib
 
 	function remove_queued($qId)
 	{
+		$this->table('tiki_object_attributes')->delete(array('attribute' => 'tiki.forumpost.queueid', 'value' => $qId));
 		$this->table('tiki_forums_queue')->delete(array('qId' => $qId));
 		$this->table('tiki_forum_attachments')->delete(array('qId' => $qId));
 	}
@@ -736,20 +754,36 @@ class Comments extends TikiLib
 			$a = $info['user'];
 			$w = $a. ' '. tra('(not registered)', $prefs['site_language']);
 		}
-		$threadId = $this->post_new_comment(
-			'forum:' . $info['forumId'],
-			$info['parentId'],
-			$u,
-			$info['title'],
-			$info['data'],
-			$message_id,
-			$info['in_reply_to'],
-			$info['type'],
-			$info['summary'],
-			$info['topic_smiley'],
-			'',
-			$a
-		);
+
+		$postToEdit = TikiLib::lib('attribute')->find_objects_with('tiki.forumpost.queueid', $qId);
+		if (!empty($postToEdit[0]['itemId'])) {
+			$threadId = $postToEdit[0]['itemId'];
+			$this->update_comment(
+				$threadId,
+				$info['title'],
+				'',
+				$info['data'],
+				$info['type'],
+				$info['summary'],
+				$info['topic_smiley'],
+				'forum:' . $info['forumId']
+			);
+                } else {
+			$threadId = $this->post_new_comment(
+				'forum:' . $info['forumId'],
+				$info['parentId'],
+				$u,
+				$info['title'],
+				$info['data'],
+				$message_id,
+				$info['in_reply_to'],
+				$info['type'],
+				$info['summary'],
+				$info['topic_smiley'],
+				'',
+				$a
+			);
+		}
 		if (!$threadId) {
 			return null;
 		}
@@ -2030,7 +2064,7 @@ class Comments extends TikiLib
 		$parserlib = TikiLib::lib('parser');
 
 		if (($prefs['feature_forum_parse'] == 'y' && $section == 'forums') || $prefs['section_comments_parse'] == 'y') {
-			return $this->parse_data($data);
+			return $parserlib->parse_data($data);
 		}
 
 		// Cookies
@@ -2656,7 +2690,7 @@ class Comments extends TikiLib
 		} else {
 			$type = $objectType . ' comment'; // comment types are not used in tiki_objects yet but maybe in future
 		}
-		$pages = $this->get_pages($data);
+		$pages = TikiLib::lib('parser')->get_pages($data);
 		$linkhandle = "objectlink:$type:$threadId";
 		$this->clear_links($linkhandle);
 		foreach ($pages as $a_page) {
@@ -2873,7 +2907,7 @@ class Comments extends TikiLib
 		);
 
 		if ($approved === false) {
-			TikiLib::lib('errorreport')->report(tr('Your comment was rejected.'));
+			Feedback::error(tr('Your comment was rejected.'), 'session');
 			return false;
 		}
 
@@ -3053,7 +3087,8 @@ class Comments extends TikiLib
 			$tikilib = TikiLib::lib('tiki');
 
 			$url = $tikilib->tikiUrl();
-			$akismet = new ZendService\Akismet\Akismet($prefs['comments_akismet_apikey'], $url);
+			$httpClient = $tikilib->get_http_client();
+			$akismet = new ZendService\Akismet\Akismet($prefs['comments_akismet_apikey'], $url, $httpClient);
 
 			return $akismet->isSpam(
 				array(
@@ -3068,7 +3103,7 @@ class Comments extends TikiLib
 				)
 			);
 		} catch (Exception $e) {
-			TikiLib::lib('errorreport')->report(tr('Cannot perform spam check: %0', $e->getMessage()));
+			Feedback::error(tr('Cannot perform spam check: %0', $e->getMessage()), 'session');
 			return false;
 		}
 	}
@@ -3154,12 +3189,22 @@ class Comments extends TikiLib
 		$comments->deleteMultiple(array('threadId' => $threadOrParent));
 		//TODO in a forum, when the reply to a post (not a topic) id deletd, the replies to this post are not deleted
 
+		$this->remove_stale_comment_watches();
+
 		$this->remove_reported($threadId);
 
 		$atts = $this->table('tiki_forum_attachments')->fetchAll(array('attId'), array('threadId' => $threadId));
 		foreach ( $atts as $att ) {
 			$this->remove_thread_attachment($att['attId']);
 		}
+
+		// remove range attribute for inline "annotation" comments
+		TikiLib::lib('attribute')->set_attribute(
+			'comment',
+			$threadId,
+			'tiki.comment.ranges',
+			''
+		);
 
 		$tx = $this->begin();
 		// Update search index after deletion is done
@@ -3516,12 +3561,33 @@ class Comments extends TikiLib
 				$params['comment_topictype'],
 				$params['comment_topicsmiley'],
 				$params['comment_topicsummary'],
-				$params['comments_title'],
+				isset($parent_comment_info['title']) ? $parent_comment_info['title'] : $params['comments_title'],	
 				$in_reply_to,
 				$params['anonymous_name'],
 				$params['freetag_string'],
-				$params['anonymous_email']
+				$params['anonymous_email'],
+				isset($params['comments_threadId']) ? $params['comments_threadId'] : 0
 			);
+
+			if ($prefs['forum_moderator_notification'] == 'y') {
+				// Deal with mail notifications.
+				include_once('lib/notifications/notificationemaillib.php');
+				sendForumEmailNotification(
+					'forum_post_queued',
+					$forum_info['forumId'],
+					$forum_info,
+					$params['comments_title'],
+					$params['comments_data'],
+					$user,
+					isset($parent_comment_info['title']) ? $parent_comment_info['title'] : $params['comments_title'],	
+					$message_id,
+					$in_reply_to,
+					!empty($params['comments_threadId']) ? $params['comments_threadId'] : 0,
+					isset($params['comments_parentId']) ? $params['comments_parentId'] : 0,
+					isset($params['contributions'])? $params['contributions'] : '',
+					$qId
+				);
+			}
 		} else { // not in queue mode
 			$qId = 0;
 
@@ -3845,6 +3911,22 @@ class Comments extends TikiLib
 	}
 
 	/**
+	 * Get all comment IDs in the tree up to the root threadId
+	 * @param $threadId
+	 * @return array
+	 */
+	function get_root_path($threadId)
+	{
+		$parent = $this->table('tiki_comments')->fetchOne('parentId', array('threadId' => $threadId));
+
+		if ($parent) {
+			return array_merge($this->get_root_path($parent), array($parent));
+		} else {
+			return array();
+		}
+	}
+
+	/**
 	 * Utlity to check whether a user can admin a form, either through permissions or as moderator
 	 *
 	 * @param $forumId
@@ -3884,6 +3966,8 @@ class Comments extends TikiLib
 
 		if(is_array($ret) && isset($ret[0])) {
 			return $ret[0];
+		} else {
+			return [];
 		}
 	}
 }

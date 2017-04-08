@@ -1143,7 +1143,7 @@ class NlLib extends TikiLib
 			$smarty->assign("nlArticleClipId", $art["articleId"]);
 			$smarty->assign("nlArticleClipTitle", $art["title"]);
 			$smarty->assign("nlArticleClipSubtitle", $art["subtitle"]);
-			$smarty->assign("nlArticleClipParsedheading", $this->parse_data($art["heading"], array('is_html' => $artlib->is_html($art, true))));
+			$smarty->assign("nlArticleClipParsedheading", TikiLib::lib('parser')->parse_data($art["heading"], array('is_html' => $artlib->is_html($art, true))));
 			$smarty->assign("nlArticleClipPublishDate", $art["publishDate"]);
 			$smarty->assign("nlArticleClipAuthorName", $art["authorName"]);
 			$articleClip .= $smarty->fetch("mail/newsletter_articleclip.tpl");
@@ -1252,7 +1252,7 @@ class NlLib extends TikiLib
 				$is_html = !empty($is_html);
 			}
 			if (stristr($info['data'], '<body') === false) {
-				$html = "<html>$beginHtml" . $tikilib->parse_data(
+				$html = "<html>$beginHtml" . TikiLib::lib('parser')->parse_data(
 					$info['data'], array(
 						'absolute_links' => true,
 						'suppress_icons' => true,
@@ -1287,7 +1287,7 @@ class NlLib extends TikiLib
 						$news_css .= $headerlib->minify_css($news_cssfile_option);
 					}
 					if (empty($news_css)) {
-						$news_css = $headerlib->get_all_css_content();
+						$news_css = $headerlib->minify_css('themes/base_files/css/newsletter.css');
 					}
 					$news_head = "<html><head><base href=\"$base_url\" /><style type=\"text/css\">{$news_css}</style></head>";
 					$html = str_ireplace('<html>', $news_head, $html);
@@ -1366,6 +1366,8 @@ class NlLib extends TikiLib
 		$zmail->getHeaders()->removeHeader('to');
 		$zmail->getHeaders()->removeHeader('cc');
 		$zmail->getHeaders()->removeHeader('bcc');
+
+		$zmail->getHeaders()->get('content-type')->setType('multipart/alternative');
 
 		$zmail->addTo($target['email']);
 
@@ -1566,7 +1568,7 @@ class NlLib extends TikiLib
 		global $tikilib;
 
 		if (empty($parsed)) {
-			$txt = $tikilib->parse_data($txt, array('absolute_links' => true, 'suppress_icons' => true));
+			$txt = TikiLib::lib('parser')->parse_data($txt, array('absolute_links' => true, 'suppress_icons' => true));
 		} else {
 			$txt = $parsed;
 		}

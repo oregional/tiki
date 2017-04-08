@@ -525,7 +525,7 @@ class ParserLib extends TikiDb_Bridge
 					"\$(document).ready( function() {
 if ( \$('#$id') ) {
 \$('#$id').click( function(event) {
-	popup_plugin_form("
+	popupPluginForm("
 					. json_encode('editwiki')
 					. ', '
 					. json_encode($plugin_name)
@@ -922,7 +922,8 @@ if ( \$('#$id') ) {
 		$data = $this->unprotectSpecialChars($data, true);
 
 		if ( $validate == 'all' || $validate == 'body' )
-			$validateBody = str_replace('<x>', '', $data);	// de-sanitize plugin body to make fingerprint consistant with 5.x
+			// Tiki 6 and ulterior may insert sequences in plugin body to break XSS exploits. The replacement works around removing them to keep fingerprints identical for upgrades from previous versions.
+			$validateBody = str_replace('<x>', '', $data);
 		else
 			$validateBody = '';
 
@@ -1139,7 +1140,7 @@ if ( \$('#$id') ) {
 		} else {
 			$elem = 'span';
 		}
-		$elem_style = 'position:relative;';
+		$elem_style = 'position:relative;display:inline-block';
 		if (!$enabled) {
 			$elem_style .= 'opacity:0.3;';
 		}
@@ -1348,18 +1349,28 @@ if ( \$('#$id') ) {
 	function replace_hotwords($line, $words)
 	{
 		global $prefs;
-		$hotw_nw = ($prefs['feature_hotwords_nw'] == 'y') ? "target='_blank'" : '';
 
-		// Replace Hotwords
 		if ($prefs['feature_hotwords'] == 'y') {
-			$sep =  $prefs['feature_hotwords_sep'];
-			$sep = empty($sep)? " \n\t\r\,\;\(\)\.\:\[\]\{\}\!\?\"":"$sep";
+			$hotw_nw = ($prefs['feature_hotwords_nw'] == 'y') ? "target='_blank'" : '';
+			
+			// FIXME: Replacements may fail if the value contains an unescaped metacharacters (which is why the default value contains escape characters). The value should probably be escaped with preg_quote().  
+			$sep = empty($prefs['feature_hotwords_sep']) ? " \n\t\r\,\;\(\)\.\:\[\]\{\}\!\?\"" : $prefs['feature_hotwords_sep'];
+			
 			foreach ($words as $word => $url) {
-				// \b is a word boundary, \s is a space char
-				$pregword = preg_replace("/\//", "\/", $word);
-				$line = preg_replace("/(=(\"|')[^\"']*[$sep'])$pregword([$sep][^\"']*(\"|'))/i", "$1:::::$word,:::::$3", $line);
-				$line = preg_replace("/([$sep']|^)$pregword($|[$sep])/i", "$1<a class=\"wiki\" href=\"$url\" $hotw_nw>$word</a>$2", $line);
-				$line = preg_replace("/:::::$pregword,:::::/i", "$word", $line);
+				$escapedWord = preg_quote($word, '/');
+				
+				/* In CVS revisions 1.429 and 1.373.2.40 of tikilib.php, mose added the following magic steps, commenting "fixed the hotwords autolinking in case it is in a description field".
+				 * I do not understand what description fields this refers to. I do not know if this is correct and still needed. Step 1 seems to prevent replacements in an HTML tag. Chealer 2017-03-08
+				 */
+				
+				// Step 1: Insert magic sequences which will neutralize step 2 in some cases.
+				$line = preg_replace("/(=(\"|')[^\"']*[$sep'])$escapedWord([$sep][^\"']*(\"|'))/i", "$1:::::$word,:::::$3", $line);
+				
+				// Step 2: Add links where the hotword appears (not neutralized)
+				$line = preg_replace("/([$sep']|^)$escapedWord($|[$sep])/i", "$1<a class=\"wiki\" href=\"$url\" $hotw_nw>$word</a>$2", $line);
+				
+				// Step 3: Remove magic sequences inserted in step 1
+				$line = preg_replace("/:::::$escapedWord,:::::/i", "$word", $line);
 			}
 		}
 		return $line;
@@ -1369,44 +1380,53 @@ if ( \$('#$id') ) {
 	//*
 	function autolinks($text)
 	{
-		global $prefs;
-		$smarty = TikiLib::lib('smarty');
-		$tikilib = TikiLib::lib('tiki');
-		//	check to see if autolinks is enabled before calling this function
-		//		if ($prefs['feature_autolinks'] == "y") {
-		$attrib = '';
-		if ($prefs['popupLinks'] == 'y')
-			$attrib .= 'target="_blank" ';
-		if ($prefs['feature_wiki_ext_icon'] == 'y') {
-			$attrib .= 'class="wiki external" ';
-			include_once('lib/smarty_tiki/function.icon.php');
-			$ext_icon = smarty_function_icon(array('name'=>'link-external'), $smarty);
+		if ($text) {
+			global $prefs;
+			static $mail_protect_pattern = '';
 
-		} else {
-			$attrib .= 'class="wiki" ';
-			$ext_icon = "";
+			$smarty = TikiLib::lib('smarty');
+			$tikilib = TikiLib::lib('tiki');
+			//	check to see if autolinks is enabled before calling this function
+			//		if ($prefs['feature_autolinks'] == "y") {
+			$attrib = '';
+			if ($prefs['popupLinks'] == 'y')
+				$attrib .= 'target="_blank" ';
+			if ($prefs['feature_wiki_ext_icon'] == 'y') {
+				$attrib .= 'class="wiki external" ';
+				include_once('lib/smarty_tiki/function.icon.php');
+				$ext_icon = smarty_function_icon(array('name' => 'link-external'), $smarty);
+
+			} else {
+				$attrib .= 'class="wiki" ';
+				$ext_icon = "";
+			}
+
+			// add a space so we can match links starting at the beginning of the first line
+			$text = " " . $text;
+			// match prefix://suffix, www.prefix.suffix/optionalpath, prefix@suffix
+			$patterns = array();
+			$replacements = array();
+			$patterns[] = "#([\n ])([a-z0-9]+?)://([^<, \n\r]+)#i";
+			$replacements[] = "\\1<a $attrib href=\"\\2://\\3\">\\2://\\3$ext_icon</a>";
+			$patterns[] = "#([\n ])www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^,< \n\r]*)?)#i";
+			$replacements[] = "\\1<a $attrib href=\"http://www.\\2.\\3\\4\">www.\\2.\\3\\4$ext_icon</a>";
+			$patterns[] = "#([\n ])([a-z0-9\-_.]+?)@([\w\-]+\.([\w\-\.]+\.)*[\w]+)#i";
+			if ($this->option['protect_email'] && $prefs['feature_wiki_protect_email'] == 'y') {
+
+				if (! $mail_protect_pattern) {
+					$mail_protect_pattern = "\\1" . $tikilib->protect_email("\\2", "\\3");
+				}
+				$replacements[] = $mail_protect_pattern;
+			} else {
+				$replacements[] = "\\1<a class='wiki' href=\"mailto:\\2@\\3\">\\2@\\3</a>";
+			}
+			$patterns[] = "#([\n ])magnet\:\?([^,< \n\r]+)#i";
+			$replacements[] = "\\1<a class='wiki' href=\"magnet:?\\2\">magnet:?\\2</a>";
+			$text = preg_replace($patterns, $replacements, $text);
+			// strip the space we added
+			$text = substr($text, 1);
 		}
 
-		// add a space so we can match links starting at the beginning of the first line
-		$text = " " . $text;
-		// match prefix://suffix, www.prefix.suffix/optionalpath, prefix@suffix
-		$patterns = array();
-		$replacements = array();
-		$patterns[] = "#([\n ])([a-z0-9]+?)://([^<, \n\r]+)#i";
-		$replacements[] = "\\1<a $attrib href=\"\\2://\\3\">\\2://\\3$ext_icon</a>";
-		$patterns[] = "#([\n ])www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^,< \n\r]*)?)#i";
-		$replacements[] = "\\1<a $attrib href=\"http://www.\\2.\\3\\4\">www.\\2.\\3\\4$ext_icon</a>";
-		$patterns[] = "#([\n ])([a-z0-9\-_.]+?)@([\w\-]+\.([\w\-\.]+\.)*[\w]+)#i";
-		if ($this->option['protect_email'] && $prefs['feature_wiki_protect_email'] == 'y') {
-			$replacements[] = "\\1" . $tikilib->protect_email("\\2", "\\3");
-		} else {
-			$replacements[] = "\\1<a class='wiki' href=\"mailto:\\2@\\3\">\\2@\\3</a>";
-		}
-		$patterns[] = "#([\n ])magnet\:\?([^,< \n\r]+)#i";
-		$replacements[] = "\\1<a class='wiki' href=\"magnet:?\\2\">magnet:?\\2</a>";
-		$text = preg_replace($patterns, $replacements, $text);
-		// strip the space we added
-		$text = substr($text, 1);
 		return $text;
 
 		//		} else {
@@ -1521,12 +1541,11 @@ if ( \$('#$id') ) {
 		// Don't bother if there's nothing...
 		if (function_exists('mb_strlen')) {
 			if ( mb_strlen($data) < 1 ) {
-				return;
+				return '';
 			}
 		}
 
-		global $page_regex, $slidemode, $prefs, $ownurl_father, $tiki_p_upload_picture, $page_ref_id, $user, $tikidomain, $tikiroot;
-		$wikilib = TikiLib::lib('wiki');
+		global $prefs;
 
 		$this->setOptions(); //reset options;
 
@@ -1553,6 +1572,9 @@ if ( \$('#$id') ) {
 				return $data;
 			}
 		}
+
+		// remove tiki comments first
+		$data = preg_replace(';~tc~(.*?)~/tc~;s', '', $data);
 
 		$this->parse_wiki_argvariable($data);
 
@@ -1587,8 +1609,7 @@ if ( \$('#$id') ) {
 			$data = preg_replace("#(?<!<!|//)--([^\s>].+?)--#", "<strike>$1</strike>", $data);
 		}
 
-		// Handle comment sections
-		$data = preg_replace(';~tc~(.*?)~/tc~;s', '', $data);
+		// Handle html comment sections
 		$data = preg_replace(';~hc~(.*?)~/hc~;s', '<!-- $1 -->', $data);
 
 		// Replace special characters
@@ -1709,6 +1730,8 @@ if ( \$('#$id') ) {
 		//   but hide '<x>' text inside some words like 'style' that are considered as dangerous by the sanitizer.
 		$data = str_replace(array( '&lt;x&gt;', '~np~', '~/np~' ), array( '<x>', '~np~', '~/np~' ), $data);
 
+		$data = typography($data, $this->option['language']);
+
 		// Process pos_handlers here
 		foreach ($this->pos_handlers as $handler) {
 			$data = $handler($data);
@@ -1718,6 +1741,44 @@ if ( \$('#$id') ) {
 		}
 
 		return $data;
+	}
+
+
+
+	/**
+	 *
+	 * intended for use within wiki plugins. This option preserves opening and closing whitespace that renders into
+	 * annoying <p> tags when parsed, and also respects HTML rendering preferences.
+	 *
+	 * @param $data string wiki/html to be parsed
+	 * @param $optionsOverride array options to override the current defaults
+	 * @param $inlineFirstP boolean If the returned data starts with a <p>, this option will force it to display as inline:block
+ 	 *					useful when the returned data is required to display without adding overhead spacing caused by <p>
+	 *
+	 * @return string parsed data
+	 */
+	function parse_data_plugin($data,$inlineFirstP = false,$optionsOverride= array())
+	{
+		$options['is_html'] = ($GLOBALS['prefs']['feature_wiki_allowhtml'] === 'y' && $GLOBALS['info']['is_html'] == true)?true:false;
+
+		foreach ($optionsOverride as $name => $value)
+			$options[$name] = $value;
+
+		// record initial whitespace
+		preg_match('(^\s*)',$data,$bwhite);
+		preg_match('(\s*$)',$data,$ewhite);
+
+		// remove all the whitespace
+		$data = trim($data);
+		$data = $this->parse_data($data,$options);
+		// remove whitespace that was added while parsing (yes it does happen)
+		$data = trim($data);
+
+		if ($inlineFirstP)
+			$data = preg_replace('/^(\s*?)<p>/','$1<p style="display:inline-block">',' '.$data);
+
+		// add original whitespace back to preserve spacing
+		return ($bwhite[0].$data.$ewhite[0]);
 	}
 
 	//*
@@ -1734,6 +1795,7 @@ if ( \$('#$id') ) {
 		$data = $this->parse_data_wikilinks($data, true);
 		$data = $this->parse_data_externallinks($data, true);
 		$data = $this->parse_data_inline_syntax($data, $words);
+		$data = typography($data, $this->option['language']);
 
 		return $data;
 	}
@@ -1873,7 +1935,7 @@ if ( \$('#$id') ) {
 				if (isset($matches[2]) && $matches[2]=='nocache') {
 					$data = preg_replace($pattern, "<a $class $target href=\"$link\" rel=\"$rel\">$1</a>$ext_icon", $data);
 				} else {
-					$data = preg_replace($pattern, "<a $class $target href=\"$link\" rel=\"$2 $rel\">$1</a>$ext_icon $cosa", $data);
+					$data = preg_replace($pattern, "<a $class $target href=\"$link\" rel=\"$rel\" data-box=\"$2\">$1</a>$ext_icon $cosa", $data);
 				}
 				$pattern = "/(?<!\[)\[$link2\|([^\]\|]+)\]/";
 				$data = preg_replace($pattern, "<a $class $target href=\"$link\" rel=\"$rel\">$1</a>$ext_icon $cosa", $data);
@@ -1884,7 +1946,7 @@ if ( \$('#$id') ) {
 				$data = str_replace("|nocache", "", $data);
 
 				$pattern = "/(?<!\[)\[$link2\|([^\]\|]+)\|([^\]]+)\]/";
-				$data = preg_replace($pattern, "<a $class $target href=\"$link\" rel=\"$2 $rel\">$1</a>$ext_icon", $data);
+				$data = preg_replace($pattern, "<a $class $target href=\"$link\" rel=\"$rel\" data-box=\"$2\">$1</a>$ext_icon", $data);
 				$pattern = "/(?<!\[)\[$link2\|([^\]\|]+)([^\]])*\]/";
 				$data = preg_replace($pattern, "<a $class $target href=\"$link\" rel=\"$rel\">$1</a>$ext_icon", $data);
 				$pattern = "/(?<!\[)\[$link2\]/";
@@ -2066,23 +2128,23 @@ if ( \$('#$id') ) {
 							break;
 						} else {
 							$value='';
-							break;	
+							break;
 						}
 					case 'domain':
 						if ($smarty->getTemplateVars('url_host') != null) {
 							$value = $smarty->getTemplateVars('url_host');
-							break;	
+							break;
 						} else {
 							$value='';
-							break;	
+							break;
 						}
 					case 'domainslash':
 						if ($smarty->getTemplateVars('url_host') != null) {
 							$value = $smarty->getTemplateVars('url_host') . '/';
-							break;	
+							break;
 						} else {
 							$value='';
-							break;	
+							break;
 						}
 					case 'domainslash_if_multitiki':
 						if (is_file('db/virtuals.inc')) {
@@ -2090,10 +2152,10 @@ if ( \$('#$id') ) {
 						}
 						if ($virtuals && $smarty->getTemplateVars('url_host') != null) {
 							$value = $smarty->getTemplateVars('url_host') . '/';
-							break;	
+							break;
 						} else {
 							$value='';
-							break;	
+							break;
 						}
 					case 'lastVersion':
 						$histlib = TikiLib::lib('hist');
@@ -2101,14 +2163,14 @@ if ( \$('#$id') ) {
 						$history = $histlib->get_page_history($this->option['page'], false, 0, 1);
 						if ($history[0]['version'] != null) {
 							$value = $history[0]['version'];
-							break;	
+							break;
 						} else {
 							$value='';
-							break;	
+							break;
 						}
 					case 'lastAuthor':
 				        $histlib = TikiLib::lib('hist');
-   				        
+
 				        // get_page_history arguments: page name, page contents (set to "false" to save memory), history_offset (none, therefore "0"), max. records (just one for this case);
 				        $history = $histlib->get_page_history($this->option['page'], false, 0, 1);
 				        if ($history[0]['user'] != null ) {
@@ -2118,10 +2180,10 @@ if ( \$('#$id') ) {
 							} else {
 			                    $value = $history[0]['user'];
        							break;
-			                }  
+			                }
 				        } else {
 				            $value='';
-				            break;  
+				            break;
 				        }
 					case 'lastModif':
 						$histlib = TikiLib::lib('hist');
@@ -2129,10 +2191,10 @@ if ( \$('#$id') ) {
 						$history = $histlib->get_page_history($this->option['page'], false, 0, 1);
 						if ($history[0]['lastModif'] != null) {
 							$value = $tikilib->get_short_datetime($history[0]['lastModif']);
-							break;	
+							break;
 						} else {
 							$value='';
-							break;	
+							break;
 						}
 					case 'lastItemVersion':
 						$trklib = TikiLib::lib('trk');
@@ -2155,11 +2217,11 @@ if ( \$('#$id') ) {
 							$history = $trklib->get_item_history($item_info, $fieldId, $filter, $offset, $prefs['maxRecords']);
 
 							$value = $history['data'][0]['version'];
-							break;	
+							break;
 
 						} else {
 							$value='';
-							break;	
+							break;
 						}
 					case 'lastItemAuthor':
 						$trklib = TikiLib::lib('trk');
@@ -2180,13 +2242,13 @@ if ( \$('#$id') ) {
 								} else {
 				                    $value = $item_info['lastModifBy'];
 	       							break;
-				                } 
+				                }
 				            }
-							break;	
-							
+							break;
+
 						} else {
 							$value='';
-							break;	
+							break;
 						}
 					case 'lastItemModif':
 						$trklib = TikiLib::lib('trk');
@@ -2201,11 +2263,11 @@ if ( \$('#$id') ) {
 								die;
 							}
 							$value = $tikilib->get_short_datetime($item_info['lastModif']);
-							break;	
-							
+							break;
+
 						} else {
 							$value='';
-							break;	
+							break;
 						}
 					case 'lastApprover':
 						global $prefs, $user;
@@ -2321,19 +2383,19 @@ if ( \$('#$id') ) {
 									} elseif (isset($_REQUEST['version'])) {
 										$revision_displayed = (int)$_REQUEST["version"];
 									} elseif (isset($_REQUEST['latest'])) {
-										$revision_displayed = NULL;								
+										$revision_displayed = NULL;
 									} else {
 										$versions_info = $flaggedrevisionlib->get_versions_with($this->option['page'], 'moderation', 'OK');
 										$revision_displayed = $versions_info[0];
 									}
-									
+
 									if ($this->content_to_render === null) {
 										$approval = $flaggedrevisionlib->find_approval_information($this->option['page'], $revision_displayed);
 									}
 								}
 							}
 						}
-						
+
 						if ($approval['user'] != null ) {
 							if ($prefs['user_show_realnames']== 'y') {
 								$value = TikiLib::lib('user')->clean_user($approval['user']);
@@ -2360,7 +2422,7 @@ if ( \$('#$id') ) {
 									} elseif (isset($_REQUEST['version'])) {
 										$revision_displayed = (int)$_REQUEST["version"];
 									} elseif (isset($_REQUEST['latest'])) {
-										$revision_displayed = NULL;								
+										$revision_displayed = NULL;
 									} else {
 										$versions_info = $flaggedrevisionlib->get_versions_with($this->option['page'], 'moderation', 'OK');
 										$revision_displayed = $versions_info[0];
@@ -2430,7 +2492,7 @@ if ( \$('#$id') ) {
 							$value = $_GET[$name];
 						} else {
 							$value = '';
-							include_once('lib/wiki-plugins/wikiplugin_showpref.php');	
+							include_once('lib/wiki-plugins/wikiplugin_showpref.php');
 							if ($prefs['wikiplugin_showpref'] == 'y' && $showpref = wikiplugin_showpref('', array('pref' => $name))) {
 								$value = $showpref;
 							}
@@ -2824,7 +2886,7 @@ if ( \$('#$id') ) {
 						$hideall = false;
 						for ( $j = $hdrlevel ; $j > 0 ; $j-- ) {
 							if ( $hideall || empty($show_title_level[$j]) ) {
-								unset($hdr_structure[$nb_hdrs][$j - 1]);
+								unset($hdr_structure[$j - 1]);
 								$hideall = true;
 							}
 						}
@@ -2938,10 +3000,18 @@ if ( \$('#$id') ) {
 
 						$style = $do_center ? ' style="text-align: center;"' : '';
 
-						if ( $prefs['feature_wiki_show_hide_before'] == 'y' ) {
-							$line = $button.'<h'.($hdrlevel).$style.' class="showhide_heading" id="'.$thisid.'">'.$aclose.' '.$title_text.'</h'.($hdrlevel).'>'.$aclose2;
+						if ($prefs['wiki_heading_links'] === 'y') {
+							$smarty = TikiLib::lib('smarty');
+							$smarty->loadPlugin('smarty_function_icon');
+							$headingLink = '<a href="#' . $thisid . '" class="heading-link">' . smarty_function_icon(['name' => 'link'], $smarty) . '</a>';
 						} else {
-							$line = $button.'<h'.($hdrlevel).$style.' class="showhide_heading" id="'.$thisid.'">'.$title_text.'</h'.($hdrlevel).'>'.$aclose.$aclose2;
+							$headingLink = '';
+						}
+
+						if ( $prefs['feature_wiki_show_hide_before'] == 'y' ) {
+							$line = $button.'<h'.($hdrlevel).$style.' class="showhide_heading" id="'.$thisid.'">'.$aclose.' '.$title_text.$headingLink.'</h'.($hdrlevel).'>'.$aclose2;
+						} else {
+							$line = $button.'<h'.($hdrlevel).$style.' class="showhide_heading" id="'.$thisid.'">'.$title_text.$headingLink.'</h'.($hdrlevel).'>'.$aclose.$aclose2;
 						}
 					} elseif (!strcmp($line, $prefs['wiki_page_separator'])) {
 						// Close open paragraph, lists, and div's
@@ -3195,23 +3265,23 @@ if ( \$('#$id') ) {
 
 					//patch-ini - Patch taken from http://dev.tiki.org/item5405
 					global $TOC_newstring, $TOC_oldstring ;
-				
+
 					$TOC_newstring = $maketoc ; //===== get a copy of the newest TOC before we do anything to it
         			if ( strpos($maketoc, $TOC_oldstring) ) // larryg - if this MAKETOC contains previous chapter's TOC entries, remove that portion of the string
 					{
-						$maketoc = substr($maketoc, 0 , strpos($maketoc, $TOC_oldstring)).substr($maketoc, strpos($maketoc, $TOC_oldstring)+ strlen($TOC_oldstring)) ; 
+						$maketoc = substr($maketoc, 0 , strpos($maketoc, $TOC_oldstring)).substr($maketoc, strpos($maketoc, $TOC_oldstring)+ strlen($TOC_oldstring)) ;
 					}
-  			  		
+
 					//prepare this chapter's TOC entry to be compared with the next chapter's string]
 					$head_string = '<li><a href='   ;
-					$tail_string = '<!--toc-->' ; 
-					if ( strpos($TOC_newstring, $head_string ) && strpos($TOC_newstring, $tail_string) ) { 
+					$tail_string = '<!--toc-->' ;
+					if ( strpos($TOC_newstring, $head_string ) && strpos($TOC_newstring, $tail_string) ) {
 						$TOC_newstring = substr($TOC_newstring, strpos($TOC_newstring, $head_string) ) ; // trim unwanted stuff from the beginning of the string
 						$TOC_newstring = substr($TOC_newstring, 0, (strpos($TOC_newstring, $tail_string) -5)) ; // trim the stuff from the tail of the string    </ul></li></ul>
 						$TOC_oldstring = $TOC_newstring ;
 					}
 					//patch-end - Patch taken from http://dev.tiki.org/item5405
-					
+
 					if (!empty($maketoc)) {
 						$maketoc = $maketoc_header.$maketoc.$maketoc_footer;
 					}

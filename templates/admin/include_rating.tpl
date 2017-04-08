@@ -1,12 +1,10 @@
 {* $Id$ *}
 
 <form class="admin form-horizontal" id="performance" name="performance" action="tiki-admin.php?page=rating" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 	<div class="row">
 		<div class="form-group col-lg-12 clearfix">
-			<div class="pull-right">
-				<input type="submit" class="btn btn-primary btn-sm" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
+			{include file='admin/include_apply_top.tpl'}
 		</div>
 	</div>
 
@@ -22,130 +20,47 @@
 
 	<fieldset>
 		<legend>{tr}Wiki{/tr}</legend>
-		<table>
-		<tr>
-		<td style="width:49%">
 		{preference name=feature_wiki_ratings}
 		{preference name=wiki_simple_ratings}
 		<div class="adminoptionboxchild" id="wiki_simple_ratings_childcontainer">
 			{preference name=wiki_simple_ratings_options}
 		</div>
-				</td>
-				<td style="width:2%"><td>
-				<td style="width:49%"><div class="adminoptionboxchild" id="wiki_simple_ratings_perms_childcontainer">
-				{tr}Permissions involved:{/tr}
-				<ul>
-					<li>{tr}wiki{/tr} > wiki_vote_ratings</li>
-					<li>{tr}wiki{/tr} > wiki_view_ratings</li>
-					<li>{tr}tiki{/tr} > ratings_view_results</li>
-				</ul>
-				</div>
-				</td>
-			</tr>
-		</table>
 	</fieldset>
 
 	<fieldset>
 		<legend>{tr}Articles{/tr}</legend>
-		<table>
-			<tr>
-				<td style="width:49%">
-					{preference name=article_user_rating}
-					<div class="adminoptionboxchild" id="article_user_rating_childcontainer">
-						{preference name=article_user_rating_options}
-					</div>
-					<ul>
-						<li>{tr}You also need to set:{/tr} "{tr}Admin Types{/tr} > <strong>{tr}Comment can rate article{/tr}</strong>"</li>
-					</ul>
-				</td>
-				<td style="width:2%"></td>
-				<td style="width:49%">
-					<div class="adminoptionboxchild" id="articles_simple_ratings_perms_childcontainer">
-						{tr}Permissions involved:{/tr}
-						<ul>
-							<li>{tr}articles{/tr} > rate_article</li>
-							<li>{tr}tiki{/tr} > ratings_view_results</li>
-						</ul>
-					</div>
-				</td>
-			</tr>
-		</table>
+		{preference name=article_user_rating}
+		<div class="adminoptionboxchild" id="article_user_rating_childcontainer">
+			{preference name=article_user_rating_options}
+		</div>
 	</fieldset>
 
 	<fieldset>
 		<legend>{tr}Comments{/tr}</legend>
-		<table>
-			<tr>
-				<td style="width:49%">
-					{preference name=comments_vote}
-					{preference name=wiki_comments_simple_ratings}
-					<div class="adminoptionboxchild" id="wiki_comments_simple_ratings_childcontainer">
-						{preference name=wiki_comments_simple_ratings_options}
-						{tr}This preference needs to be disabled:{/tr}{preference name=wiki_comments_form_displayed_default}
-					</div>
-				</td>
-				<td style="width:2%"></td>
-				<td style="width:49%">
-					<div class="adminoptionboxchild" id="wiki_comments_simple_ratings_perms_childcontainer">
-						{tr}Permissions involved:{/tr}
-						<ul>
-							<li>{tr}comments{/tr} > vote_comments</li>
-							<li>{tr}wiki{/tr} > wiki_view_comments</li>
-							<li>{tr}tiki{/tr} > ratings_view_results</li>
-						</ul>
-					</div>
-				</td>
-			</tr>
-		</table>
+		{preference name=comments_vote}
+		{preference name=wiki_comments_simple_ratings}
+		<div class="adminoptionboxchild" id="wiki_comments_simple_ratings_childcontainer">
+			{preference name=wiki_comments_simple_ratings_options}
+			{tr}This preference needs to be disabled:{/tr}{preference name=wiki_comments_form_displayed_default}
+		</div>
 	</fieldset>
 
 	<fieldset>
 		<legend>{tr}Forums{/tr}</legend>
-		<table>
-			<tr>
-				<td style="width:49%">{tr}You need to:{/tr}
-					<ul>
-						<li>{tr}Create or Edit a forum and enable:{/tr} "<strong>{tr}Posts can be rated{/tr}</strong>"</li>
-						<li>{tr}While editing the forum, choose whether to show the "User information display > <strong>Topic Rating</strong>" by each user{/tr}</li>
-						<li>{tr}Set the rating options at{/tr} "{tr}Control Panels{/tr}" > {tr}Ratings{/tr}" > "{tr}Comments{/tr}" > "{tr}Simple wiki comment ratings{/tr}" > "<strong>{tr}Wiki rating options:{/tr}</strong>" ({tr}see above{/tr})</li>
-					</ul>
-				</td>
-				<td style="width:2%"></td>
-				<td style="width:49%">
-					<div class="adminoptionboxchild" id="forums_ratings_perms_childcontainer">
-						{tr}Permissions involved:{/tr}
-						<ul>
-							<li>{tr}forums{/tr} > forum_vote</li>
-							<li>{tr}tiki{/tr} > ratings_view_results</li>
-						</ul>
-					</div>
-				</td>
-			</tr>
-		</table>
+		{remarksbox title="{tr}Enabling ratings for forums{/tr}"}
+			{tr}You need to:{/tr}
+			<ul>
+				<li>{tr}Create or edit a forum and enable:{/tr} "<strong>{tr}Posts can be rated{/tr}</strong>"</li>
+				<li>{tr}While editing the forum, choose whether to show the "User information display > <strong>Topic Rating</strong>" by each user{/tr}</li>
+				<li>{tr}Set the rating options at{/tr} "{tr}Control Panels{/tr}" > {tr}Ratings{/tr}" > "{tr}Comments{/tr}" > "{tr}Simple wiki comment ratings{/tr}" > "<strong>{tr}Wiki rating options:{/tr}</strong>" ({tr}see above{/tr})</li>
+			</ul>
+		{tr}Permissions involved:{/tr} forum_vote ({tr}forums{/tr}), ratings_view_results ({tr}tiki{/tr})
+		{/remarksbox}
 	</fieldset>
 
 	<fieldset>
 		<legend>{tr}Trackers{/tr}</legend>
-		<table style="width:100%">
-			<tr>
-				<td style="width:49%">{tr}You need to enable the settings:{/tr}
-					<div class="adminoptionboxchild" id="rating_trackers_settings_childcontainer">{tr}Tracker Field:{/tr}
-						{preference name=trackerfield_rating}
-					</div>
-				</td>
-				<td style="width:2%"></td>
-				<td style="width:49%">
-					<div class="adminoptionboxchild" id="trackers_ratings_perms_childcontainer">
-						{tr}Permissions involved:{/tr}
-						<ul>
-							<li>{tr}trackers{/tr} > tracker_vote_ratings</li>
-							<li>{tr}trackers{/tr} > tracker_revote_ratings</li>
-							<li>{tr}trackers{/tr} > tracker_view_ratings</li>
-						</ul>
-					</div>
-				</td>
-			</tr>
-		</table>
+		{preference name=trackerfield_rating}
 	</fieldset>
 
 	<fieldset>
@@ -162,45 +77,68 @@
 		<legend>{tr}Advanced{/tr}</legend>
 		{preference name=rating_advanced}
 	</fieldset>
-
-	<div class="row">
-		<div class="form-group col-lg-12 clearfix">
-			<div class="text-center">
-				<input type="submit" class="btn btn-primary btn-sm" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
-		</div>
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>
 
 <div id="rating_advanced_childcontainer">
 	{foreach from=$configurations item=config}
 		<form class="config" method="post" action="">
-			<input type="hidden" name="ticket" value="{$ticket|escape}">
+			{include file='access/include_ticket.tpl'}
 			<fieldset>
-				<legend>{$config.name|escape} (ID: {$config.ratingConfigId|escape}, Search Field: <em>adv_rating_{$config.ratingConfigId|escape}</em>)</legend>
-				<input type="hidden" name="config" value="{$config.ratingConfigId|escape}"/>
-				<div>
-					<label for="rating_name_{$config.ratingConfigId|escape}">{tr}Name{/tr}</label>
-					<input type="text" name="name" value="{$config.name|escape}" id="rating_name_{$config.ratingConfigId|escape}"/>
+				<legend>{$config.name|escape} <small>(ID: {$config.ratingConfigId|escape}, Search Field: <em>adv_rating_{$config.ratingConfigId|escape}</em>)</small></legend>
+				<input type="hidden" name="config" value="{$config.ratingConfigId|escape}">
+				<div class="form-group">
+					<label class="control-label col-sm-4" for="rating_name_{$config.ratingConfigId|escape}">
+						{tr}Name{/tr}
+					</label>
+					<div class="col-sm-8">
+						<input type="text" class="form-control" name="name" value="{$config.name|escape}" id="rating_name_{$config.ratingConfigId|escape}">
+					</div>
 				</div>
-				<div>
-					<label for="rating_expiry_{$config.ratingConfigId|escape}">{tr}Cache duration{/tr}</label>
-					<input type="text" name="expiry" value="{$config.expiry|escape}" id="rating_expiry_{$config.ratingConfigId|escape}"/>
+				<div class="form-group">
+					<label class="control-label col-sm-4" for="rating_expiry_{$config.ratingConfigId|escape}">
+						{tr}Cache duration{/tr}
+					</label>
+					<div class="col-sm-8">
+						<div class="input-group">
+							<input type="text" class="form-control" name="expiry" value="{$config.expiry|escape}" id="rating_expiry_{$config.ratingConfigId|escape}">
+							<span class="input-group-addon">{tr}seconds{/tr}</span>
+						</div>
+					</div>
 				</div>
-				<div>
-					<textarea name="formula" rows="5" style="width: 100%;">{$config.formula|escape}</textarea>
+				<div class="form-group">
+					<label class="control-label col-sm-4" for="formula">
+						{tr}Formula{/tr}
+					</label>
+					<div class="col-sm-8">
+						<textarea name="formula" class="form-control" rows="5" style="width: 100%;">
+							{$config.formula|escape}
+						</textarea>
+					</div>
 				</div>
-				<div class="alert alert-danger"></div>
-				<input type="submit" class="btn btn-default btn-sm" name="edit" value="{tr}Save{/tr}"/>
+				<div class="form-group text-center">
+					<div class="col-sm-12"><br>
+						<input type="submit" class="btn btn-default btn-sm timeout" name="edit" value="{tr}Save{/tr}">
+					</div>
+				</div>
 			</fieldset>
-		</form>
+		</form><br>
 	{/foreach}
 	<form method="post" action="">
+		{include file='access/include_ticket.tpl'}
 		<fieldset>
-			<legend>{tr}Create New{/tr}</legend>
-			<label for="rating_config_new">{tr}Name{/tr}</label>
-			<input type="text" name="name" id="rating_config_new"/>
-			<input type="submit" class="btn btn-default btn-sm" name="create" value="{tr}Create{/tr}"/>
+			<legend>{tr}Create new{/tr}</legend>
+			<label class="control-label col-sm-4" for="rating_config_new">
+				{tr}Name{/tr}
+			</label>
+			<div class="col-sm-8">
+				<div class="input-group">
+					<input type="text" class="form-control" name="name" id="rating_config_new">
+					<span class="input-group-btn">
+			<input type="submit" class="btn btn-default timeout" name="create" value="{tr}Create{/tr}">
+				</span>
+				</div>
+			</div>
 		</fieldset>
 	</form>
 </div>

@@ -52,7 +52,7 @@
 		</div>
 	</form>
 {jq}
-   $('#eventType').change(function(event) {
+	$('#eventType').change(function(event) {
 		var eventType = $('#eventType').val();
 		var result = $.ajax({
 			type: 'GET',
@@ -67,6 +67,6 @@
 				$('#sample').html(data);
 			}
 		});
-    });
+	});
 {/jq}
 {/block}

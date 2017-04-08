@@ -30,6 +30,7 @@ class PreferencesLib
 			'helpurl' => '',
 			'help' => '',
 			'dependencies' => array(),
+			'packages_required' => array(),
 			'extensions' => array(),
 			'dbfeatures' => array(),
 			'options' => array(),
@@ -93,6 +94,10 @@ class PreferencesLib
 
 		if ( $deps && isset( $info['dependencies'] ) ) {
 			$info['dependencies'] = $this->getDependencies($info['dependencies']);
+		}
+
+		if ( $deps && isset( $info['packages_required'] ) && !empty($info['packages_required']) ) {
+			$info['packages_required'] = $this->getPackagesRequired($info['packages_required']);
 		}
 
 		$info['available'] = true;
@@ -314,11 +319,16 @@ class PreferencesLib
 		return true;
 	}
 
-	function getMatchingPreferences( $criteria, $filters = null )
+	function getMatchingPreferences( $criteria, $filters = null, $maxRecords = 50, $sort = '' )
 	{
 		$index = $this->getIndex();
 
 		$query = new Search_Query($criteria);
+		$query->setCount($maxRecords);
+
+		if ($sort) {
+			$query->setOrder($sort);
+		}
 		if ($filters) {
 			$this->buildPreferenceFilter($query, $filters);
 		}
@@ -500,6 +510,23 @@ class PreferencesLib
 		return $out;
 	}
 
+	private function getPackagesRequired( $packages )
+	{
+		$out = array();
+
+		foreach ((array) $packages as $key => $dep ) {
+			$out[] = array(
+				'name' => $key,
+				'label' => $key,
+				'type' => 'composer',
+				'link' => 'https://packagist.org/packages/' . $key,
+				'met' => class_exists($dep)
+			);
+		}
+
+		return $out;
+	}
+
 	public function rebuildIndex()
 	{
 		$index = TikiLib::lib('unifiedsearch')->getIndex('preference');
@@ -511,7 +538,15 @@ class PreferencesLib
 			$data = $this->getFileData($file);
 
 			foreach ( $data as $pref => $info ) {
-				$info = $this->getPreference($pref);
+				$prefInfo = $this->getPreference($pref);
+				if ($prefInfo) {
+					$info = $prefInfo;
+				} else {
+					$info['preference'] = $pref;
+					if (empty($info['tags'])) {
+						$info['tags'] = [];
+					}
+				}
 				$doc = $this->indexPreference($typeFactory, $pref, $info);
 				$index->addDocument($doc);
 			}
@@ -605,6 +640,8 @@ class PreferencesLib
 	{
 		$contents = array(
 			$info['preference'],
+			// also index the parts of the pref name individually, e.g. wikiplugin_plugin_name as wikiplugin plugin name
+			str_replace('_', ' ' , $info['preference']),
 			$info['name'],
 			isset($info['description']) ? $info['description'] : '',
 			isset($info['keywords']) ? $info['keywords'] : '',

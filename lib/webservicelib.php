@@ -33,8 +33,8 @@ class Tiki_Webservice
      */
     public static function create( $name )
 	{
-		if ( ! ctype_alpha($name) ) {
-			return;
+		if ( ! ctype_alpha($name) || self::getService($name) ) {
+			return null;
 		}
 
 		$ws = new self;
@@ -122,6 +122,27 @@ class Tiki_Webservice
 		$tikilib->query("DELETE FROM tiki_webservice_template WHERE service = ?", array( $this->name ));
 	}
 
+	/**
+	 * @param $newName
+	 * @return $this|null
+	 */
+	function rename($newName)
+	{
+		$tiki_webservice = TikiDb::get()->table('tiki_webservice');
+		if (ctype_alpha($newName) && $tiki_webservice->fetchCount(['service' => $newName]) == 0) {
+
+			TikiDb::get()->table('tiki_webservice_template')->updateMultiple(
+				['service' => $newName,],
+				['service' => $this->name]
+			);
+			$tiki_webservice->update(['service' => $newName,], ['service' => $this->name]);
+			$this->name = $newName;
+			return $this;
+		} else {
+			return null;
+		}
+	}
+
     /**
      * @return array
      */
@@ -172,7 +193,7 @@ class Tiki_Webservice
      * @param bool $fullReponse
      * @return bool|OIntegrate_Response
      */
-    function performRequest( $params, $fullReponse = false )
+    function performRequest( $params, $fullReponse = false, $clearCache = false )
 	{
 		global $soaplib, $prefs;
 
@@ -197,9 +218,8 @@ class Tiki_Webservice
 						try {
 							$response->data = $soaplib->performRequest($built, $this->operation, $map, $options, $fullReponse);
 						} catch (Exception $e) {
-							TikiLib::lib('errorreport')->report(
-									tr('Webservice error on %0 request "%1"', $this->wstype, $this->url) . '<br>' . $e->getMessage()
-							);
+							Feedback::error(tr('Webservice error on %0 request "%1"', $this->wstype, $this->url) 
+								. '<br>' . $e->getMessage(), 'session');
 						}
 
 						return $response;
@@ -224,11 +244,10 @@ class Tiki_Webservice
 					}
 
 				try {
-					$response = $ointegrate->performRequest($built, $builtBody);
+					$response = $ointegrate->performRequest($built, $builtBody, $clearCache);
 				} catch (Exception $e) {
-					TikiLib::lib('errorreport')->report(
-							tr('Webservice error on %0 request "%1"', $this->wstype, $this->url) . '<br>' . $e->getMessage()
-					);
+					Feedback::error(tr('Webservice error on %0 request "%1"', $this->wstype, $this->url) 
+						. '<br>' . $e->getMessage(), 'session');
 				}
 
 					return $response;
@@ -365,6 +384,15 @@ class Tiki_Webservice_Template
 				time(),
 			)
 		);
+
+		if ($this->engine === 'index') {
+			if ($this->output === 'mindex') {
+				Feedback::warning(tra('You will need to rebuild the search index to see these changes'));
+			}
+
+			require_once 'lib/search/refresh-functions.php';
+			refresh_index('webservice', $this->name);
+		}
 	}
 
     /**

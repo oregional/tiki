@@ -20,14 +20,31 @@ if (strpos($_SERVER['SCRIPT_NAME'], basename(__FILE__)) !== false) {
   exit;
 }
 
-if (! file_exists(__DIR__ . '/../../vendor/autoload.php')) {
+if (! file_exists(__DIR__ . '/../../vendor_bundled/vendor/autoload.php')) {
 	echo "Your Tiki is not completely installed because Composer has not been run to fetch package dependencies.\n";
 	echo "You need to run 'sh setup.sh' from the command line.\n";
 	echo "See https://dev.tiki.org/Composer for details.\n";
 	exit;
 }
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor_bundled/vendor/autoload.php'; // vendor libs bundled into tiki
+
+// vendor libs managed by the user using composer (if any)
+if (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
+	require_once __DIR__ . '/../../vendor/autoload.php';
+}
+
+// vendor libraries managed by the user, packaged (if any)
+if (is_dir(__DIR__ . '/../../vendor_custom')){
+	foreach (new DirectoryIterator(__DIR__ . '/../../vendor_custom') as $fileInfo) {
+		if (!$fileInfo->isDir() || $fileInfo->isDot()) {
+			continue;
+		}
+		if (file_exists($fileInfo->getPathname() . '/autoload.php')) {
+			require_once $fileInfo->getPathname() . '/autoload.php';
+		}
+	}
+}
 
 /**
  * performs some checks on the underlying system, before initializing Tiki.
@@ -58,21 +75,29 @@ class TikiInit
 		$cache = TIKI_PATH . '/temp/cache/container.php';
 		if (is_readable($cache)) {
 			require_once $cache;
-			$container = new TikiCachedContainer;
 
-			/* If the server moved or was upgraded, the container must be recreated */
-			if (TIKI_PATH == $container->getParameter('kernel.root_dir') &&
-					$container->hasParameter('tiki.version') &&					// no version before 15.0
-					$container->getParameter('tiki.version') === $version)
-			{
-				if (TikiDb::get()) {
-					$container->set('tiki.lib.db', TikiDb::get());
-				}
-				return $container;
-			} else {
-				/* This server moved or was upgraded, container must be recreated */
+			if (! class_exists('TikiCachedContainer')) {
+				// mangled or otherwise invalid container
 				unlink($cache);
+			} else {
+
+				$container = new TikiCachedContainer;
+
+				/* If the server moved or was upgraded, the container must be recreated */
+				if (TIKI_PATH == $container->getParameter('kernel.root_dir') &&
+						$container->hasParameter('tiki.version') &&					// no version before 15.0
+						$container->getParameter('tiki.version') === $version)
+				{
+					if (TikiDb::get()) {
+						$container->set('tiki.lib.db', TikiDb::get());
+					}
+					return $container;
+				} else {
+					/* This server moved or was upgraded, container must be recreated */
+					unlink($cache);
+				}
 			}
+
 
 		}
 

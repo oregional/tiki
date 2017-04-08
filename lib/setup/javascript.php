@@ -55,13 +55,13 @@ if (empty($javascript_enabled_detect) && $feature_no_cookie) {
 
 	if ( strpos($_SERVER['PHP_SELF'], 'tiki-download') === false &&
 			strpos($_SERVER['PHP_SELF'], 'tiki-ajax_services.php') === false &&
-			strpos($_SERVER['PHP_SELF'], 'tiki-jsmodule.php')      === false &&
-			strpos($_SERVER['PHP_SELF'], 'tiki-jsplugin.php')      === false &&
 			strpos($_SERVER['PHP_SELF'], 'tiki-login.php')         === false &&
 			strpos($_SERVER['PHP_SELF'], 'tiki-install.php')       === false) {
 
 		$javascript_enabled_detect++;
-		setCookieSection('javascript_enabled_detect', $javascript_enabled_detect, '', $plus_one_year);
+		if ($prefs['javascript_assume_enabled'] != 'y') {
+			setCookieSection('javascript_enabled_detect', $javascript_enabled_detect, '', $plus_one_year);
+		}
 	}
 } else if ($js_cookie !== 'y') {	// no js cookie detected
 	$prefs['javascript_enabled'] = 'n';
@@ -194,19 +194,18 @@ jqueryTiki.googleStreetView = '.($prefs['geo_google_streetview'] == 'y' ? 'true'
 jqueryTiki.googleStreetViewOverlay = '.($prefs['geo_google_streetview_overlay'] == 'y' ? 'true' : 'false') . ';
 jqueryTiki.structurePageRepeat = '.($prefs['page_n_times_in_a_structure'] == 'y' ? 'true' : 'false') . ';
 jqueryTiki.mobile = '.((isset($prefs['mobile_mode']) && $prefs['mobile_mode'] == 'y') ? 'true' : 'false') . ';
-jqueryTiki.jcapture = '.($prefs['feature_jcapture'] == 'y' ? 'true' : 'false') . ';
-//do not fix following line for notices -  appropriately throws off a notice when user has not
-//flushed prefs cache after upgrading - i.e. not running the updater
-jqueryTiki.jcaptureFgal = ' . ((int)$prefs['fgal_for_jcapture']) . ';
 jqueryTiki.no_cookie = false;
 jqueryTiki.language = "' . $prefs['language'] . '";
 jqueryTiki.useInlineComment = '.($prefs['feature_inline_comments'] === 'y' ? 'true' : 'false') . ';
 jqueryTiki.helpurl = "' . ($prefs['feature_help'] === 'y' ? $prefs['helpurl'] : '') . '";
 jqueryTiki.shortDateFormat = "'.$prefs['short_date_format_js'].'";
 jqueryTiki.shortTimeFormat = "'.$prefs['short_time_format_js'].'";
-jqueryTiki.username = "' . $user . '";
-jqueryTiki.userRealName = "' . TikiLib::lib('user')->clean_user($user) . '";
+jqueryTiki.username = ' . json_encode($user) . ';
+jqueryTiki.userRealName = ' . json_encode(TikiLib::lib('user')->clean_user($user)) . ';
 jqueryTiki.userAvatar = "' . $base_url . TikiLib::lib('userprefs')->get_public_avatar_path($user) . '";
+jqueryTiki.autoToc_inline = ' . (($prefs['wiki_inline_auto_toc'] == 'y') ? 'true' : 'false') . ';
+jqueryTiki.autoToc_pos = "' . $prefs['wiki_toc_pos'] . '";
+jqueryTiki.autoToc_offset = ' . (!empty($prefs['wiki_toc_offset']) ? $prefs['wiki_toc_offset'] : 10) . ';
 ';
 
 	if ($prefs['feature_calendar'] === 'y') {
@@ -234,34 +233,6 @@ var syntaxHighlighter = {
 	}
 
 	$headerlib->add_js($js);
-	
-	if (isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE 6') !== false) {
-
-		$smarty->assign('ie6', true);
-
-		if ($prefs['feature_iepngfix'] == 'y') {
-			/**
-			 * \brief another attempt for PNG alpha transparency fix which seems to work best for IE6 and can be applied even on background positioned images
-			 *
-			 * is applied explicitly on defined CSS selectors or HTMLDomElement
-			 *
-			 */
-			if (($fixoncss = $prefs['iepngfix_selectors']) == '') {
-				$fixoncss = '.sitelogo a img';
-			}
-			if (($fixondom = $prefs['iepngfix_elements']) != '') {
-				$fixondom = "DD_belatedPNG.fixPng($fixondom); // list of HTMLDomElements to fix separated by commas (default is none)";
-			}
-			$scriptpath = 'lib/iepngfix/DD_belatedPNG-min.js';
-			$headerlib->add_jsfile($scriptpath, true);
-			$headerlib->add_js(
-<<<JS
-DD_belatedPNG.fix('$fixoncss'); // list of CSS selectors to fix separated by commas (default is set to fix sitelogo)
-$fixondom
-JS
-			);
-		}
-	}
 }
 
 if ($prefs['feature_ajax'] != 'y') {

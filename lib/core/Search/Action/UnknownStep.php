@@ -21,11 +21,15 @@ class Search_Action_UnknownStep implements Search_Action_Step
 
 	function validate(array $entry)
 	{
-		return false;
+		throw new Search_Action_Exception(tr('Unknown search action step: %0', $this->actionName));
 	}
 
 	function execute(array $entry)
 	{
+	}
+
+	function requiresInput() {
+		return false;
 	}
 }
 

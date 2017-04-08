@@ -34,7 +34,7 @@ class HistLib extends TikiLib
 		$logslib = TikiLib::lib('logs');
 		$logslib->add_action("Removed version", $page, 'wiki page', "version=$version");
 		//get_strings tra("Removed version $version")
-		return true;
+		return $result;
 	}
 
 	function use_version($page, $version, $comment = '')
@@ -93,7 +93,7 @@ class HistLib extends TikiLib
 		$query = "delete from `tiki_links` where `fromPage` = ?";
 		$result = $this->query($query, array($page));
 		$this->clear_links($page);
-		$pages = $this->get_pages($res["data"], true);
+		$pages = TikiLib::lib('parser')->get_pages($res["data"], true);
 
 		foreach ($pages as $a_page => $types) {
 			$this->replace_link($page, $a_page, $types);
@@ -542,7 +542,7 @@ class Document
 		$source=$this->removeText($this->_data[$index]['data']);
 		$source=preg_replace(array('/\{AUTHOR\(.+?\)\}/','/{AUTHOR\}/','/\{INCLUDE\(.+?\)\}\{INCLUDE\}/'), ' ~np~$0~/np~', $source);
 		if ($this->_parsed) {
-			$source=$histlib->parse_data($source, array('suppress_icons'=>true));
+			$source=TikiLib::lib('parser')->parse_data($source, array('suppress_icons'=>true));
 		}
 		if ($this->_nohtml) {
 			$source=strip_tags($source);
@@ -1012,7 +1012,6 @@ class Document
 	 */
 	function mergeDiff($newpage, $newauthor)
 	{
-		$tikilib = TikiLib::lib('tiki');
 		$this->_history=false;
 		$author=$newauthor;
 		$deleted=false;
@@ -1020,7 +1019,7 @@ class Document
 		$newdoc=array();
 		$page=preg_replace(array('/\{AUTHOR\(.+?\)\}/','/{AUTHOR\}/','/\{INCLUDE\(.+?\)\}\{INCLUDE\}/'), ' ~np~$0~/np~', $newpage);
 		if ($this->_parsed) {
-			$page=$tikilib->parse_data($page, array('suppress_icons'=>true));
+			$page=TikiLib::lib('parser')->parse_data($page, array('suppress_icons'=>true));
 			$page=preg_replace(array('/\{AUTHOR\(.+?\)\}/','/{AUTHOR\}/','/\{INCLUDE\(.+?\)\}\{INCLUDE\}/'), ' ~np~$0~/np~', $page);
 		}
 		if ($this->_nohtml) {
@@ -1132,7 +1131,7 @@ class Document
 }
 
 
-function histlib_helper_setup_diff( $page, $oldver, $newver )
+function histlib_helper_setup_diff( $page, $oldver, $newver, $diff_style = '' )
 {
 	global $prefs;
 	$smarty = TikiLib::lib('smarty');
@@ -1192,17 +1191,18 @@ function histlib_helper_setup_diff( $page, $oldver, $newver )
 
 	$smarty->assign('diff_summaries', $diff_summaries);
 	
-	if (!isset($_REQUEST["diff_style"]) || $_REQUEST["diff_style"] == "old") {
-		$_REQUEST["diff_style"] = 'unidiff';
+	if (empty($diff_style) || $diff_style == "old") {
+		$diff_style = $prefs['default_wiki_diff_style'];
 	}
 
-	$smarty->assign('diff_style', $_REQUEST["diff_style"]);
-	if ($_REQUEST["diff_style"] == "sideview") {
-		$old["data"] = $tikilib->parse_data($old["data"], array('preview_mode' => true));
-		$new["data"] = $tikilib->parse_data($new["data"], array('preview_mode' => true));
+	$smarty->assign('diff_style', $diff_style);
+	$parserlib = TikiLib::lib('parser');
+	if ($diff_style == "sideview") {
+		$old["data"] = $parserlib->parse_data($old["data"], array('preview_mode' => true));
+		$new["data"] = $parserlib->parse_data($new["data"], array('preview_mode' => true));
 	} else {
 		require_once('lib/diff/difflib.php');
-		if ($info['is_html'] == 1 and $_REQUEST["diff_style"] != "htmldiff") {
+		if ($info['is_html'] == 1 and $diff_style != "htmldiff") {
 			$search[] = "~</(table|td|th|div|p)>~";
 			$replace[] = "\n";
 			$search[] = "~<(hr|br) />~";
@@ -1210,11 +1210,11 @@ function histlib_helper_setup_diff( $page, $oldver, $newver )
 			$old['data'] = strip_tags(preg_replace($search, $replace, $old['data']), '<h1><h2><h3><h4><b><i><u><span>');
 			$new['data'] = strip_tags(preg_replace($search, $replace, $new['data']), '<h1><h2><h3><h4><b><i><u><span>');
 		}
-		if ($_REQUEST["diff_style"] == "htmldiff" && $old['is_html'] != 1) {
+		if ($diff_style == "htmldiff" && $old['is_html'] != 1) {
 
 			$parse_options = array('is_html' => ($old['is_html'] == 1), 'noheadinc' => true, 'suppress_icons' => true, 'noparseplugins' => true);
-			$old["data"] = $tikilib->parse_data($old["data"], $parse_options);
-			$new["data"] = $tikilib->parse_data($new["data"], $parse_options);
+			$old["data"] = $parserlib->parse_data($old["data"], $parse_options);
+			$new["data"] = $parserlib->parse_data($new["data"], $parse_options);
 
 			$old['data'] = histlib_strip_irrelevant($old['data']);
 			$new['data'] = histlib_strip_irrelevant($new['data']);
@@ -1227,7 +1227,7 @@ function histlib_helper_setup_diff( $page, $oldver, $newver )
 			$new["data"] = preg_replace(';~tc~(.*?)~/tc~;s', '', $new["data"]);
 		}
 
-		$html = diff2($old["data"], $new["data"], $_REQUEST["diff_style"]);
+		$html = diff2($old["data"], $new["data"], $diff_style);
 		$smarty->assign_by_ref('diffdata', $html);
 	}
 }

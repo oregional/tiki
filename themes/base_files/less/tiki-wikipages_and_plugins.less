@@ -56,10 +56,28 @@
 	text-align: center;
 }
 
+.footlink::before{
+	content: "["
+}
+.footlink::after{
+	content: "]"
+}
+.footlink{
+	vertical-align: super;
+	font-size: smaller
+}
 // /* wikiplugin_footnotearea */
 .footnotearea {
 	margin-top: 2em;
-	font-size: 0.9em;
+	font-size: 0.9em
+}
+.footnotearea .sameas {
+	vertical-align: super;
+	font-size: smaller
+}
+
+	.footnotearea > div > span > a:first-child::after{
+	content: "."
 }
 
 // /* Versions plugin */
@@ -85,6 +103,10 @@
 table.wikiplugin_tracker td {
 	vertical-align: top;
 	padding-bottom: 1.2em;
+}
+
+table.wikiplugin_trackerlist {
+	position: relative;
 }
 
 // /* wikiplugin edit */
@@ -172,6 +194,12 @@ table.wikiplugin_tracker td {
 // /* wikiplugin_tracker */
 .trackerCategoryName {
 	white-space: nowrap;
+}
+
+// /*  wikiplugin_bigbluebutton */
+ol.bbb-recordings {
+    overflow: auto;
+    max-height: 40em;
 }
 
 // /* page contribution by author / wikiplugin_author */
@@ -279,10 +307,11 @@ div.tiki_plugin {
 // /* Auto TOC */
 #autotoc {
   position: relative;
+  padding:0;
 }
 
 .autotoc.affix {
-  top: 0;
+  top: 10px;
 }
 
 .autotoc .nav > li {
@@ -425,27 +454,6 @@ div.tiki_plugin {
 //  color: @text-color;
 // }
 
-.editable-inline {
-	//  background: transparent url('@{imagePath}database_lightning.png') no-repeat top right;
-	padding-right: 20px;
-}
-
-// .editable-inline.loaded {
-//   background: transparent;
-// }
-//
-// .editable-inline.failure {
-//   background: transparent url('@{imagePath}lock_gray.png') no-repeat top right;
-// }
-//
-// .editable-inline.modified {
-//   border: solid 2px @btn-danger-border;
-// }
-
-// .editable-inline.unsaved {
-//   border: solid 2px @btn-danger-border;
-// }
-
 // /* for autocomplete menus to appear infront of ckeditor 3.6 dialogs this needs to be !important sadly */
 .ui-menu {
 	z-index: 10100 !important;
@@ -464,8 +472,6 @@ div.tiki_plugin {
 .structure_select .cssmenu_horiz ul li {
 	//  border: 1px solid @gray;
 	border-radius: 3px;
-	-webkit-border-radius: 3px;
-	-moz-border-radius: 3px;
 }
 
 .structure_select li.tabmark {
@@ -625,50 +631,11 @@ div.tiki_plugin {
 	z-index: 3;
 }
 
-// /** Hidden anchors/links shown on mouseover of header  **/
-a.tiki_anchor:before {
-	content: "¶";
-}
-
-.tiki_blogs a.tiki_anchor:before {
-	content: none;
-}
-
-a.tiki_anchor {
-	display: none;
-	font-size: 85%;
-	font-weight: lighter;
-	margin-left: 0.7em;
-	text-decoration: none;
-	line-height: 100%;
-}
-
-h1:hover a.tiki_anchor,
-h2:hover a.tiki_anchor,
-h3:hover a.tiki_anchor,
-h4:hover a.tiki_anchor,
-h5:hover a.tiki_anchor,
-h6:hover a.tiki_anchor {
-	//  color: @gray-lighter;
-	display: inline;
-}
-
-// h1 a.tiki_anchor:hover,
-// h2 a.tiki_anchor:hover,
-// h3 a.tiki_anchor:hover,
-// h4 a.tiki_anchor:hover,
-// h5 a.tiki_anchor:hover,
-// h6 a.tiki_anchor:hover {
-//  color: @gray;
-// }
-
 // /* Namespace styling */
 .wiki .namespace {
 	margin: 1px;
 	padding: 1px;
 	border-radius: 5px;
-	-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;
 	//  background: @gray-lighter;
 	max-width: 30px;
 	white-space: nowrap;
@@ -738,6 +705,14 @@ body.tiki_wiki #comments {
 	max-width: 990px;
 }
 
+.codelisting .CodeMirror-code {
+	font-family: monospace;
+}
+
+.codelisting .CodeMirror-scroll {
+	width: auto !important; /* do not show the disabled partially shown right side scrollbar in code listings */
+}
+
 .codelisting .CodeMirror-vscrollbar {
 	display: none !important; /* we do not need to display vertical scrollbars in code listings - workaround for the "wrongly computed height with scrollbar" bug in CodeMirror */
 }
@@ -797,9 +772,11 @@ body.tiki_wiki #comments {
 
 // /* wikiplugin quote */
 .quoteheader {
-	background: url('@{imagePathToIcons}quoteleft.gif') no-repeat;
-	padding-left: 50px;
 	height: 35px;
+	.fa {
+		font-size: 34px;
+		color: #aaaaaa;
+	}
 }
 
 .quotebody {
@@ -877,8 +854,6 @@ body.tiki_wiki #comments {
 	-webkit-box-shadow: 1px 1px 2px 2px rgba(200, 200, 200, .5);
 	box-shadow: 1px 1px 2px 2px rgba(200, 200, 200, .5);
 	border-radius: 2px;
-	-webkit-border-radius: 2px;
-	-moz-border-radius: 2px;
 }
 
 // .wp-cookie-consent-required {
@@ -995,4 +970,57 @@ div.drillshow {
 .wp-annotation .annotation.selected {
 	border: dashed 1px rgba(69, 255, 97, 0.68);
 	background: rgba(85, 255, 68, 0.25);
+}
+
+.table-responsive.enlarge {
+	display: inline-table;
+	margin-right: 50px;
+	padding: 20px 10px 15px;
+	border: 1px solid @table-border-color;
+	background-color: @body-bg;
+	overflow: visible;
+}
+
+/* plugin list gui */
+
+.plugin-list-editor > ul {
+	padding: 0;
+}
+
+.plugin-list-editor li.plugin {
+	list-style: none;
+	border: 1px solid @panel-default-border;
+	border-radius: @panel-border-radius;
+	padding: 4px 8px;
+}
+
+.plugin-list-editor li.plugin .name {
+	font-weight: bold;
+}
+
+.plugin-list-editor li.plugin .params .dropdown-toggle {
+	font-size: 9px;
+}
+
+/* heading anchor links */
+.heading-link {
+	padding-left: .25em;
+	opacity: 0;
+
+	transition: opacity 0.2s ease-in-out 0.1s;
+	-webkit-transition: opacity 0.2s ease-in-out 0.1s;
+	-moz-transition: opacity 0.2s ease-in-out 0.1s;
+	-ms-transition: opacity 0.2s ease-in-out 0.1s;
+}
+
+.heading-link .icon {
+	font-size: smaller;
+}
+
+h2:hover .heading-link,
+h3:hover .heading-link,
+h4:hover .heading-link,
+h5:hover .heading-link,
+h6:hover .heading-link {
+	opacity: 1;
 }

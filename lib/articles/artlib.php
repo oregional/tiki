@@ -1008,10 +1008,16 @@ class ArtLib extends TikiLib
 				$data[$fields['emails']]
 			);
 			if (empty($articleId)) {
-				$msgs[] = sprintf(tra('Error line: %d'), $line);
+				$msgs[] = sprintf(tr('Error line: %d'), $line);
+				return false;
 			}
 		}
-		return true;
+		if (isset($articleId) && $articleId) {
+			return true;
+		} else {
+			$msgs[] = tr('Import failed due to data format. Make sure the file has Unix-style line breaks.');
+			return false;
+		}
 	}
 
 	function delete_image_cache($image_type, $imageId)
@@ -1323,37 +1329,43 @@ class ArtLib extends TikiLib
 		$cant = $this->getOne($query_cant, $bindvars);
 		$ret = array();
 		while ($res = $result->fetchRow()) {
-			if ($res['topicId'] != 0 && $userlib->object_has_one_permission($res['topicId'], 'topic')) {// if no topic or if topic has no special perm don't have to check for topic perm
-				$add1 = $this->user_has_perm_on_object($user, $res['topicId'], 'topic', 'tiki_p_topic_read');
-			} else {
-				$add1 = $this->user_has_perm_on_object($user, $res['articleId'], 'article', 'tiki_p_read_article');
-			}
-			$add2 = $this->user_has_perm_on_object($user, $res['articleId'], 'article', 'tiki_p_articles_read_heading');
-			// no need to do all of the following if we are not adding this article to the array
-			if ($add1 || $add2) {
-				$res['entrating'] = floor($res['rating']);
-				if (empty($res['body'])) {
-					$res['isEmpty'] = 'y';
-				} else {
-					$res['isEmpty'] = 'n';
-				}
-				if (strlen($res['image_data']) > 0) {
-					$res['hasImage'] = 'y';
-				} else {
-					$res['hasImage'] = 'n';
-				}
-				$res['count_comments'] = 0;
+			// Determine if unpublished article should be listed
+            $add3 = $this->user_has_perm_on_object($user, $res['articleId'], 'article', 'tiki_p_edit_article');
+            if ($res['ispublished'] != 'y' && !$add3) {
+                $res['disp_article'] = 'n';
+            } else {
+                if ($res['topicId'] != 0 && $userlib->object_has_one_permission($res['topicId'], 'topic')) {// if no topic or if topic has no special perm don't have to check for topic perm
+                    $add1 = $this->user_has_perm_on_object($user, $res['topicId'], 'topic', 'tiki_p_topic_read');
+                } else {
+                    $add1 = $this->user_has_perm_on_object($user, $res['articleId'], 'article', 'tiki_p_read_article');
+                }
+                $add2 = $this->user_has_perm_on_object($user, $res['articleId'], 'article', 'tiki_p_articles_read_heading');
+                // no need to do all of the following if we are not adding this article to the array
+                if ($add1 || $add2) {
+                    $res['entrating'] = floor($res['rating']);
+                    if (empty($res['body'])) {
+                        $res['isEmpty'] = 'y';
+                    } else {
+                        $res['isEmpty'] = 'n';
+                    }
+                    if (strlen($res['image_data']) > 0) {
+                        $res['hasImage'] = 'y';
+                    } else {
+                        $res['hasImage'] = 'n';
+                    }
+                    $res['count_comments'] = 0;
 
-				// Determine if the article would be displayed in the view page
-				$res['disp_article'] = 'y';
-				if (($res['show_pre_publ'] != 'y') and ($this->now < $res['publishDate']) && !$override_dates) {
-					$res['disp_article'] = 'n';
-				}
-				if (($res['show_post_expire'] != 'y') and ($this->now > $res['expireDate']) && !$override_dates) {
-					$res['disp_article'] = 'n';
-				}
-				$ret[] = $res;
-			}
+                    // Determine if the article would be displayed in the view page
+                    $res['disp_article'] = 'y';
+                    if (($res['show_pre_publ'] != 'y') and ($this->now < $res['publishDate']) && !$override_dates) {
+                        $res['disp_article'] = 'n';
+                    }
+                    if (($res['show_post_expire'] != 'y') and ($this->now > $res['expireDate']) && !$override_dates) {
+                        $res['disp_article'] = 'n';
+                    }
+                    $ret[] = $res;
+                }
+            }
 		}
 		$retval = array();
 		$retval['data'] = $ret;

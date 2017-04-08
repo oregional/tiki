@@ -54,6 +54,13 @@ div.highlight.adminoptionbox {
 	font-weight: bold;
 }
 
+.wikiactions .icon.highlight {
+	border-radius: .2rem;
+	height: 2.2rem;
+	width: 2.2rem;
+	padding: .2rem;
+}
+
 // Input fields auto-fill/
 // Webkit-based browser specific (Google Chrome, Chromium, etc.)
 // input:-webkit-autofill {
@@ -160,8 +167,8 @@ form[name=editpageform] .form-group .tab-content .alert-warning {
 
 // print mode only - to make sure print templates will use and print on seamless white bg color
 // html#print {
-//  background: #fff;
-//  color: #000;
+//  background: #ffffff;
+//  color: #000000;
 // }
 
 body.db_error {
@@ -170,16 +177,21 @@ body.db_error {
 
 body.fullscreen {
 	text-align: left;
-	//  background: #fff;
+	//  background: #ffffff;
 }
 
 #fullscreenbutton {
-	position: absolute;
-	top: 2px;
-	right: 10px;
+	background-color: rgba(0, 0, 0, 0.25);
+	border-bottom-left-radius: 100%;
+	padding: 5px 5px 15px 15px;
+	position: fixed;
+	right: 0;
+	top: 0;
 	z-index: 1040;
-//	font-size: 80%;
 }
+
+// When Fullscreen is activated, shift menu toggle button to the left to avoid overlapping the full-screen button
+#fullscreenbutton ~ nav .navbar-toggle { right: 42px; }
 
 #show-errors-button {
 	z-index: 1024;
@@ -200,7 +212,7 @@ body.fullscreen {
 // }
 
 // .openid_url {
-//  background: #fff url('@{imagePath}icons/login-OpenID-bg.gif') 1px 1px no-repeat;
+//  background: #ffffff url('@{imagePath}icons/login-OpenID-bg.gif') 1px 1px no-repeat;
 // }
 
 .bannertext {
@@ -310,6 +322,50 @@ select.form-control.date {
 	display: inline;
 }
 
+//CSS-only Masonry Grid Layout for various items
+.masonry {
+	-moz-column-count: auto;
+	-webkit-column-count: auto;
+	column-count: auto;
+	-moz-column-gap: 1.5rem;
+	-webkit-column-gap: 1.5rem;
+	column-gap: 1.5rem;
+	-moz-column-width: 21rem;
+	-webkit-column-width: 21rem;
+	column-width: 21rem;
+	font-size: 0; /* this is to prevent displaying of white space rendered by unwanted nbsp e.g. in plugin LIST */
+}
+.masonry > * {
+	display: inline-block;
+	font-size: initial; /* this is to reset the zero font size setting above */
+	width: 100%;
+}
+.masonry * {max-width: 100%}
+.masonry > br, .masonry > .editplugin {display: none !important}
+.masonry > * .img-responsive,
+div[style*="text-align: center"] .img-responsive {margin: auto}
+
+.masonry.nogaps {-moz-column-gap: 0; -webkit-column-gap: 0; column-gap: 0}
+.masonry.nogaps > a, .masonry.nogaps > img, .masonry.nogaps img {display: block}
+
+.masonry.flex-horiz {
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-ms-flex-wrap: wrap;
+	flex-wrap: wrap;
+}
+.masonry.flex-horiz > * {
+	-webkit-box-flex: 1;
+	-ms-flex-positive: 1;
+	flex-grow: 1;
+	margin: 0;
+	width: auto;
+}
+.masonry.flex-horiz * {
+	max-width: 100%;
+}
+
 //Social login buttons
 .social-buttons {
   margin: 0 auto;
@@ -320,10 +376,10 @@ select.form-control.date {
   display: block;
 }
 .btn-social.btn-facebook {
-  .button-variant(#fff; #3b5998; darken(#3b5998,5%)); //facebook blue is: #3b5998
+  .button-variant(#ffffff; #3b5998; darken(#3b5998,5%)); //facebook blue is: #3b5998
 }
 .btn-social.btn-linkedin {
-  .button-variant(#fff; #4875B4; darken(#4875B4,5%)); //linkeidn blue is: #4875B4
+  .button-variant(#ffffff; #4875B4; darken(#4875B4,5%)); //linkeidn blue is: #4875B4
 }
 
 #col1 {
@@ -338,4 +394,23 @@ textarea.wikiedit {
 
 .modal-dialog #alert-wrapper .alert {
 	margin-bottom: 0;
+}
+
+// Workaround for Firefox bug (https://bugzilla.mozilla.org/show_bug.cgi?id=504622) @todo remove when Firefox 53 is released
+@-moz-document url-prefix() {
+	fieldset {
+		display: table-cell;
+	}
+}
+
+// Reduce visual size of external link icon to a little over the x height of text
+.tiki .wiki.external + .icon-link-external,
+.tiki .wiki.external .icon-link-external {
+	font-size: 70%; margin-left: 1px;
+}
+
+.side-col-toggle { z-index: 2; }
+.tiki .side-col-toggle + #col1 {
+	margin-top: @top-margin-compensation-for-side-col-toggle;
+	padding-top: @line-height-computed;
 }

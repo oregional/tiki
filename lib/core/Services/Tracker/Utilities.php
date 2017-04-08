@@ -92,21 +92,19 @@ class Services_Tracker_Utilities
 			return $newItem;
 		}
 
-		$errorreportlib = TikiLib::lib('errorreport');
 		if (count($errors['err_mandatory']) > 0) {
 			$names = array();
 			foreach ($errors['err_mandatory'] as $f) {
 				$names[] = $f['name'];
 			}
-
-			$errorreportlib->report(tr('The following mandatory fields are missing: %0', implode(', ', $names)));
+			Feedback::error(tr('The following mandatory fields are missing: %0', implode(', ', $names)), 'session');
 		}
 
 		foreach ($errors['err_value'] as $f) {
 			if (! empty($f['errorMsg'])) {
-				$errorreportlib->report(tr('Invalid value in %0: %1', $f['name'], $f['errorMsg']));
+				Feedback::error(tr('Invalid value in %0: %1', $f['name'], $f['errorMsg']), 'session');
 			} else {
-				$errorreportlib->report(tr('Invalid value in %0', $f['name']));
+				Feedback::error(tr('Invalid value in %0', $f['name']), 'session');
 			}
 		}
 
@@ -503,6 +501,24 @@ EXPORT;
 		$trklib->remove_tracker_item($itemId, true);
 	}
 
+	function removeItemAndReferences($definition, $itemObject, $uncascaded, $replacement) {
+		$tx = TikiDb::get()->begin();
+
+		$itemData = $itemObject->getData();
+		foreach ($definition->getFields() as $field) {
+			$handler = $definition->getFieldFactory()->getHandler($field, $itemData);
+			if (method_exists($handler, 'handleDelete')) {
+				$handler->handleDelete();
+			}
+		}
+
+		TikiLib::lib('trk')->replaceItemReferences($replacement, $uncascaded['itemIds'], $uncascaded['fieldIds']);
+
+		$this->removeItem($itemObject->getId());
+
+		$tx->commit();
+	}
+
 	function removeTracker($trackerId)
 	{
 		$trklib = TikiLib::lib('trk');
@@ -529,6 +545,50 @@ EXPORT;
 		}
 
 		return $newTrackerId;
+	}
+
+	function cloneItem($definition, $itemData) {
+		$transaction = TikiLib::lib('tiki')->begin();
+
+		$id = $this->insertItem($definition, $itemData);
+
+		foreach ($definition->getFields() as $field) {
+			$handler = $definition->getFieldFactory()->getHandler($field, $itemData);
+			if (method_exists($handler, 'handleClone')) {
+				$handler->handleClone();
+			}
+		}
+
+		$itemObject = Tracker_Item::fromId($id);
+
+		foreach (TikiLib::lib('trk')->get_child_items($itemId) as $info) {
+			$childItem = Tracker_Item::fromId($info['itemId']);
+
+			if ($childItem->canView()) {
+				$childItem->asNew();
+				$data = $childItem->getData();
+				$data['fields'][$info['field']] = $id;
+
+				$childDefinition = $childItem->getDefinition();
+
+				// handle specific cloning actions
+
+				foreach ($childDefinition->getFields() as $field) {
+					$handler = $childDefinition->getFieldFactory()->getHandler($field, $data);
+					if (method_exists($handler, 'handleClone')) {
+						$newData = $handler->handleClone();
+						$data['fields'][$field['permName']] = $newData['value'];
+					}
+				}
+
+				$new = $this->insertItem($childDefinition, $data);
+
+			}
+		}
+
+		$transaction->commit();
+
+		return $itemObject;
 	}
 }
 

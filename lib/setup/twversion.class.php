@@ -27,7 +27,7 @@ class TWVersion
 		$this->branch 	= 'trunk';
 
 		// Set everything else, including defaults.
-		$this->version 	= '16.0svn';	// needs to have no spaces for releases
+		$this->version 	= '18.0svn';	// needs to have no spaces for releases
 		$this->star	= '?';
 		$this->releases	= array();
 
@@ -77,6 +77,8 @@ class TWVersion
 				24=>'Fomalhaut',	// 13.x
 				25=>'Peony',		// 14.x
 				26=>'Situla',		// 15.x
+				27=>'Tabby\'s',		// 16.x
+				28=>'TBA',			// 17.x
 		);
 	}
 
@@ -206,6 +208,7 @@ class TWVersion
 				'10.3',
 				'10.4',
 				'10.5',
+				'10.6',
 				'11.0beta',
 				'11.0',
 				'11.1',
@@ -220,6 +223,12 @@ class TWVersion
 				'12.3',
 				'12.4',
 				'12.5',
+				'12.6',
+				'12.7',
+				'12.8',
+				'12.9',
+				'12.10',
+				'12.11',
 				'13.0beta',
 				'13.0',
 				'13.1',
@@ -228,9 +237,19 @@ class TWVersion
 				'14.0',
 				'14.1',
 				'14.2',
+				'14.3',
+				'14.4',
 				'15.0alpha',
 				'15.0beta',
 				'15.0',
+				'15.1',
+				'15.2',
+				'15.3',
+				'15.4',
+				'16.0beta',
+				'16.0',
+				'16.1',
+				'16.2',
 			);
 	}
 

@@ -12,19 +12,11 @@
 
 function smarty_function_html_body_attributes($params, $smarty)
 {
-	global $section, $prefs, $page, $tiki_p_edit, $section_class, $user;
+	global $section, $prefs, $page, $section_class, $user;
 	$smarty = TikiLib::lib('smarty');
 	$back = '';
 	$onload = '';
-	$class = isset($params['class']) ? $params['class'] : '';
-	
-	$dblclickedit = $smarty->getTemplateVars('dblclickedit');
-	
-	if (isset($section) && $section == 'wiki page' && $prefs['user_dbl'] == 'y' and $dblclickedit == 'y' and $tiki_p_edit == 'y') {
-		$back .= ' ondblclick="location.href=\'tiki-editpage.php?page=' . rawurlencode($page) . '\';"';
-	}
-
-	$class .= ' tiki ';
+	$class = (isset($params['class']) ? $params['class'] : '') . ' tiki ';
 
 	//filename of script called (i.e. tiki-index, tiki-user_information, tiki-view_forum, etc), then sanitize chars
 	$script_filename = pathinfo($_SERVER['SCRIPT_NAME'], PATHINFO_FILENAME);
@@ -62,8 +54,9 @@ function smarty_function_html_body_attributes($params, $smarty)
 		}
 	}
 
-	if ($prefs['feature_perspective'] == 'y' && isset($_SESSION['current_perspective'])) {
+	if ($prefs['feature_perspective'] == 'y' && !empty($_SESSION['current_perspective'])) {
 		$class .= ' perspective' . $_SESSION['current_perspective'];
+		$class .= ' perspective_' . preg_replace("/[^a-z0-9]/", "_", strtolower($_SESSION['current_perspective_name']));
 	}
 
 	if ($categories = $smarty->getTemplateVars('objectCategoryIds')) {
@@ -82,6 +75,14 @@ function smarty_function_html_body_attributes($params, $smarty)
 		$class .= ' ' . $pageLang;
 	} else {
 		$class .= ' ' . $prefs['language'];
+	}
+
+	if (getCookie('hide_zone_left')) {
+		$class .= ' hide_zone_left';
+	}
+
+	if (getCookie('hide_zone_right')) {
+		$class .= ' hide_zone_right';
 	}
 
 	if (!empty($onload)) {

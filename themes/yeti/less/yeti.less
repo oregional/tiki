@@ -1,4 +1,10 @@
 // $Id$
+@web-font-path: "https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,700";
+
+.web-font(@path) {
+	@import url("@{path}");
+}
+.web-font(@web-font-path);
 /*! Original theme information:
  * bootswatch v3.3.6
  * Homepage: http://bootswatch.com
@@ -8,12 +14,12 @@
  *
  * Adapted by the Tiki Community for Tiki Wiki CMS Groupware
 */
-@import "../../../vendor/twitter/bootstrap/less/bootstrap.less";
+@import "../../../vendor_bundled/vendor/twitter/bootstrap/less/bootstrap.less";
 @import "../../base_files/less/bootswatch_overrides.less";
 // So far, just removes the CSS content theme-option-required warning.
 @import "bootswatch.less";
 // defines the theme's CSS values that are outside of variables.less
-@import "../../base_files/less/tiki-variables";
+@import "../../base_files/less/tiki-variables.less";
 // Values/definitions for Tiki variables (outside of Bootstrap variables) such as tiki-selectors.less.
 @import "variables.less";
 // the Bootstrap variables.less file with theme-specific values replacing the defaults

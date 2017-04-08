@@ -1,17 +1,17 @@
 <div class='quote'>
 	<div class='quoteheader'>
 		{if $replyto}
-			{$replyto|username} {tr}wrote{/tr} on {$comment_info.commentDate|tiki_short_date}:
+			{$replyto|username} {tr}wrote{/tr}{if $date} {tr}on{/tr} {$date|tiki_short_date}{/if}:
 		{else}
-			{tr}Quote:{/tr}
+			<i class="fa fa-quote-left" aria-hidden="true"></i>
 		{/if}
 	</div>
 	<div class='quotebody'>
 		{$data}
+		{if $source_url}
+			<div class='quoteurl'>
+				{tr}Source:{/tr} <a target="_blank" class="wiki external" href="{$source_url}">{$source_url}</a>{icon name='link-external'}
+			</div>
+		{/if}
 	</div>
-	{if $url}
-	<p>
-		Source: <a target="_blank" class="wiki external" href="{$url}">{$url}<img src="img/icons/external_link.gif" alt=" " width="15" height="14" title=" " class="icon"></a>
-	</p>
-	{/if}
 </div>

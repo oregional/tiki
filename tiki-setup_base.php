@@ -76,6 +76,7 @@ $needed_prefs = array(
 	'min_pass_length' => 5,
 	'pass_chr_special' => 'n',
 	'cookie_consent_feature' => 'n',
+	'cookie_consent_disable' => 'n',
 	'cookie_consent_name' => 'tiki_cookies_accepted',
 
 );
@@ -156,9 +157,11 @@ if (empty($tikidomain)) {
 	$tikidomain = "";
 }
 
-if ($prefs['cookie_consent_feature'] === 'y' && empty($_COOKIE[$prefs['cookie_consent_name']])) {
+if ($prefs['cookie_consent_feature'] === 'y' && empty($_COOKIE[$prefs['cookie_consent_name']]) && $prefs['cookie_consent_disable'] !== 'y' ) {
+	// No consent yet
 	$feature_no_cookie = true;
 } else {
+	// Cookie consent not implemented or consent given or consent forced with preference cookie_consent_disable
 	$feature_no_cookie = false;
 }
 
@@ -212,10 +215,12 @@ if (isset($_SERVER["REQUEST_URI"])) {
 			} else {
 				$sequence = $tikilib->generate_unique_sequence(16);
 				$_SESSION['extra_validation'] = $sequence;
-				setcookie($extra_cookie_name, $sequence, time() + 365*24*3600, ini_get('session.cookie_path'));
+				setcookie($extra_cookie_name, $sequence, time() + 365*24*3600, ini_get('session.cookie_path'), null, null, true);
 				unset($sequence);
 			}
 		} catch( Zend\Session\Exception\ExceptionInterface $e ) {
+			// Ignore
+		} catch( Zend\Stdlib\Exception\InvalidArgumentException $e ) {
 			// Ignore
 		}
 	}
@@ -232,18 +237,20 @@ TikiAddons::refresh();
 // Retrieve all preferences
 require_once ('lib/setup/prefs.php');
 
+if ($prefs['ids_enabled'] == 'y') {
+	require_once 'lib/setup/ids.php';
+}
+
 $access = TikiLib::lib('access');
 
 require_once ('lib/setup/absolute_urls.php');
 // Smarty needs session since 2.6.25
-global $smarty;
 $smarty = TikiLib::lib('smarty');
 
 // Define the special maxRecords global variable
 $maxRecords = $prefs['maxRecords'];
 $smarty->assignByRef('maxRecords', $maxRecords);
 
-global $userlib;
 $userlib = TikiLib::lib('user');
 require_once ('lib/breadcrumblib.php');
 // ------------------------------------------------------
@@ -308,12 +315,11 @@ $vartype['rows'] = '+int';
 $vartype['cols'] = '+int';
 $vartype['topicname'] = '+string';
 $vartype['error'] = 'string';
-$vartype['editmode'] = 'char'; // from calendar
-$vartype['actpass'] = '+string'; // remind password page
-$vartype['user'] = '+string'; // remind password page
-$vartype['remind'] = 'string'; // remind password page
+$vartype['editmode'] = 'char';		// from calendar
+$vartype['actpass'] = '+string';	// remind password page
+$vartype['user'] = '+string';		// remind password page
+$vartype['remind'] = 'string';		// remind password page
 $vartype['url'] = 'url';
-
 $vartype['aid'] = '+int';
 $vartype['description'] = 'string';
 $vartype['filter_active'] = 'char';
@@ -328,7 +334,7 @@ $vartype['userole'] = 'int';
 $vartype['focus'] = 'string';
 $vartype['filegals_manager'] = 'vars';
 $vartype['filesyntax'] = 'string';
-$vartype['ver'] = 'dotvars'; // filename hash for drawlib + rss type for rsslib
+$vartype['ver'] = 'dotvars';		// filename hash for drawlib + rss type for rsslib
 $vartype['trackerId'] = 'int';
 $vartype['articleId'] = 'int';
 $vartype['galleryId'] = 'int';
@@ -353,7 +359,7 @@ $vartype['page_ref_id'] = 'int';
  */
 function varcheck(&$array, $category)
 {
-	global $patterns, $vartype, $prefs;
+	global $patterns, $vartype;
 	$return = array();
 	if (is_array($array)) {
 		foreach ($array as $rq => $rv) {
@@ -476,12 +482,14 @@ if (($prefs['auth_method'] == 'ws') and (isset($_SERVER['REMOTE_USER']))) {
 // Check for Shibboleth Login
 if ($prefs['auth_method'] == 'shib' and isset($_SERVER['REMOTE_USER'])) {
 	// Validate the user (if not created create it)
-	if ($userlib->validate_user($_SERVER['REMOTE_USER'], "", "", "")) {
+	if ($userlib->validate_user($_SERVER['REMOTE_USER'], "")) {
 		$_SESSION["$user_cookie_site"] = $_SERVER['REMOTE_USER'];
 	}
 }
 
 $userlib->check_cas_authentication($user_cookie_site);
+
+$userlib->check_saml_authentication($user_cookie_site);
 
 // if the username is already saved in the session, pull it from there
 if (isset($_SESSION["$user_cookie_site"])) {

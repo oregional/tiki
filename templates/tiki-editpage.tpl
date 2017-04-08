@@ -26,35 +26,19 @@
 			{self_link _icon_name="view" _class="previewBtn tips" _ajax="n" _title=":{tr}Preview your changes{/tr}"}
 			{/self_link}
 		</div>
-		{if $prefs.feature_wikilingo eq "y" && $useWikiLingo eq TRUE}
-			{if $wysiwyg eq 'y'}
-				{jq}
-					$(".previewBtn").click(function(){
-						$(document).trigger('previewWikiLingo', [true, $('#editwiki-ui'), $('#editpageform'), $('#autosave_preview').slideDown('slow')]);
-						return false;
-					});
-				{/jq}
-			{else}
-				{jq}
-					$(".previewBtn").click(function(){
-						$(document).trigger('previewWikiLingo', [false, $('#editwiki').val(), $('#editpageform'), $('#autosave_preview').slideDown('slow')]);
-						return false;
-					});
-				{/jq}
-			{/if}
-		{else}
-			{jq} $(".previewBtn").click(function(){
-				if ($('#autosave_preview:visible').length === 0) {
-					auto_save('editwiki', autoSaveId);
-					if (!ajaxPreviewWindow) {
-						$('#autosave_preview').slideDown('slow', function(){ ajax_preview( 'editwiki', autoSaveId, true );});
-					}
-				} else {
-					$('#autosave_preview').slideUp('slow');
+		{jq} $(".previewBtn").click(function(){
+			auto_save('editwiki', autoSaveId);
+			if ($('#autosave_preview:visible').length === 0) {
+				if (!ajaxPreviewWindow) {
+					setCookie("preview_diff_style", "", "preview", "session");
+					$("#preview_diff_style").val("").trigger("chosen:updated");
+					$('#autosave_preview').slideDown('slow', function(){ ajax_preview( 'editwiki', autoSaveId, true );});
 				}
-				return false;
-			});{/jq}
-		{/if}
+			} else {
+				ajax_preview( 'editwiki', autoSaveId, true );
+			}
+			return false;
+		});{/jq}
 	{/if}
 	{if isset($data.draft)}
 		{tr}Draft written on{/tr} {$data.draft.lastModif|tiki_long_time}<br/>
@@ -192,7 +176,7 @@
 							{tr}Reproduce the changes highlighted on the left using the editor below{/tr}.
 						</div>
 					{/if}
-					{textarea codemirror='true' syntax='tiki' useWikiLingo=$useWikiLingo}{$pagedata}{/textarea}
+					{textarea codemirror='true' syntax='tiki'}{$pagedata}{/textarea}
 					{if $prefs.wiki_freetags_edit_position eq 'edit'}
 							{if $prefs.feature_freetags eq 'y' and $tiki_p_freetags_tag eq 'y'}
 								<fieldset>
@@ -206,7 +190,7 @@
 					{if $page|lower neq 'sandbox'}
 						<fieldset class="edit-zone-footer">
 							<label for="comment">{tr}Describe the change you made{/tr} {help url='Editing+Wiki+Pages' desc="{tr}Edit comment: Enter some text to describe the changes you are currently making{/tr}"}</label>
-							<input class="form-control wikiedit" type="text" id="comment" name="comment" value="{$commentdata|escape}">
+							<input class="form-control wikiedit" type="text" id="comment" name="comment" value="{$commentdata|escape}" maxlength="255">
 							{if isset($show_watch) && $show_watch eq 'y'}
 								<label for="watch">{tr}Monitor this page{/tr}</label>
 								<input type="checkbox" id="watch" name="watch" value="1"{if $watch_checked eq 'y'} checked="checked"{/if}>
@@ -307,17 +291,6 @@
 								<label for="lock_it" class="col-md-4 control-label">{tr}Lock this page{/tr}</label>
 								<div class="col-md-8">
 									<input type="checkbox" id="lock_it" name="lock_it" {if $lock_it eq 'y'}checked="checked"{/if}>
-								</div>
-							</div>
-						{/if}
-						{if $prefs.feature_wikilingo eq 'y'}
-							<div class="form-group">
-								<label for="wiki-parser" class="col-md-4 control-label">{tr}Choose your parser{/tr}</label>
-								<div class="col-md-8">
-									<select id="wiki-parser-choice" name="wiki_parser" onchange="window.update_output_type(this);">
-										<option value="">{tr}tiki Wiki Syntax Parser {/tr}</option>
-										<option value="wikiLingo" {if $outputType eq 'wikiLingo' or $quickedit eq TRUE}selected="selected"{/if}>{tr}wikiLingo{/tr}</option>
-									</select>
 								</div>
 							</div>
 						{/if}
@@ -575,7 +548,7 @@
 												<input type="hidden" name="translationOf" value="{$translationOf|escape}">
 											{/if}
 										</span>
-									</div
+									</div>
 								</div>
 							</fieldset>
 							{if $trads|@count > 1 and $urgent_allowed}
@@ -606,7 +579,8 @@
 								</div>
 							</div>
 						{/if}
-						{if $prefs.wiki_auto_toc eq 'y' or $prefs.wiki_page_hide_title eq 'y'}
+						{* check if wiki_auto_toc is set - but don't understand why wiki_page_hide_title is checked - also the logic made into an 'and' since the previous 'or' made no sense *}
+						{if $prefs.wiki_auto_toc eq 'y' and $prefs.wiki_page_hide_title eq 'y'}
 							<div class="form-group clearfix">
 								<label for="pageAutoToc" class="col-md-4 control-label">{tr}Automatic table of contents{/tr}</label>
 								<div class="col-md-8">
@@ -618,7 +592,7 @@
 								</div>
 							</div>
 						{/if}
-						{if $prefs.wiki_page_hide_title eq 'y' && ($prefs.wiki_page_name_above eq 'y' or $prefs.feature_page_title eq 'y')}
+						{if $prefs.wiki_page_hide_title eq 'y' && ($prefs.wiki_page_name_above eq 'y' or $prefs.feature_page_title eq 'y' or $prefs.wiki_page_name_inside eq 'y')}
 							<div class="form-group clearfix">
 								<label for="page_hide_title" class="col-md-4 control-label">{tr}Show page title{/tr}</label>
 								<div class="col-md-8">

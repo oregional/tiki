@@ -79,6 +79,9 @@
 		{self_link _script='tiki-index.php' page=$structure_name structure=$structure_name _class="tips" _title=":{tr}View{/tr}" _noauto="y"}
 			{icon name="view"}
 		{/self_link}
+		{if $tiki_p_admin_structures == 'y'}
+			{permission_link mode=icon objectType='wiki page' type='wiki structure' id=$pageName title=$pageName}
+		{/if}
 		{if $tiki_p_watch_structure eq 'y'}
 			{if !$page_info.watching}
 				{self_link page_ref_id=$page_ref_id watch_object=$page_ref_id watch_action=add page=$structure_name _class="tips" _title=":{tr}Monitor the structure{/tr}"}
@@ -209,16 +212,16 @@
 			<div class="form-group">
 				<label class="col-sm-3 control-label">{tr}Create Page{/tr}</label>
 				<div class="col-sm-7">
-		      		<input type="text" name="name" id="name" class="form-control">
+					<input type="text" name="name" id="name" class="form-control">
 					{autocomplete element='#name' type='pagename'}
-	      		</div>
-		    </div>
-		    <div class="form-group">
+				</div>
+			</div>
+			<div class="form-group">
 				<label class="col-sm-3 control-label"></label>
 				<div class="col-sm-7">
-		      		<input type="submit" class="btn btn-primary btn-sm" name="create" value="{tr}Update{/tr}">
-	      		</div>
-		    </div>
+					<input type="submit" class="btn btn-primary btn-sm" name="create" value="{tr}Update{/tr}">
+				</div>
+			</div>
 		</form>
 	</div>
 {/if}{* end of if structure editable *}

@@ -209,7 +209,7 @@ if (isset($_REQUEST["save"]) && isset($_REQUEST["name"]) && strlen($_REQUEST["na
 				$userlib->copy_object_permissions($_REQUEST['parentId'], $_REQUEST['categId'], 'category');
 			}
 		} catch(Exception $e) {
-			$errors[] = $e->getMessage();
+			$errors['mes'] = $e->getMessage();
 		}
 	} else {
 		try {
@@ -218,7 +218,7 @@ if (isset($_REQUEST["save"]) && isset($_REQUEST["name"]) && strlen($_REQUEST["na
 				$userlib->copy_object_permissions($_REQUEST['parentId'], $newcategId, 'category');
 			}
 		} catch(Exception $e) {
-			$errors[] = $e->getMessage();
+			$errors['mes'] = $e->getMessage();
 		}
 	}
 	$info["name"] = '';
@@ -495,7 +495,9 @@ if ($prefs['feature_search'] !== 'y' || $prefs['unified_add_to_categ_search'] !=
 }
 
 ask_ticket('admin-categories');
-if (!empty($errors)) $smarty->assign('errors', $errors);
+if (!empty($errors)) {
+	Feedback::warning($errors);
+}
 // disallow robots to index page:
 $smarty->assign('metatag_robots', 'NOINDEX, NOFOLLOW');
 // Display the template

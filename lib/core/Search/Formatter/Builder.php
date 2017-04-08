@@ -12,11 +12,13 @@ class Search_Formatter_Builder
 
 	private $formatterPlugin;
 	private $subFormatters = array();
+	private $customFilters = array();
 	private $alternateOutput;
 	private $id;
 	private $count;
 	private $tsOn;
 	private $tsettings;
+	private $actions;
 
 	function __construct()
 	{
@@ -25,6 +27,7 @@ class Search_Formatter_Builder
 			'offset_arg' => 'offset',
 			'max' => 50,
 		);
+		$this->actions = array();
 	}
 
 	function setPaginationArguments($arguments)
@@ -35,6 +38,10 @@ class Search_Formatter_Builder
 	function setFormatterPlugin(Search_Formatter_Plugin_Interface $plugin)
 	{
 		$this->formatterPlugin = $plugin;
+	}
+
+	function setActions($actions) {
+		$this->actions = $actions;
 	}
 
 	function apply($matches)
@@ -58,6 +65,10 @@ class Search_Formatter_Builder
 				$this->handleTablesorter($match);
 			}
 
+			if ($name == 'filter') {
+				$this->handleFilter($match);
+			}
+
 		}
 	}
 
@@ -68,7 +79,7 @@ class Search_Formatter_Builder
 			$plugin = new Search_Formatter_Plugin_WikiTemplate("* {display name=title format=objectlink}\n");
 		}
 
-		$formatter = new Search_Formatter($plugin);
+		$formatter = Search_Formatter_Factory::newFormatter($plugin);
 
 		if ($this->alternateOutput > '') {
 			$formatter->setAlternateOutput($this->alternateOutput);
@@ -78,6 +89,10 @@ class Search_Formatter_Builder
 
 		foreach ($this->subFormatters as $name => $plugin) {
 			$formatter->addSubFormatter($name, $plugin);
+		}
+
+		foreach ($this->customFilters as $filter) {
+			$formatter->addCustomFilter($filter);
 		}
 
 		return $formatter;
@@ -91,6 +106,18 @@ class Search_Formatter_Builder
 			$plugin = new Search_Formatter_Plugin_WikiTemplate($match->getBody());
 			$plugin->setRaw(! empty($arguments['mode']) && $arguments['mode'] == 'raw');
 			$this->subFormatters[$arguments['name']] = $plugin;
+		}
+	}
+
+	private function handleFilter($match)
+	{
+		$arguments = $this->parser->parse($match->getArguments());
+
+		if (isset($arguments['editable'], $arguments['field'])) {
+			$this->customFilters[] = array(
+				'field' => $arguments['field'],
+				'mode' => $arguments['editable']
+			);
 		}
 	}
 
@@ -115,18 +142,21 @@ class Search_Formatter_Builder
 			} elseif ($arguments['template'] == 'count') {
 				$arguments['template'] = dirname(__FILE__) . '/../../../../templates/search/list/count.tpl';
 			} elseif (!file_exists($arguments['template'])) {
-                $temp = $smarty->get_filename($arguments['template']);
-                if (empty($temp)){ //if get_filename cannot find template, return error
-                    TikiLib::lib('errorreport')->report(tr('Missing template "%0"', $arguments['template']));
-                    return '';
-                }
-                $arguments['template'] = $temp;
+				$temp = $smarty->get_filename($arguments['template']);
+				if (empty($temp)){ //if get_filename cannot find template, return error
+					Feedback::error(tr('Missing template "%0"', $arguments['template']), 'session');
+					return '';
+				}
+				$arguments['template'] = $temp;
 			}
 			$abuilder = new Search_Formatter_ArrayBuilder;
 			$outputData = $abuilder->getData($output->getBody());
 			foreach ($this->paginationArguments as $k => $v) {
 				$outputData[$k] = $this->paginationArguments[$k];
 			}
+			if( strstr($arguments['template'], 'table') )
+				$outputData['actions'] = $this->actions;
+
 			$templateData = file_get_contents($arguments['template']);
 
 			$plugin = new Search_Formatter_Plugin_SmartyTemplate($arguments['template']);
@@ -187,6 +217,9 @@ class Search_Formatter_Builder
 		// Heuristic based: only lowercase letters, digits and underscore
 		$fields = array();
 		foreach ($outputData as $candidate) {
+			if( !is_string($candidate) ) {
+				continue;
+			}
 			if (preg_match("/^[a-z0-9_]+$/", $candidate) || substr($candidate, 0, strlen('tracker_field_')) === 'tracker_field_') {
 				$fields[] = $candidate;
 			}

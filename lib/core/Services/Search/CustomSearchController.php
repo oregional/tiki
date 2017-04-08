@@ -13,6 +13,7 @@ class Services_Search_CustomSearchController
 {
 	private $textranges = array();
 	private $dateranges = array();
+	private $distances = array();
 
 	function setUp()
 	{
@@ -27,6 +28,7 @@ class Services_Search_CustomSearchController
 
 		$this->textranges = array();
 		$this->dateranges = array();
+		$this->distances = array();
 
 		$cachelib = TikiLib::lib('cache');
 		$definition = $input->definition->word();
@@ -36,10 +38,16 @@ class Services_Search_CustomSearchController
 
 		/** @var Search_Query $query */
 		$query = $definition['query'];
-		/** @var Search_FacetProvider $formatter */
-		$formatter = $definition['formatter'];
+		/** @var Search_Formatter_Builder $builder */
+		$builder = $definition['builder'];
 		/** @var Search_Elastic_FacetBuilder $facetsBuilder */
 		$facetsBuilder = $definition['facets'];
+
+		$tsettings = $definition['tsettings'];
+		$tsret = $definition['tsret'];
+
+		$matches = WikiParser_PluginMatcher::match($definition['data']);
+		$builder->apply($matches);
 
 		$adddata = json_decode($input->adddata->text(), true);
 
@@ -97,7 +105,7 @@ class Services_Search_CustomSearchController
 				}
 
 				$filter = 'content'; //default
-				if (isset($config['_filter']) || $name == 'categories' || $name == 'daterange') {
+				if (isset($config['_filter']) || $name == 'categories' || $name == 'daterange' || $name == 'distance') {
 					if ($config['_filter'] == 'language') {
 						$filter = 'language';
 					} elseif ($config['_filter'] == 'type') {
@@ -106,6 +114,12 @@ class Services_Search_CustomSearchController
 						$filter = 'categories';
 					} elseif ($name == 'daterange') {
 						$filter = 'daterange';
+					} elseif ($name == 'distance') {
+						$filter = 'distance';
+						if (! $input->sort_mode->text()) {
+							$config['sort'] = true;
+						}
+
 					}
 				}
 
@@ -165,9 +179,14 @@ class Services_Search_CustomSearchController
 		$index = $unifiedsearchlib->getIndex();
 		$resultSet = $query->search($index);
 
+		$resultSet->setTsSettings($builder->getTsSettings());
+		$resultSet->setId('wpcs-' . $id);
+		$resultSet->setTsOn($tsret['tsOn']);
+
+		$formatter = $builder->getFormatter();
 		$results = $formatter->format($resultSet);
 
-		$results = TikiLib::lib('tiki')->parse_data($results, array('is_html' => true, 'skipvalidation' => true));
+		$results = TikiLib::lib('parser')->parse_data($results, array('is_html' => true, 'skipvalidation' => true));
 
 		return array('html' => $results);
 	}
@@ -324,6 +343,40 @@ class Services_Search_CustomSearchController
 					$field = 'modification_date';
 				}
 				$query->filterRange($from, $to, $field);
+			}
+		}
+	}
+
+	private function cs_dataappend_distance(Search_Query $query, $config, $value)
+	{
+		if ($vals = array_filter(preg_split('/,/', $value))) {	// ignore if dist, lat or lon is missing
+			if (count($vals) == 3) {
+				$distance = $vals[0];
+				$lat = $vals[1];
+				$lon = $vals[2];
+				if (!empty($config['_field'])) {
+					$field = $config['_field'];
+				} else {
+					$field = 'geo_point';
+				}
+				$query->filterDistance($distance, $lat, $lon, $field);
+
+				if (! empty($config['sort']) || ! empty($config['_mode'])) {
+
+					$order = empty($config['_mode']) ? 'asc' : $config['_mode'];
+					$sortOrder = new Search_Query_Order(
+						$field,
+						'distance',
+						$order,
+						[
+							'distance' => $distance,
+							'lat' => $lat,
+							'lon' => $lon,
+						]
+					);
+					$query->setOrder($sortOrder);
+				}
+
 			}
 		}
 	}

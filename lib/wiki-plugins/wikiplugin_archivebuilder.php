@@ -35,11 +35,12 @@ function wikiplugin_archivebuilder( $data, $params )
 
 	$archive = md5(serialize(array( $data, $params )));
 
-	if ( isset( $_POST[$archive] ) ) {
+	if ( isset( $_REQUEST[$archive] ) ) {
 		$files = array();
 
 		$handlers = array(
 			'tracker-attachments' => 'wikiplugin_archivebuilder_trackeratt',
+			'tracker-files' => 'wikiplugin_archivebuilder_trackerfiles',
 			'page-as-pdf' => 'wikiplugin_archivebuilder_pagetopdf',
 		);
 
@@ -81,11 +82,29 @@ function wikiplugin_archivebuilder( $data, $params )
 		exit;
 	} else {
 		$label = tra('Download archive');
-		return <<<FORM
-<form method="post" action="">
-	<input type="submit" class="btn btn-default btn-sm" name="$archive" value="$label" />
-</form>
-FORM;
+
+		$urlParts = parse_url($_SERVER['REQUEST_URI']);
+		$path = isset($urlParts['path'])?$urlParts['path']:'/';
+		if(isset($urlParts['query'])){
+			parse_str($urlParts['query'],$archiveParams);
+		} else {
+			$archiveParams = array();
+		}
+		if (isset($_GET['trackerId'])){
+			$archiveParams['trackerId'] = $_GET['trackerId'];
+		}
+		if (isset($_GET['fieldId'])){
+			$archiveParams['fieldId'] = $_GET['fieldId'];
+		}
+		if (isset($_GET['itemId'])){
+			$archiveParams['itemId'] = $_GET['itemId'];
+			$path = 'tiki-view_tracker_item.php';
+		}
+		$archiveParams[$archive] = $label;
+		$archiveParamStr = http_build_query($archiveParams, null, '&');
+
+		$downloadLink = '<a href='.$path.'?'.$archiveParamStr.' class="btn btn-default btn-sm">'.$label.'</a>';
+		return $downloadLink;
 	}
 }
 
@@ -101,6 +120,9 @@ function wikiplugin_archivebuilder_trackeratt( $basepath, $trackerItem )
 	}
 
 	$basepath = rtrim($basepath, '/') . '/';
+	if ($basepath == '/'){
+		$basepath = '';
+	}
 
 	$attachments = array();
 
@@ -112,6 +134,46 @@ function wikiplugin_archivebuilder_trackeratt( $basepath, $trackerItem )
 		$attachments[$name] = wikiplugin_archivebuilder_tracker_get_attbody($complete);
 	}
 	
+	return $attachments;
+}
+
+function wikiplugin_archivebuilder_trackerfiles($basepath, $trackerItem)
+{
+	$trklib = TikiLib::lib('trk');
+	$data = $trklib->get_tracker_item($trackerItem);
+
+	$item = Tracker_Item::fromInfo($data);
+
+	if (! $item->canView()) {
+		return array();
+	}
+
+	$basepath = rtrim($basepath, '/') . '/';
+	if ($basepath == '/'){
+		$basepath = '';
+	}
+
+	$attachments = array();
+
+	/** @var FileGalLib $fileGal */
+	$fileGal = TikiLib::lib('filegal');
+	/** @var Tracker_Definition $definition */
+	$definition = $fields = $item->getDefinition();
+	$fields = $definition->getFields();
+	foreach($fields as $field) {
+		if($field['type'] == 'FG') {
+			if (isset($data[$field['fieldId']])){
+				$value = $data[$field['fieldId']];
+				foreach(explode(',', $value) as $fileId){
+					$file = $fileGal->get_file($fileId);
+					if (count($file)){
+						$name = $basepath . ($field['permName'] ? : $field['fieldId']) . '/' . $file['filename'];
+						$attachments[$name] = $file['data'];
+					}
+				}
+			}
+		}
+	}
 	return $attachments;
 }
 
@@ -136,18 +198,21 @@ function wikiplugin_archivebuilder_pagetopdf( $file, $pageName )
 
 	require_once 'lib/pdflib.php';
 	$generator = new PdfGenerator;
-	$params = array( 'page' => $pageName );
-
-	$args = func_get_args();
-	$args = array_slice($args, 2);
-
-	foreach ( $args as $arg ) {
-		list( $key, $value ) = explode('=', $arg, 2);
-		$params[$key] = $value;
+	if (!empty($generator->error)) {
+		Feedback::error($generator->error, 'session');
+		$access = Tikilib::lib('access');
+		$access->redirect($_SERVER['HTTP_REFERER']);
+	} else {
+		$params = array( 'page' => $pageName );
+		$args = func_get_args();
+		$args = array_slice($args, 2);
+		foreach ( $args as $arg ) {
+			list( $key, $value ) = explode('=', $arg, 2);
+			$params[$key] = $value;
+		}
+		return array(
+			$file => $generator->getPdf('tiki-print.php', $params),
+		);
 	}
-
-	return array(
-		$file => $generator->getPdf('tiki-print.php', $params),
-	);
 }
 

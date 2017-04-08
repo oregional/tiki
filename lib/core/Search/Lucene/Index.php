@@ -207,7 +207,7 @@ class Search_Lucene_Index implements Search_Index_Interface
 		try {
 			$hits = $this->getLucene()->find($query, $this->getSortField($sortOrder), $this->getSortType($sortOrder), $this->getSortOrder($sortOrder));
 		} catch (Exception $e) {
-			TikiLib::lib('errorreport')->report($e->getMessage());
+			Feedback::error($e->getMessage(), 'session');
 		}
 
 		$result = array();
@@ -257,7 +257,7 @@ class Search_Lucene_Index implements Search_Index_Interface
 	{
 		$data = array();
 		foreach ($document->getFieldNames() as $field) {
-			if (! $document->getField($field)->isTokenized) {
+			if (! $document->getField($field)->isBinary) {
 				$data[$field] = $document->$field;
 			}
 		}

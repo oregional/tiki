@@ -287,7 +287,6 @@ class WikiRenderer
 		$this->smartyassign('page', $this->page);
 		$this->smartyassign('show_page', 'y');
 
-		$this->smartyassign('dblclickedit', 'y');
 		$this->smartyassign('print_page', 'n');
 		$this->smartyassign('beingEdited', 'n');
 		$this->smartyassign('categorypath', $prefs['feature_categorypath']);
@@ -367,8 +366,7 @@ class WikiRenderer
 			} else {
 				$pdata = new Tiki_Render_Lazy(
 					function () use ($content, $parse_options) {
-						$wikilib = TikiLib::lib('wiki');
-						return $wikilib->parse_data($content, $parse_options);
+						return TikiLib::lib('parser')->parse_data($content, $parse_options);
 					}
 				);
 			}
@@ -444,7 +442,6 @@ class WikiRenderer
 	{
 		global $prefs;
 		$wikilib = TikiLib::lib('wiki');
-		$tikilib = TikiLib::lib('tiki');
 
 		$this->smartyassign('footnote', '');
 		$this->smartyassign('has_footnote', 'n');
@@ -452,7 +449,7 @@ class WikiRenderer
 		if ($prefs['feature_wiki_footnotes'] == 'y') {
 			if ($this->user) {
 				$footnote = $wikilib->get_footnote($this->user, $this->page);
-				$this->smartyassign('footnote', $tikilib->parse_data($footnote));
+				$this->smartyassign('footnote', TikiLib::lib('parser')->parse_data($footnote));
 
 				if ($footnote)
 					$this->smartyassign('has_footnote', 'y');

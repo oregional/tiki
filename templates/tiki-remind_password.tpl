@@ -18,6 +18,7 @@
 	<br><br>
 {/if}
 {if $showfrm eq 'y'}
+<div class="row">
 	<form class="form-horizontal col-md-10" action="tiki-remind_password.php" method="post">
 		{if $prefs.login_is_email ne 'y'}
 			<div class="form-group">
@@ -43,8 +44,9 @@
 		</div>
 		<div class="form-group">
 			<div class="col-sm-offset-3 col-md-offset-2 col-sm-10">
-				<input type="submit" class="btn btn-default" name="remind" value="{if $prefs.feature_clear_passwords eq 'y'}{tr}Send me my Password{/tr}{else}{tr}Request Password Reset{/tr}{/if}">
+				<input type="submit" class="btn btn-default" name="remind" value="Request Password Reset">
 			</div>
 		</div>
 	</form>
+</div>
 {/if}

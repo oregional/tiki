@@ -36,23 +36,35 @@ if (!isset($_SESSION["thedate"])) {
 if (isset($_REQUEST['pdf'])) {
 	$access->check_feature("feature_slideshow_pdfexport");
 	set_time_limit(777);
-	
+
 	$_POST["html"] = urldecode($_POST["html"]);
-	
-	define("DOMPDF_ENABLE_REMOTE", true);
-	define('DOMPDF_ENABLE_AUTOLOAD', false);
-	
-	require_once("vendor/dompdf/dompdf/dompdf_config.inc.php");
-	
+
 	if ( isset( $_POST["html"] ) ) {
+
+		require_once 'lib/pdflib.php';
+		PdfGenerator::setupMPDFCacheLocation(); // reuse mPDF settings
+		if (class_exists('mPDF')) { // use mPDF if available
+			$orientation =  isset($_REQUEST['landscape']) ? "L" : "P";
+			$mpdf = new mPDF(null, "letter-" . $orientation);
+			$mpdf->WriteHTML(preg_replace('/%u([a-fA-F0-9]{4})/', '&#x\\1;',$_POST["html"]));
+			$mpdf->Output();
+			exit(0);
+		}
+
+		define("DOMPDF_ENABLE_REMOTE", true);
+		define('DOMPDF_ENABLE_AUTOLOAD', false);
+
+		require_once("vendor_bundled/vendor/dompdf/dompdf/dompdf_config.inc.php");
+
+		// fallback to DOMPDF
 		$dompdf = new DOMPDF();
 
-		$dompdf->load_html(urldecode($_REQUEST["html"]));
+		$dompdf->load_html($_POST["html"]);
 		$dompdf->set_paper("letter", (isset($_REQUEST['landscape']) ? "landscape" : "portrait"));
 		$dompdf->render();
-		
+
 		$dompdf->stream("dompdf_out.pdf", array("Attachment" => false));
-		
+
 		exit(0);
 	}
 	die;
@@ -138,15 +150,15 @@ $smarty->assign_by_ref('lastUser', $info["user"]);
 
 include_once ('tiki-section_options.php');
 
-$headerlib->add_cssfile('vendor/jquery/jquery-s5/jquery.s5.css');
-$headerlib->add_jsfile('vendor/jquery/jquery-s5/jquery.s5.js');
+$headerlib->add_cssfile('vendor_bundled/vendor/jquery/jquery-s5/jquery.s5.css');
+$headerlib->add_jsfile('vendor_bundled/vendor/jquery/jquery-s5/jquery.s5.js');
 $headerlib->add_jq_onready(
     '
 	$("#toc").remove();
 	
 	window.s5Settings = (window.s5Settings ? window.s5Settings : {});
 	
-	window.s5Settings.basePath = "vendor/jquery/jquery-s5/";
+	window.s5Settings.basePath = "vendor_bundled/vendor/jquery/jquery-s5/";
 
 	$.s5.start($.extend(window.s5Settings, {
 		menu: function() {
@@ -252,7 +264,6 @@ $headerlib->add_js('
 ask_ticket('index-raw');
 
 // Display the Index Template
-$smarty->assign('dblclickedit', 'y');
 $smarty->assign('mid', 'tiki-show_page_raw.tpl');
 
 // use tiki_full to include include CSS and JavaScript

@@ -72,134 +72,9 @@ $smarty->assign('all_langs', $all_langs);
 
 $access->check_feature(array('feature_wiki', 'feature_listPages'));
 
-/* mass-remove:
-the checkboxes are sent as the array $_REQUEST["checked[]"], values are the wiki-PageNames,
-e.g. $_REQUEST["checked"][3]="HomePage"
-$_REQUEST["submit_mult"] holds the value of the "with selected do..."-option list
-we look if any page's checkbox is on and if remove_pages is selected.
-then we check permission to delete pages.
-if so, we call histlib's method remove_all_versions for all the checked pages.
-*/
-if (!empty($_REQUEST['submit_mult']) && isset($_REQUEST['checked'])) {
-	$action = $_REQUEST['submit_mult'];
-	check_ticket('list-pages');
-	Perms::bulk(array( 'type' => 'wiki page' ), 'object', $_REQUEST['checked']);
-
-	switch ($action) {
-		case 'remove_pages':
-			// Now check permissions to remove the selected pages
-			$access->check_permission('tiki_p_remove');
-			$access->check_authenticity(tr('Are you sure you want to remove the %0 selected pages?', count($_REQUEST['checked'])));
-			foreach ($_REQUEST['checked'] as $check)
-				$tikilib->remove_all_versions($check);
-			break;
-
-		case 'print_pages':
-			$access->check_feature('feature_wiki_multiprint');
-			foreach ($_REQUEST['checked'] as $check) {
-				$access->check_page_exists($check);
-				// Now check permissions to access this page
-				$perms = Perms::get(array( 'type' => 'wiki page', 'object' => $check ));
-				if (! $perms->view ) {
-					$access->display_error($check, tra('You do not have permission to view this page.'), '403');
-				}
-				$access->check_authenticity(tr('Are you sure you want to print the %0 selected pages?', count($_REQUEST['checked'])));
-				$page_info = $tikilib->get_page_info($check);
-				$page_info['parsed'] = $tikilib->parse_data($page_info['data']);
-				$page_info['h'] = 1;
-				$multiprint_pages[] = $page_info;
-			}
-			break;
-
-		case 'export_pdf':
-			$access->check_feature('feature_wiki_multiprint');
-			foreach ($_REQUEST['checked'] as $check) {
-				$access->check_page_exists($check);
-				// Now check permissions to access this page
-				$perms = Perms::get(array( 'type' => 'wiki page', 'object' => $check ));
-				if (! $perms->view ) {
-					$access->display_error($check, tra('You do not have permission to view this page.'), '403');
-				}
-
-				$multiprint_pages[] = $check;
-			}
-
-			header('Location: tiki-print_multi_pages.php?display=pdf&printpages=' . urlencode(serialize($multiprint_pages)));
-			die;
-
-		case 'unlock_pages':
-			$access->check_feature('feature_wiki_usrlock');
-			$access->check_authenticity(tr('Are you sure you want to unlock the %0 selected pages?', count($_REQUEST['checked'])));
-			$wikilib = TikiLib::lib('wiki');
-			foreach ($_REQUEST['checked'] as $check) {
-				$info = $tikilib->get_page_info($check);
-				if ($info['flag'] == 'L'
-						&& (
-							$globalperms->admin_wiki == 'y'
-							|| ($user && ($user == $info['lockedby']) || (!$info['lockedby'] && $user == $info['user']))
-						)
-				) {
-					$wikilib->unlock_page($check);
-				}
-			}
-			break;
-
-		case 'lock_pages':
-			$access->check_feature('feature_wiki_usrlock');
-			$access->check_authenticity(tr('Are you sure you want to lock the %0 selected pages?', count($_REQUEST['checked'])));
-			$wikilib = TikiLib::lib('wiki');
-			foreach ($_REQUEST['checked'] as $check) {
-				$info = $tikilib->get_page_info($check);
-				$perms = Perms::get(array( 'type' => 'wiki page', 'object' => $check ));
-				if ( $info['flag'] != 'L' && ( $globalperms->admin_wiki == 'y' || $perms->lock ) ) {
-					$wikilib->lock_page($check);
-				}
-			}
-			break;
-
-		case 'zip':
-			if ($globalperms->admin == 'y') {
-				$access->check_authenticity(tr('Are you sure you want to download a zip of the %0 selected pages?', count($_REQUEST['checked'])));
-				include_once ('lib/wiki/xmllib.php');
-				$xmllib = new XmlLib;
-				$zipFile = 'dump/xml.zip';
-				$config['debug'] = false;
-				if ($xmllib->export_pages($_REQUEST['checked'], null, $zipFile, $config)) {
-					if (!$config['debug']) {
-						header("location: $zipFile");
-						die;
-					}
-				} else {
-					$smarty->assign('error', $xmllib->get_error());
-				}
-			}
-			break;
-
-		case 'title':
-			if ($tiki_p_admin == 'y') {
-				$access->check_authenticity(tr('Are you sure you want to modify the %0 pages?', count($_REQUEST['checked'])).' '.tr('No history will be created.'));
-				foreach ($_REQUEST['checked'] as $check) {
-					$info = $tikilib->get_page_info($check);
-					$info['data'] = "!$check\r\n" . $info['data'];
-					$table = $tikilib->table('tiki_pages');
-					$table->update(array('data' => $info['data']), array('page_id' => $info['page_id']));
-				}
-			}
-			break;
-	}
-}
-
 //add tablesorter sorting and filtering
-$tsOn = Table_Check::isEnabled(true);
-$smarty->assign('tsOn', $tsOn);
-$tsAjax = Table_Check::isAjaxCall();
-$smarty->assign('tsAjax', $tsAjax);
-static $iid = 0;
-++$iid;
-$ts_tableid = 'listpages' . $iid;
-$smarty->assign('ts_tableid', $ts_tableid);
-
-if ($tsAjax) {
+$ts = Table_Check::setVars('listpages', true);
+if ($ts['ajax']) {
 	if (!empty($_REQUEST['categPath_ts']) || !empty($_REQUEST['categ_ts'])) {
 		if (!empty($_REQUEST['categPath_ts'])) {
 			$req = $_REQUEST['categPath_ts'];
@@ -348,7 +223,8 @@ if (!empty($multiprint_pages)) {
 	}
 
 	$smarty->assign('initial', $initial);
-	if (isset($_REQUEST['exact_match']) && $_REQUEST['exact_match'] == 'y' ) {
+	// What a checked checkbox returns is browser dependant. Don't test on the value, just presence
+	if (isset($_REQUEST['exact_match']) ) {
 		$exact_match = true;
 		$smarty->assign('exact_match', 'y');
 	} else {
@@ -446,7 +322,7 @@ if (!empty($multiprint_pages)) {
 	$smarty->assign('metatag_robots', 'NOINDEX, NOFOLLOW');
 
 	// Exact match and single result, go to page directly
-	if ( count($listpages['data']) == 1 && !$tsAjax) {
+	if ( count($listpages['data']) == 1 && !$ts['ajax']) {
 		$result = reset($listpages['data']);
 		if ( TikiLib::strtolower($find) == TikiLib::strtolower($result['pageName']) ) {
 			$wikilib = TikiLib::lib('wiki');
@@ -455,7 +331,7 @@ if (!empty($multiprint_pages)) {
 		}
 	}
 
-	if ($tsOn && !$tsAjax) {
+	if ($ts['enabled'] && !$ts['ajax']) {
 		//create dropdown lists for category name and path filters
 		$cnames = array();
 		$cpaths = array();
@@ -469,11 +345,12 @@ if (!empty($multiprint_pages)) {
 		if (isset($languages) && count($languages) > 0) {
 			$pagelangs = array_unique($tikilib->table('tiki_pages')->fetchColumn('lang', array()));
 			$pagelangs = array_flip($pagelangs);
-			$temp_langs = array_column($languages, 'name', 'value');
-			$temp_langs = array_intersect_key($temp_langs, $pagelangs);
+			$langLib = TikiLib::lib('language');
+			$langLib->getLanguages();
+			$temp_langs = array_intersect_key($langmapping, $pagelangs);
 			if (count($temp_langs) > 0) {
 				foreach ($temp_langs as $short => $long) {
-					$ts_langs[$short . '|' . $long] = $long;
+					$ts_langs[$short . '|' . $long[0]] = $long[0];
 				}
 			} else {
 				$ts_langs = array();
@@ -523,7 +400,7 @@ if (!empty($multiprint_pages)) {
 		$sortcol = array_search($sort, $cols);
 
 		$settings = array(
-			'id' => $ts_tableid,
+			'id' => $ts['tableid'],
 			'total' 	=> $listpages['cant'],
 			'vars'	=> array(
 				'show_actions' => $show_actions,
@@ -583,13 +460,13 @@ if (!empty($multiprint_pages)) {
 			}
 			require_once 'lib/ointegratelib.php';
 			$response = OIntegrate_Response::create(array('list' => $pages), '1.0');
-			$response->addTemplate('smarty', 'tikiwiki', 'files/templates/listpages/smarty-tikiwiki-1.0-shortlist.txt');
+			$response->addTemplate('smarty', 'tikiwiki', 'templates/smarty-tikiwiki-1.0-shortlist.txt');
 			$response->schemaDocumentation = 'http://dev.tiki.org/WebserviceListpages';
 			$response->send();
 		}
 	} else {
 		// Display the template
-		if ($tsAjax) {
+		if ($ts['ajax']) {
 			$smarty->display($listpages_orphans ? 'tiki-orphan_pages.tpl' : 'tiki-listpages.tpl');
 		} else {
 			$smarty->assign('mid', ($listpages_orphans ? 'tiki-orphan_pages.tpl' : 'tiki-listpages.tpl'));

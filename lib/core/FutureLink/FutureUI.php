@@ -37,7 +37,7 @@ Class FutureLink_FutureUI extends Feed_Abstract
 	{
 		//May be used soon for encrypting futurelinks
 		if (isset($_REQUEST['action'], $_REQUEST['hash']) && $_REQUEST['action'] == 'timestamp') {
-			$client = new Zend\Http\Client(TikiLib::tikiUrl() . 'tiki-timestamp.php', array('timeout' => 60));
+			$client = TikiLib::lib('tiki')->get_http_client(TikiLib::tikiUrl() . 'tiki-timestamp.php', array('timeout' => 60));
 			$client->getRequest()->getQuery()->set('hash', $_REQUEST['hash']);
 			$client->getRequest()->getQuery()->set('clienttime', time());
 			$response = $client->send();
@@ -563,13 +563,13 @@ JQ
 		$version = $args['version'];
 
 		$headerlib
-			->add_jsfile('vendor/rangy/rangy/uncompressed/rangy-core.js')
-			->add_jsfile('vendor/rangy/rangy/uncompressed/rangy-cssclassapplier.js')
-			->add_jsfile('vendor/rangy/rangy/uncompressed/rangy-selectionsaverestore.js')
+			->add_jsfile('vendor_bundled/vendor/rangy/rangy/uncompressed/rangy-core.js')
+			->add_jsfile('vendor_bundled/vendor/rangy/rangy/uncompressed/rangy-cssclassapplier.js')
+			->add_jsfile('vendor_bundled/vendor/rangy/rangy/uncompressed/rangy-selectionsaverestore.js')
 			->add_jsfile('lib/rangy_tiki/rangy-phraser.js')
-			->add_jsfile('lib/ZeroClipboard.js')
+			->add_jsfile('vendor_bundled/vendor/jquery/jquery-sheet/plugins/ZeroClipboard.min.js')
 			->add_jsfile('lib/core/JisonParser/Phraser.js')
-			->add_jsfile('vendor/jquery/md5/js/md5.js');
+			->add_jsfile('vendor_bundled/vendor/jquery/md5/js/md5.js');
 
 		$me = new FutureLink_FutureUI($page);
 
@@ -585,7 +585,7 @@ JQ
 	{
 		global $groupPluginReturnAll;
 		$groupPluginReturnAll = true;
-		$body = TikiLib::lib('tiki')->parse_data($args['data']);
+		$body = TikiLib::lib('parser')->parse_data($args['data']);
 		$groupPluginReturnAll = false;
 
 		$page = $args['object'];

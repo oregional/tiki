@@ -7,8 +7,8 @@
 
 /** \brief send the email notifications dealing with the forum changes to
  * \brief outbound address + admin notification addresses / forum admin email + watching users addresses
- * \param $event = 'forum_post_topic' or 'forum_post_thread'
- * \param $object = forumId watch if forum_post_topic or topicId watch if forum_post_thread
+ * \param $event = 'forum_post_topic' or 'forum_post_thread' or 'forum_post_queued'
+ * \param $object = forumId watch if forum_post_topic (and forum_post_queued) or topicId watch if forum_post_thread
  * \param $threadId = topicId if forum_post_thread
  * \param $title of the message
  * \param $topicName name of the parent topic
@@ -26,7 +26,8 @@ function sendForumEmailNotification(
 				$inReplyTo = '',
 				$threadId,
 				$parentId,
-				$contributions='')
+				$contributions='',
+				$queueId=0)
 {
 	global $prefs;
 	$userlib = TikiLib::lib('user');
@@ -34,7 +35,7 @@ function sendForumEmailNotification(
 	$smarty = TikiLib::lib('smarty');
 
 	// Per-forum From address overrides global default.
-	if ( $forum_info['outbound_from'] ) {
+	if ( $forum_info['outbound_from'] && ($event == 'forum_post_thread' || $event == 'forum_post_topic')) {
 		$author = $userlib->clean_user($author);
 		$my_sender = $forum_info['outbound_from'];
 	} else {
@@ -42,7 +43,7 @@ function sendForumEmailNotification(
 	}
 
 	//outbound email ->  will be sent in utf8 - from sender_email
-	if ($forum_info['outbound_address']) {
+	if ($forum_info['outbound_address'] && ($event == 'forum_post_thread' || $event == 'forum_post_topic')) {
 		include_once('lib/webmail/tikimaillib.php');
 		$mail = new TikiMail();
 		$mail->setSubject($title);
@@ -124,6 +125,28 @@ function sendForumEmailNotification(
 		}
 	}
 
+	// Moderation email
+	if ($event == 'forum_post_queued') {
+		$nots = array();
+		if (!empty($forum_info['moderator'])) {
+			$not['email'] = $userlib->get_user_email($forum_info['moderator']); 
+			$not['user'] = $forum_info['moderator'];
+			$not['language'] = $tikilib->get_user_preference($forum_info['moderator'], "language", $defaultLanguage);
+			$nots[] = $not;
+		}
+		if (!empty($forum_info['moderator_group'])) {
+			$moderators = $userlib->get_members($forum_info['moderator_group']);
+			foreach ($moderators as $mod) {
+				if ($mod != $nots[0]['user']) { // avoid duplication
+					$not['email'] = $userlib->get_user_email($mod);
+					$not['user'] = $mod;
+					$not['language'] = $tikilib->get_user_preference($mod, "language", $defaultLanguage);
+					$nots[] = $not;
+				}
+			}
+		}
+	}
+
 	// Special forward address
 	//TODO: merge or use the admin notification feature
 	if ($forum_info["useMail"] == 'y') {
@@ -181,9 +204,21 @@ function sendForumEmailNotification(
 		foreach ($nots as $not) {
 			$mail = new TikiMail();
 			$mail->setUser($not['user']);
-			$mail_data = $smarty->fetchLang($not['language'], "mail/user_watch_forum_subject.tpl");
+			if ($event == 'forum_post_queued') {
+				if ($prefs['forum_moderator_email_approve'] == 'y') {
+					$smarty->assign('queueId', $queueId);
+					$smarty->assign('approvalhash', md5($queueId . $title . $data . $author));
+				}
+				$mail_data = $smarty->fetchLang($not['language'], "mail/user_watch_forum_queued_subject.tpl");
+			} else {
+				$mail_data = $smarty->fetchLang($not['language'], "mail/user_watch_forum_subject.tpl");
+			}
 			$mail->setSubject($mail_data);
-			$mail_data = $smarty->fetchLang($not['language'], "mail/forum_post_notification.tpl");
+			if ($event == 'forum_post_queued') {
+				$mail_data = $smarty->fetchLang($not['language'], "mail/forum_post_queued_notification.tpl");
+			} else {
+				$mail_data = $smarty->fetchLang($not['language'], "mail/forum_post_notification.tpl");
+			}
 			$mail->setText($mail_data);
 			$mail->send(array($not['email']));
 		}
@@ -373,7 +408,9 @@ function sendWikiEmailNotification(
 			$mail = new TikiMail($not['user']);
 			$mail->setSubject(sprintf($mail_subject, $pageName));
 			$mail->setText($mail_data);
-			$mail->send(array($not['email']));
+			if (! $mail->send(array($not['email'])) && Perms::get()->admin) {
+				Feedback::error(['mes' => $mail->errors], 'session');
+			}
 
 		}
 	}
@@ -572,8 +609,7 @@ function sendFileGalleryEmailNotification($event, $galleryId, $galleryName, $nam
 		$smarty->assign('fdescription', $description);
 		$smarty->assign('mail_date', $tikilib->now);
 		$smarty->assign('author', $user);
-		global $url_host;
-		if (empty($_SERVER['argc']) && !empty($url_host)) {
+		if (php_sapi_name() !== 'cli') {
 			$foo = parse_url($_SERVER['REQUEST_URI']);
 			$machine = $tikilib->httpPrefix(true) . dirname($foo['path']);
 		} else {
@@ -644,6 +680,14 @@ function sendCategoryEmailNotification($values)
 			$nots = array_merge($nots, $nots = $tikilib->get_event_watches($event, $parentId));
 		} else {
 			$nots = $tikilib->get_event_watches($event, $categoryId);
+		}
+
+		if ($prefs['user_category_watch_editor'] != "y") {
+			for ($i = count($nots) - 1; $i >=0; --$i)
+				if ($nots[$i]['user'] == $user) {
+					unset($nots[$i]);
+					break;
+				}
 		}
 
 		for ($i = count($nots) - 1; $i >=0; --$i) {
@@ -772,12 +816,14 @@ function sendStructureEmailNotification($params)
 }
 
 /**
- * @param $type Type of the object commented on, 'wiki' or 'article'
+ * @param $type Type of the object commented on, 'wiki', 'article', 'blog', 'trackeritem'
  * @param $id Identifier of the object commented on. For articles, their id and for wiki pages, their name
  * @param $title Comment title
  * @param $content Comment content
+ * @param $commentId Comment ID just posted
+ * @param $anonymousName Name of the user when comment is submitting by an anonymous user (or anonymously by an existing user)
  */
-function sendCommentNotification($type, $id, $title, $content, $commentId=null)
+function sendCommentNotification($type, $id, $title, $content, $commentId, $anonymousName)
 {
 	global $user, $prefs;
 	$smarty = TikiLib::lib('smarty');
@@ -806,10 +852,18 @@ function sendCommentNotification($type, $id, $title, $content, $commentId=null)
 		$watches = $tikilib->get_event_watches($events, $id);
 	}
 
-	$watches2 = $tikilib->get_event_watches('comment_post', $commentId);
-
-	if (!empty($watches2)) {
-		$watches = array_merge($watches, $watches2);
+	// get individual comment reply watches
+	$comments_list = TikiLib::lib('comments')->get_root_path($commentId);
+	foreach( $comments_list as $threadId ) {
+		$watches2 = $tikilib->get_event_watches('thread_comment_replied', $threadId);
+		if (!empty($watches2)) {
+			// make sure we add unique email addresses to send the notification to
+			foreach( $watches2 as $userWatch ) {
+				if( !in_array( $userWatch['email'], array_map(function($w){ return $w['email']; }, $watches) ) ) {
+					$watches[] = $userWatch;
+				}
+			}
+		}
 	}
 
 	if ($type != 'wiki'|| $prefs['wiki_watch_editor'] != 'y') {
@@ -827,7 +881,6 @@ function sendCommentNotification($type, $id, $title, $content, $commentId=null)
 		} elseif ($type == 'article') {
 			$artlib = TikiLib::lib('art');
 			$smarty->assign('mail_objectname', $artlib->get_title($id));
-			$smarty->assign('mail_objectid', $id);
 		} elseif ($type == 'trackeritem') {
 			if ($prefs['feature_daily_report_watches'] == 'y') {
 				$reportsManager = Reports_Factory::build('Reports_Manager');
@@ -844,19 +897,24 @@ function sendCommentNotification($type, $id, $title, $content, $commentId=null)
 			}
 
 			$tracker = $trklib->get_tracker($trackerId);
-			$smarty->assign('mail_objectid', $id);
 			$smarty->assign('mail_objectname', $tracker['name']);
 			$smarty->assign('mail_item_title', $trklib->get_isMain_value($trackerId, $id));
+		} elseif ($type == 'blog') {
+			$bloglib = TikiLib::lib('blog');
+			$blog_post = $bloglib->get_post($id);
+			$smarty->assign('mail_objectname', $blog_post['title']);
 		}
 
 		// General comment mail
 		$smarty->assign('mail_objectid', $id);
 		$smarty->assign('objecttype', $type);
-		$smarty->assign('mail_user', $user);
+		$smarty->assign('mail_user', empty($anonymousName) ? $user : $anonymousName);
 		$smarty->assign('mail_title', $title);
 		$smarty->assign('mail_comment', $content);
 		$smarty->assign('comment_id', $commentId);
 
-		sendEmailNotification($watches, null, 'user_watch_comment_subject.tpl', null, 'user_watch_comment.tpl');
+		return sendEmailNotification($watches, null, 'user_watch_comment_subject.tpl', null, 'user_watch_comment.tpl');
 	}
+
+	return 0;
 }

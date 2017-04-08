@@ -85,8 +85,6 @@ if (isset($_REQUEST['su'])) {
 			$finalusers = $userlib->find_best_user(array($_REQUEST['username']), '', 'login');
 			if (count($finalusers[0]) === 1 && !empty($finalusers[0])) {
 				$_REQUEST['username'] = $finalusers[0];
-			} else {
-				$_REQUEST['username'] = '';
 			}
 		}
 		if ($userlib->user_exists($_REQUEST['username'])) {
@@ -98,8 +96,6 @@ if (isset($_REQUEST['su'])) {
 }
 $requestedUser = isset($_REQUEST['user']) ? $_REQUEST['user'] : false;
 $pass = isset($_REQUEST['pass']) ? $_REQUEST['pass'] : false;
-$challenge = isset($_REQUEST['challenge']) ? $_REQUEST['challenge'] : false;
-$response = isset($_REQUEST['response']) ? $_REQUEST['response'] : false;
 $isvalid = false;
 $isdue = false;
 // admin is always local
@@ -188,6 +184,11 @@ if (isset($_REQUEST['intertiki']) and in_array($_REQUEST['intertiki'], array_key
 					}
 				} else {
 					$groups = preg_split('/\s*,\s*/', $prefs['interlist'][$prefs['feature_intertiki_mymaster']]['groups']);
+					if (empty($groups) || empty($groups[0])) {
+						$smarty->assign('msg', tra('No groups set on Intertiki client.'));
+						$smarty->display('error.tpl');
+						exit;
+					}
 					foreach ($groups as $group) {
 						$userlib->assign_user_to_group($user, trim($group));
 					}
@@ -200,7 +201,7 @@ if (isset($_REQUEST['intertiki']) and in_array($_REQUEST['intertiki'], array_key
 	}
 } else {
 	// Verify user is valid
-	$ret = $userlib->validate_user($requestedUser, $pass, $challenge, $response);
+	$ret = $userlib->validate_user($requestedUser, $pass);
 	if (count($ret) == 3) {
 		$ret[] = null;
 	}
@@ -349,7 +350,11 @@ if ($isvalid) {
 				//       ... so we also need to check against : homepage + '?page=' + default wiki pagename
 				//
 				include_once('tiki-sefurl.php');
-				if ($url == '' || preg_match('/(tiki-register|tiki-login_validate|tiki-login_scr)\.php/', $url) || $prefs['limitedGoGroupHome'] == 'n' || $url == $prefs['site_tikiIndex'] || $url_path == $prefs['site_tikiIndex'] || basename($url_path) == $prefs['site_tikiIndex'] || ($anonymous_homepage != '' && ($url == $anonymous_homepage || $url_path == $anonymous_homepage || basename($url_path) == $anonymous_homepage)) || filter_out_sefurl($anonymous_homepage) == basename($url_path) || ($tikiIndex_full != '' && basename($url_path) == $tikiIndex_full)) {
+				if ($url == '' || preg_match('/(tiki-register|tiki-login_validate|tiki-login_scr)\.php/', $url) || $prefs['limitedGoGroupHome'] == 'n'
+					|| $url == $prefs['site_tikiIndex'] || $url_path == $prefs['site_tikiIndex'] || basename($url_path) == $prefs['site_tikiIndex']
+					|| ($anonymous_homepage != '' && ($url == $anonymous_homepage || $url_path == $anonymous_homepage || basename($url_path) == $anonymous_homepage))
+					|| filter_out_sefurl($anonymous_homepage) == basename($url_path)
+					|| ($tikiIndex_full != '' && ( basename($url_path) == $tikiIndex_full || basename($url_path) == filter_out_sefurl($tikiIndex_full) ))) {
 					$groupHome = $userlib->get_user_default_homepage($user);
 					if ($groupHome != '') {
 						$url = (preg_match('/^(\/|https?:)/', $groupHome)) ? $groupHome : filter_out_sefurl('tiki-index.php?page=' . urlencode($groupHome));

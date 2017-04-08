@@ -27,6 +27,7 @@ class Tiki_Profile_InstallHandler_Tracker extends Tiki_Profile_InstallHandler
 		return array(
 			'name' => '',
 			'description' => '',
+			'fieldPrefix' => '',
 			'show_status' => 'showStatus',
 			'show_status_admin_only' => 'showStatusAdminOnly',
 			'list_default_status' => 'defaultStatus',
@@ -151,7 +152,7 @@ class Tiki_Profile_InstallHandler_Tracker extends Tiki_Profile_InstallHandler
 		return $trklib->replace_tracker($trackerId, $name, $description, $options, 'y');
 	} // }}}
 
-	function export(Tiki_Profile_Writer $writer, $trackerId) // {{{
+	public static function export(Tiki_Profile_Writer $writer, $trackerId) // {{{
 	{
 		$trklib = TikiLib::lib('trk');
 		$info = $trklib->get_tracker($trackerId);

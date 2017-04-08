@@ -346,8 +346,8 @@ $fields = array();
 $ins_fields = array();
 $usecategs = false;
 $cookietab = 1;
-$itemUser = $trklib->get_item_creator($_REQUEST['trackerId'], $_REQUEST['itemId']);
-$smarty->assign_by_ref('itemUser', $itemUser);
+$itemUsers = $trklib->get_item_creators($_REQUEST['trackerId'], $_REQUEST['itemId']);
+$smarty->assign_by_ref('itemUsers', $itemUsers);
 $plugins_loaded = false;
 
 if (empty($tracker_info)) {
@@ -721,7 +721,7 @@ if (isset($_REQUEST['from'])) {
 $smarty->assign('from', $from);
 if (isset($_REQUEST['status'])) $smarty->assign_by_ref('status', $_REQUEST['status']);
 include_once ('tiki-section_options.php');
-$smarty->assign('uses_tabs', 'y');
+
 ask_ticket('view-trackers-items');
 if ($prefs['feature_actionlog'] == 'y') {
 	$logslib = TikiLib::lib('logs');

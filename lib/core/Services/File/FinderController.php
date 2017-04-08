@@ -5,9 +5,9 @@
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
 // $Id$
 
-include_once "vendor_extra/elfinder/php/elFinderConnector.class.php";
-include_once "vendor_extra/elfinder/php/elFinder.class.php";
-include_once "vendor_extra/elfinder/php/elFinderVolumeDriver.class.php";
+include_once "vendor_bundled/vendor/studio-42/elfinder/php/elFinderConnector.class.php";
+include_once "vendor_bundled/vendor/studio-42/elfinder/php/elFinder.class.php";
+include_once "vendor_bundled/vendor/studio-42/elfinder/php/elFinderVolumeDriver.class.php";
 
 include_once 'lib/jquery_tiki/elfinder/elFinderVolumeTikiFiles.class.php';
 include_once 'lib/jquery_tiki/elfinder/tikiElFinder.php';
@@ -93,7 +93,7 @@ class Services_File_FinderController
 		if ($startGallery) {
 			$gal_info = TikiLib::lib('filegal')->get_file_gallery_info($startGallery);
 			if (!$gal_info) {
-				TikiLib::lib('errorreport')->report(tr('Gallery ID %0 not found', $startGallery));
+				Feedback::error(tr('Gallery ID %0 not found', $startGallery), 'session');
 				$startGallery = $prefs['fgal_root_id'];
 			}
 		}
@@ -243,6 +243,7 @@ class Services_File_FinderController
 	 */
 	function elFinderAccess($attr, $path, $data, $volume)
 	{
+		global $prefs;
 
 		$ar = explode('_', $path);
 		$visible = true;		// for now
@@ -268,7 +269,7 @@ class Services_File_FinderController
 		switch($attr) {
 			case 'read':
 				if ($isgal) {
-					return $visible && $perms['tiki_p_view_file_gallery'] === 'y';
+					return $visible && ($perms['tiki_p_view_file_gallery'] === 'y' || $id == $prefs['fgal_root_id']);
 				} else {
 					return $visible && $perms['tiki_p_download_files'] === 'y';
 				}

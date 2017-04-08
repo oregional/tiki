@@ -47,7 +47,6 @@ header.container {
 .layout_fixed_top_modules .container.middle {
 	background: lighten(#d7e5f3, 5%);
 	-webkit-box-shadow: 0 0 70px 72px rgba(255, 255, 255, 1);
-	-moz-box-shadow: 0 0 70px 72px rgba(255, 255, 255, 1);
 	box-shadow: 0 0 100px 100px rgba(235, 242, 249, 1);
 }
 
@@ -59,7 +58,7 @@ header.container {
 .navbar-inverse .navbar-brand,
 .navbar-inverse a,
 .navbar-inverse .navbar-nav > li > a {
-	color: #1C1329;
+	color: #1c1329;
 }
 
 .layout_social > .container {
@@ -73,7 +72,7 @@ header.container {
 }
 
 .panel {
-	background: #D7E5F3; // url('@{imagePath}flakesptn2.jpg');
+	background: #d7e5f3; // url('@{imagePath}flakesptn2.jpg');
 }
 
 .panel-heading,
@@ -179,6 +178,7 @@ header.container {
 	border: 1px solid @dropdown-border;
 	border-radius: @border-radius-base;
 	.box-shadow(0 6px 12px rgba(0, 0, 0, .175));
+	-webkit-background-clip: padding-box;
 	background-clip: padding-box;
 
 	// Links within the dropdown menu

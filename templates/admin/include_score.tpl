@@ -1,10 +1,8 @@
 {remarksbox type="tip" title="{tr}Tip{/tr}"}{tr}You can see users rank by score in the module users_rank, for that go to{/tr} "<a class="rbox-link" href="tiki-admin_modules.php">{tr}Admin modules{/tr}</a>".{/remarksbox}
 
 <form action="tiki-admin.php?page=score" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
-	<div class="heading input_submit_container" style="text-align: right">
-		<input type="submit" class="btn btn-default btn-sm" name="scoreevents" value="{tr}Save{/tr}" />
-	</div>
+	{include file='access/include_ticket.tpl'}
+	{include file='admin/include_apply_top.tpl'}
 
 	<fieldset class="table">
 		<legend>{tr}Activate the feature{/tr}</legend>
@@ -17,20 +15,20 @@
 	</fieldset>
 
 	<fieldset class="table">
-		<legend>{tr}Scoring Rules{/tr}</legend>
+		<legend>{tr}Scoring rules{/tr}</legend>
 		<table id="score-table" class="table">
 			<tr>
-				<td><b>{tr}Unique Rule ID{/tr}</b>
+				<td><b>{tr}Unique rule ID{/tr}</b>
 					<a href="http://doc.tiki.org/Score" target="_blank" data-toggle="popover" data-trigger="hover" title="{tr}Rule{/tr}" data-content="{tr}A label or ID to help identify which event was triggered to get points.{/tr}">
 						<span class="icon icon-help fa fa-question-circle fa-fw "></span>
 					</a>
 				</td>
-				<td><b>{tr}Pts Recipient Type{/tr}</b>
+				<td><b>{tr}Pts recipient type{/tr}</b>
 					<a href="http://doc.tiki.org/Score" target="_blank" data-toggle="popover" data-trigger="hover" title="{tr}Recipient Type{/tr}" data-content="{tr}The object type of the point recipient. Usually 'user' but can also be article, trackeritem, etc. Can also use '(eval type)' to get the type of the object being triggered by the event.{/tr}">
 						<span class="icon icon-help fa fa-question-circle fa-fw "></span>
 					</a>
 				</td>
-				<td><b>{tr}Pts Recipient{/tr}</b>
+				<td><b>{tr}Pts recipient{/tr}</b>
 					<a href="http://doc.tiki.org/Score" target="_blank" data-toggle="popover" data-trigger="hover" title="{tr}The ID of the points recipient{/tr}" data-content="{tr}This is the value for the ID of the recipient. It is retrieved by evaluating the event parameters. Using 'user' for example, would retrieve the user triggering the event. 'object' would retrieve the ID of the object on which the event is being triggered.{/tr}">
 						<span class="icon icon-help fa fa-question-circle fa-fw "></span>
 					</a>
@@ -46,8 +44,8 @@
 			{foreach $events as $event}
 				<tbody class="event-section" data-section="{$event['event']}">
 				<tr>
-					<td colspan="2"><b>{tr}Triggering Event{/tr}</b>: {$event['event']}</td>
-					<td colspan="3" class="text-right"><b>{tr}Reversal Event{/tr}</b>:
+					<td colspan="2"><b>{tr}Triggering event{/tr}</b>: {$event['event']}</td>
+					<td colspan="3" class="text-right"><b>{tr}Reversal event{/tr}</b>:
 						<select class="reverse-event-select" name="events[{$event['event']}][reversalEvent]" class="form-control">
 							<option value="">{tr}None{/tr}</option>
 							{foreach from=$eventTypes item=eventName}
@@ -66,16 +64,16 @@
 					{/if}
 					<tr class="condition-row">
 						<td>
-							<input type="text" size="30" name="events[{$event['event']}][{$key}][ruleId]" value="{$score->ruleId}" />
+							<input type="text" size="30" name="events[{$event['event']}][{$key}][ruleId]" value="{$score->ruleId}">
 						</td>
 						<td>
-							<input type="text" size="20" name="events[{$event['event']}][{$key}][recipientType]" value="{$score->recipientType}" />
+							<input type="text" size="20" name="events[{$event['event']}][{$key}][recipientType]" value="{$score->recipientType}">
 						</td>
 						<td>
-							<input type="text" size="30" name="events[{$event['event']}][{$key}][recipient]" value="{$score->recipient}" />
+							<input type="text" size="30" name="events[{$event['event']}][{$key}][recipient]" value="{$score->recipient}">
 						</td>
 						<td>
-							<input type="text" size="10" name="events[{$event['event']}][{$key}][score]" value="{$score->score}" />
+							<input type="text" size="10" name="events[{$event['event']}][{$key}][score]" value="{$score->score}">
 						</td>
 						<td class="text-right">
 							{if $hide_advanced}<a class="advanced" href="#">{icon name='ellipsis-h'}</a>{/if}
@@ -89,7 +87,7 @@
 							</a>
 						</td>
 						<td>
-							<input type="text" size="20" name="events[{$event['event']}][{$key}][validObjectIds]" value="{$score->validObjectIds}" />
+							<input type="text" size="20" name="events[{$event['event']}][{$key}][validObjectIds]" value="{$score->validObjectIds}">
 						</td>
 						<td class="text-right">{tr}Min. Time Between Scoring{/tr}
 							<a href="http://doc.tiki.org/Score" target="_blank" data-toggle="popover" data-trigger="hover" title="{tr}Time between scoring{/tr}" data-content="{tr}This is the amount of time in seconds that a user must wait before again being able to get points for this event{/tr}">
@@ -97,7 +95,7 @@
 							</a>
 						</td>
 						<td>
-							<input type="text" size="10" name="events[{$event['event']}][{$key}][expiration]" value="{$score->expiration}" />
+							<input type="text" size="10" name="events[{$event['event']}][{$key}][expiration]" value="{$score->expiration}">
 						</td>
 					</tr>
 				{/foreach}
@@ -115,13 +113,11 @@
 					{/foreach}
 				</select>
 			</div>
-			<a id="addEventBtn" href="#" class="btn btn-primary">Add a Scoring Event</a>
+			<a id="addEventBtn" href="#" class="btn btn-primary timeout">Add a Scoring Event</a>
 		</div>
 	</fieldset>
 
-	<div class="heading input_submit_container" style="text-align: center">
-		<input type="submit" class="btn btn-default btn-sm" name="scoreevents" value="{tr}Save{/tr}" />
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>
 
 {jq}

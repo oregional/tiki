@@ -67,9 +67,11 @@ class Services_Access_Controller
 			'toList' => $input->asArray('toList'),
 			'ticket' => $input->ticket->alnum(),
 			'title' => $title,
+			'help' => $input->help->xss(),
 			'customMsg' => $customMsg,
 			'confirmButton' => $confirmButton,
 			'confirmButtonClass' => $confirmButtonClass,
+			//used in templates/layouts/internal/modal.tpl
 			'confirm' => 'y',
 		];
 	}

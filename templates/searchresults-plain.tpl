@@ -56,7 +56,7 @@
 		</blockquote>
 	</li>
 	{foreachelse}
-		<li>{tr}No pages matched the search criteria{/tr}</li>
+			<li>{tr}No pages matched the search criteria test{/tr} </li>
 	{/foreach}
 </ul>
 {pagination_links resultset=$results}{/pagination_links}

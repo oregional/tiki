@@ -9,7 +9,7 @@
 	{$libeg = ''}
 	{$liend = ''}
 {/if}
-{if !$tsAjax}
+{if !$ts.ajax}
 	{title help="Users Management" admpage="login" url="tiki-adminusers.php"}{tr}Admin Users{/tr}{/title}
 
 	<div class="t_navbar margin-bottom-md">
@@ -33,46 +33,14 @@
 			{if $prefs.feature_intertiki_import_preferences eq 'y'}{tr}Since this Tiki site is in slave mode and imports preferences, the master user preferences will be automatically reimported at each login{/tr}{/if}
 		{/remarksbox}
 	{/if}
-	{include file='utilities/feedback.tpl'}
-	{if !empty($added) or !empty($discarded) or !empty($discardlist)}
-		{remarksbox type="feedback" title="{tr}Batch Upload Results{/tr}"}
-			{tr}Updated users{/tr} {$added}
-			{if $discarded != ""}- {tr}Rejected users{/tr} {$discarded}{/if}
-			<br>
-			<br>
-			{if $discardlist != ''}
-				<div class="table-responsive">
-					<table class="table">
-						<tr>
-							<th>{tr}Username{/tr}</th>
-							<th>{tr}Reason{/tr}</th>
-						</tr>
-						{section name=reject loop=$discardlist}
-							<tr class="odd">
-								<td class="username">{$discardlist[reject].login}</td>
-								<td class="text">{$discardlist[reject].reason}</td>
-							</tr>
-						{/section}
-					</table>
-				</div>
-			{/if}
-
-			{if $batcherrors}
-				<br>
-				{section name=ix loop=$batcherrors}
-					{$batcherrors[ix]}<br>
-				{/section}
-			{/if}
-		{/remarksbox}
-	{/if}
 {/if}
 {tabset name='tabs_adminusers'}
 
 	{* ---------------------- tab with list -------------------- *}
 	{tab name="{tr}Users{/tr}"}
-		{if !$tsAjax}
+		{if !$ts.ajax}
 			<h2>{tr}Users{/tr}</h2>
-			{if !$tsOn}
+			{if !$ts.enabled}
 				<form method="get" class="form-horizontal small" action="tiki-adminusers.php">
 					<div class="form-group">
 						<label class="control-label col-sm-4" for="find">{tr}Find{/tr}</label>
@@ -144,18 +112,18 @@
 					</div>
 				</form>
 			{/if}
-			{if ($cant > $numrows or !empty($initial)) && !$tsOn}
+			{if ($cant > $numrows or !empty($initial)) && !$ts.enabled}
 				{initials_filter_links}
 			{/if}
 			<form class="form-horizontal" name="checkform" id="checkform" method="post">
-				<div id="{$ts_tableid}-div" {if $tsOn}style="visibility:hidden;"{/if}>
+				<div id="{$ts.tableid}-div" {if $ts.enabled}style="visibility:hidden;"{/if}>
 					<div class="{if $js === 'y'}table-responsive{/if} user-table ts-wrapperdiv">
 		{/if}
 						{* Use css menus as fallback for item dropdown action menu if javascript is not being used *}
-						<table id="{$ts_tableid}" class="table normal table-striped table-hover" data-count="{$cant|escape}">
+						<table id="{$ts.tableid}" class="table normal table-striped table-hover" data-count="{$cant|escape}">
 							{* Note: th element ids here need to match those at /lib/core/Table/Settings/TikiAdminusers.php
 							for tablesorter to work properly *}
-							{if !$tsAjax}
+							{if !$ts.ajax}
 								<thead>
 									<tr>
 										<th id="checkbox">
@@ -243,9 +211,8 @@
 															{if $what eq 'included'}<span class="label label-info">{tr}Included{/tr}</span>{/if}
 															{if $grs eq $users[user].default_group}<small>({tr}default{/tr})</small>{/if}
 															{if $what ne 'included' and $grs != "Registered"}
-																<a href="{bootstrap_modal controller=user action=manage_groups checked=$username groupremove=$grs offset=$offset sort_mode=$sort_mode numrows=$numrows}">
-																	{icon name="remove"}
-																</a>
+																{* keep link code on one line to avoid stray underlining *}
+																<a href="{bootstrap_modal controller=user action=manage_groups checked=$username groupremove=$grs offset=$offset sort_mode=$sort_mode numrows=$numrows}">{icon name="remove"}</a>
 															{/if}
 															{if !$smarty.foreach.gr.last}<br>{/if}
 														{/if}
@@ -259,6 +226,11 @@
 														{$libeg}<a href="{bootstrap_modal controller=user action=manage_groups checked=$username all_groups=$all_groups offset=$offset sort_mode=$sort_mode numrows=$numrows}">
 															{icon name="group" _menu_text='y' _menu_icon='y' alt="{tr}Add or remove from a group{/tr}"}
 														</a>{$liend}
+														{$libeg}
+															<a class="link" href="tiki-assignuser.php?assign_user={$users[user].user|escape:url}" title="{tr}Edit group expiry{/tr}">
+																{icon name='time' _menu_text='y' _menu_icon='y' alt='{tr}Edit group expiry{/tr}'}
+															</a>
+														{$liend}
 														{$libeg}<a href="{query _type='relative' user=$users[user].userId}">
 															{icon name="edit" _menu_text='y' _menu_icon='y' alt="{tr}Edit account settings{/tr}"}
 														</a>{$liend}
@@ -291,7 +263,7 @@
 															{/if}
 															{if $prefs.email_due > 0 and $users[user].waiting ne 'u' and $users[user].waiting ne 'a'}
 																{$libeg}<a href="tiki-adminusers.php?user={$users[user].user|escape:url}&amp;action=email_due">
-																	{icon name="trash"  _menu_text='y' _menu_icon='y' alt="{tr}Invalidate email{/tr}"}
+																	{icon name="trash" _menu_text='y' _menu_icon='y' alt="{tr}Invalidate email{/tr}"}
 																</a>{$liend}
 															{/if}
 														{/if}
@@ -322,7 +294,7 @@
 										</tr>
 									{/if}
 								{sectionelse}
-									{if !$tsOn || ($tsOn && $tsAjax)}
+									{if ! $ts.enabled || ($ts.enabled && $ts.ajax)}
 										{norecords _colspan=8 _text="No user records found"}
 									{else}
 										{norecords _colspan=8 _text="Retrieving user records..."}
@@ -330,7 +302,7 @@
 								{/section}
 							</tbody>
 						</table>
-					{if !$tsAjax}
+					{if !$ts.ajax}
 					</div>
 					{if $users}
 						<div class="input-group col-sm-6">
@@ -375,12 +347,12 @@
 				<input type="hidden" name="numrows" value="{$numrows|escape}">
 				<input type="hidden" name="sort_mode" value="{$sort_mode|escape}">
 			</form>
-		{if !$tsOn}
+		{if !$ts.enabled}
 			{pagination_links cant=$cant step=$numrows offset=$offset}{/pagination_links}
 		{/if}
 	{/if}
 		{/tab}
-	{if !$tsAjax}
+	{if !$ts.ajax}
 
 		{* ---------------------- tab with form -------------------- *}
 		<a id="tab2" ></a>
@@ -402,7 +374,10 @@
 				<h2>{tr}Edit user{/tr} {$userinfo.login|escape}</h2>
 				{if $userinfo.login ne 'admin' and $userinfo.editable}
 					{assign var=thisloginescaped value=$userinfo.login|escape:'url'}
-					{button href="tiki-assignuser.php?assign_user=$thisloginescaped" _text="{tr}Assign user to Groups{/tr}"}
+					{button href="tiki-assignuser.php?assign_user=$thisloginescaped" _text="{tr}Assign user to Groups{/tr}" _icon_name='group'}
+				{/if}
+				{if $userinfo.waiting eq 'a'}
+					{button href='tiki-login_validate.php?user='|cat:$thisloginescaped|cat:'&pass='|cat:$userinfo.valid _text="{tr}Validate user{/tr}" _icon_name='ok'}
 				{/if}
 			{else}
 				<h2>{tr}Add a New User{/tr}</h2>
@@ -413,7 +388,7 @@
 						<label class="col-sm-3 col-md-2 control-label" for="login">{if $prefs.login_is_email eq 'y'}{tr}Email{/tr}{else}{tr}User{/tr}{/if}</label>
 						<div class="col-sm-7 col-md-6">
 							{if $userinfo.login neq 'admin'}
-								<input type="text" id='login' class="form-control" name='login' value="{$userinfo.login|escape}">
+								<input type="text" id='login' class="form-control" name='login' value="{$userinfo.login|escape}"{if $prefs.feature_intertiki_server eq 'y'} disabled="disabled"{/if}>
 								{if $prefs.login_is_email eq 'y'}
 									<br>
 									<em>{tr}Use the email as username{/tr}.</em>
@@ -426,14 +401,10 @@
 									{icon name='warning' alt="{tr}Warning{/tr}" style="vertical-align:middle"}
 									<em>{tr}The username will be an autogenerated number based on the user ID if no actual username is provided when the user is created. Do not change these numeric usernames.{/tr}</em>
 								{/if}
-								{if isset($userinfo.userId) && $userinfo.userId}
+								{if not empty($userinfo.userId) and $prefs.feature_intertiki eq 'y'}
 									<p>
 										{icon name='warning' alt="{tr}Warning{/tr}" style="vertical-align:middle"}
-										<em>{tr}Warning: changing the username could require the user to change his or her password (for user registered with an old Tiki&lt;=1.8){/tr}</em>
-										{if $prefs.feature_intertiki_server eq 'y'}
-											<br>
-											<i>{tr}Warning: it will create a problem with Intertiki slave sites that use this one as master{/tr}</i>
-										{/if}
+										<em>{tr}Changing username is disabled for Intertiki sites{/tr}</em>
 									</p>
 								{/if}
 							{else}
@@ -461,7 +432,7 @@
 						<div class="form-group">
 							<label class="col-sm-3 col-md-2 control-label" for="pass1">{tr}New Password{/tr}</label>
 							<div class="col-sm-7 col-md-6">
-								<input type="password" class="form-control" placeholder="New Password" name="pass" id="pass1">
+								<input type="password" class="form-control" placeholder="{tr}New Password{/tr}" name="pass" id="pass1">
 								<div style="margin-left:5px;">
 									<div id="mypassword_text">{icon name='ok' istyle='display:none'}{icon name='error' istyle='display:none' } <span id="mypassword_text_inner"></span></div>
 									<div id="mypassword_bar" style="font-size: 5px; height: 2px; width: 0px;"></div>
@@ -474,7 +445,7 @@
 						<div class="form-group">
 							<label class="col-sm-3 col-md-2 control-label" for="pass2">{tr}Repeat Password{/tr}</label>
 							<div class="col-sm-7 col-md-6">
-								<input type="password" class="form-control" name="passAgain" id="pass2" placeholder="Repeat Password">
+								<input type="password" class="form-control" name="passAgain" id="pass2" placeholder="{tr}Repeat Password{/tr}">
 								<div id="mypassword2_text">
 									<div id="match" style="display:none">
 										{icon name='ok' istyle='color:#0ca908'} {tr}Passwords match{/tr}
@@ -485,12 +456,12 @@
 								</div>
 							</div>
 						</div>
-						{if ! ( $prefs.auth_method eq 'ldap' and ( $prefs.ldap_create_user_tiki eq 'n' or $prefs.ldap_skip_admin eq 'y' ) and $prefs.ldap_create_user_ldap eq 'n' )}
+						{if $prefs.generate_password eq 'y' and not ( $prefs.auth_method eq 'ldap' and ( $prefs.ldap_create_user_tiki eq 'n' or $prefs.ldap_skip_admin eq 'y' ) and $prefs.ldap_create_user_ldap eq 'n')}
 							<div class="form-group">
-								<div class="col-sm-3 col-sm-offset-3 col-md-2 col-md-offset-2">
+								<div class="col-sm-3 col-sm-offset-3 col-md-3 col-md-offset-2">
 									<span id="genPass">{button href="#" _text="{tr}Generate a password{/tr}"}</span>
 								</div>
-								<div class="col-sm-3 col-md-2">
+								<div class="col-sm-3 col-md-3">
 									<input id='genepass' class="form-control" name="genepass" type="text" tabindex="0" style="display:none">
 								</div>
 							</div>
@@ -553,15 +524,17 @@
 							<div class="col-md-10">
 								{if $usersitemid}
 									<a href="{bootstrap_modal controller=tracker action=update_item trackerId=$userstrackerid itemId=$usersitemid}"
-									   onclick="$('[data-toggle=popover]').popover('hide');" class="btn btn-default edit-usertracker">
+										onclick="$('[data-toggle=popover]').popover('hide');" class="btn btn-default edit-usertracker"
+									>
 										{tr}Edit Item{/tr}
 									</a>
-									<a href="{$usersitemid|sefurl:trackeritem}" class="btn btn-info">
+									<a href="{bootstrap_modal controller=tracker action=view id=$usersitemid}" class="btn btn-info">
 										{tr}View item{/tr}
 									<a>
 								{else}
 									<a href="{bootstrap_modal controller=tracker action=insert_item trackerId=$userstrackerid forced=$usersTrackerForced}"
-									   onclick="$('[data-toggle=popover]').popover('hide');" class="btn btn-default insert-usertracker">
+										onclick="$('[data-toggle=popover]').popover('hide');" class="btn btn-default insert-usertracker"
+									>
 										{tr}Create Item{/tr}
 									</a>
 								{/if}
@@ -583,39 +556,39 @@
 					{if isset($userinfo.userId) && $userinfo.userId != 0}
 						<table class="table table-striped table-condensed small">
 
-						{if $userinfo.created neq $userinfo.registrationDate}
+							{if $userinfo.created neq $userinfo.registrationDate}
+								<tr>
+									<td>{tr}Created{/tr}</td>
+									<td>{$userinfo.created|tiki_long_datetime}</td>
+								</tr>
+							{/if}
 							<tr>
-								<td>{tr}Created{/tr}</td>
-								<td>{$userinfo.created|tiki_long_datetime}</td>
+								<td>{tr}Registered{/tr}</td><td>{if $userinfo.registrationDate}{$userinfo.registrationDate|tiki_long_datetime}{/if}</td>
 							</tr>
-						{/if}
-						<tr>
-							<td>{tr}Registered{/tr}</td><td>{if $userinfo.registrationDate}{$userinfo.registrationDate|tiki_long_datetime}{/if}</td>
-						</tr>
-						<tr>
-							<td>{tr}Pass confirmed{/tr}</td><td>{if isset($userinfo.pass_confirm) && $userinfo.pass_confirm}{$userinfo.pass_confirm|tiki_long_datetime|default:'Never'}{/if}</td>
-						</tr>
+							<tr>
+								<td>{tr}Pass confirmed{/tr}</td><td>{if isset($userinfo.pass_confirm) && $userinfo.pass_confirm}{$userinfo.pass_confirm|tiki_long_datetime|default:'Never'}{/if}</td>
+							</tr>
 
-						{if $prefs.email_due > 0}
+							{if $prefs.email_due > 0}
+								<tr>
+									<td style="white-space: nowrap;">{tr}Email confirmed{/tr}</td>
+									<td>
+										{if $userinfo.email_confirm}
+											({tr _0=$userinfo.daysSinceEmailConfirm}%0 days ago{/tr})
+										{else}
+											{tr}Never{/tr}
+										{/if}
+									</td>
+								</tr>
+							{/if}
 							<tr>
-								<td style="white-space: nowrap;">{tr}Email confirmed{/tr}</td>
-								<td>
-									{if $userinfo.email_confirm}
-										({tr _0=$userinfo.daysSinceEmailConfirm}%0 days ago{/tr})
-									{else}
-										{tr}Never{/tr}
-									{/if}
-								</td>
+								<td>{tr}Current Login{/tr}</td>
+								<td>{if $userinfo.currentLogin}{$userinfo.currentLogin|tiki_long_datetime|default:'Never'}{/if}</td>
 							</tr>
-						{/if}
-						<tr>
-							<td>{tr}Current Login{/tr}</td>
-							<td>{if $userinfo.currentLogin}{$userinfo.currentLogin|tiki_long_datetime|default:'Never'}{/if}</td>
-						</tr>
-						<tr>
-							<td>{tr}Last Login{/tr}</td>
-							<td>{if $userinfo.lastLogin}{$userinfo.lastLogin|tiki_long_datetime|default:'Never'}{/if}</td>
-						</tr>
+							<tr>
+								<td>{tr}Last Login{/tr}</td>
+								<td>{if $userinfo.lastLogin}{$userinfo.lastLogin|tiki_long_datetime|default:'Never'}{/if}</td>
+							</tr>
 						</table>
 					{/if}
 
@@ -775,9 +748,9 @@
 						<div class="col-sm-10 col-sm-offset-4 col-md-10 col-md-offset-4">
 							<input
 								type="submit"
-								class="btn btn-primary confirm-submit"
+								class="btn btn-primary service-submit"
 								form="tempuser"
-								formaction="{bootstrap_modal controller=user action=invite_tempuser}"
+								formaction="{service controller=user action=invite_tempuser}"
 								value="{tr}Invite{/tr}"
 							>
 						</div>

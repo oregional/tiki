@@ -28,13 +28,13 @@ class LessCompileCommand  extends Command
 			)
 			->addOption(
 				'all',
-				null,
+				'a',
 				InputOption::VALUE_NONE,
 				'Build all less files, including all built-in "Tiki" themes'
 			)
 			->addOption(
 				'only',
-				null,
+				'o',
 				InputOption::VALUE_OPTIONAL,
 				'Only compile named theme or themes, separated by commas'
 			)
@@ -43,6 +43,12 @@ class LessCompileCommand  extends Command
 				null,
 				InputOption::VALUE_NONE,
 				'Do not compile the theme options if present'
+			)
+			->addOption(
+				'check-timestamps',
+				't',
+				InputOption::VALUE_NONE,
+				'Compare the modification timesof the LESS and CSS files before compiling (does not check for included LESS files)'
 			)
 		;
 	}
@@ -55,6 +61,8 @@ class LessCompileCommand  extends Command
 			$all = true;
 		}
 		$type = $input->getArgument('location');
+
+		$checkTimestamps = $input->getOption('check-timestamps');
 
 		$cachelib = \TikiLib::lib('cache');
 
@@ -71,6 +79,7 @@ class LessCompileCommand  extends Command
                     if (!empty($only) && ! in_array($themename, $only) && ! $all) {
                         continue;
                     }
+					$files = [];
 
 					if ($themename === 'base_files') {
 						$less_file = "themes/$themename/less/tiki_base.less";
@@ -79,14 +88,15 @@ class LessCompileCommand  extends Command
 						$less_file = "themes/$themename/less/$themename.less";
 						$css_file = "themes/$themename/css/$themename.css";
 					}
-                    if (! file_exists($less_file)) {
-                        continue;
+                    if (file_exists($less_file) && (! file_exists($css_file) || ! $checkTimestamps || filemtime($css_file) < filemtime($less_file))) {
+						$files[] = ['less' => $less_file, 'css' => $css_file];
                     }
-                    if (file_exists($css_file && filemtime($css_file) >= filemtime($less_file))) {
-                        continue;
-                    }
-					$files = [];
-					$files[] = ['less' => $less_file, 'css' => $css_file];
+
+					$less_file = "themes/$themename/less/newsletter.less";
+					$css_file = "themes/$themename/css/newsletter.css";
+					if (file_exists($less_file) && (! file_exists($css_file) || ! $checkTimestamps || filemtime($css_file) < filemtime($less_file))) {
+						$files[] = ['less' => $less_file, 'css' => $css_file];
+					}
 
 					if (! $input->getOption('without-options') && is_dir("themes/$themename/options")) {
 
@@ -96,19 +106,15 @@ class LessCompileCommand  extends Command
 							}
 							$optionname = $fileInfo2->getFilename();
 							$less_file = "themes/$themename/options/$optionname/less/$optionname.less";
-							if (! file_exists($less_file)) {
-								continue;
-							}
 							$css_file = "themes/$themename/options/$optionname/css/$optionname.css";
-							if (file_exists($css_file && filemtime($css_file) >= filemtime($less_file))) {
-								continue;
+							if (file_exists($less_file) && (! file_exists($css_file) || ! $checkTimestamps || filemtime($css_file) < filemtime($less_file))) {
+								$files[] = ['less' => $less_file, 'css' => $css_file];
 							}
-							$files[] = ['less' => $less_file, 'css' => $css_file];
 						}
 					}
 
 					foreach ($files as $file) {
-						$command = "php vendor/oyejorge/less.php/bin/lessc {$file['less']} {$file['css']}";
+						$command = "php vendor_bundled/vendor/oyejorge/less.php/bin/lessc {$file['less']} {$file['css']}";
 						$output->writeln($command);
 						$result = shell_exec($command);
 						$result = str_replace(array("\r", "\n"), '', $result);

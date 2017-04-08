@@ -465,7 +465,7 @@ class MenuLib extends TikiLib
 				if (empty($params['id']) && !empty($params['structureId'])) {
 					$params['id'] = $params['structureId'];
 				}
-				$ck = getCookie('menu'.$params['id'].'__'.$option['position'], 'menu');
+				$ck = isset($option['position']) ? getCookie('menu'.$params['id'].'__'.$option['position'], 'menu'): 'o';
 				if ($prefs['javascript_enabled'] === 'n') {
 					$option['open'] = true;
 				} elseif ($ck === 'o') {
@@ -626,7 +626,7 @@ class MenuLib extends TikiLib
 			$resourceGroups = array_filter(explode(',', $res['groupname'] ?: ''));
 			if (!$do_not_parse) {
 				if (isset($menu['parse']) && $menu['parse'] === 'y') {
-					$res['name'] = $wikilib->parse_data($res['name']);
+					$res['name'] = TikiLib::lib('parser')->parse_data($res['name']);
 				} else {
 					$res['name'] = htmlspecialchars($res['name']);
 				}

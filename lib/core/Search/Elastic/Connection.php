@@ -8,6 +8,7 @@
 class Search_Elastic_Connection
 {
 	private $dsn;
+	private $version;
 	private $dirty = array();
 
 	private $indices = array();
@@ -17,6 +18,7 @@ class Search_Elastic_Connection
 	function __construct($dsn)
 	{
 		$this->dsn = rtrim($dsn, '/');
+		$this->version = null;
 	}
 
 	function __destruct()
@@ -38,7 +40,12 @@ class Search_Elastic_Connection
 	{
 		try {
 			$result = $this->get('/');
-			if (! isset($result->ok)) {
+
+			if (isset($result->version)) {	// elastic v2
+				$result->ok = true;
+				$result->status = 200;
+
+			} else if (! isset($result->ok)) {
 				$result->ok = $result->status === 200;
 			}
 
@@ -51,6 +58,25 @@ class Search_Elastic_Connection
 		}
 	}
 
+	/**
+	 * gets the elasticsearch version string, e.g. 2.2.0
+	 *
+	 * @return float
+	 */
+	function getVersion() {
+		if( $this->version === null ) {
+			$status = $this->getStatus();
+			
+			if( !empty($status->version->number) ) {
+				$this->version = (float) $status->version->number;
+			} else {
+				$this->version = 0;
+			}
+		}
+		
+		return $this->version;
+	}
+
 	function getIndexStatus($index = '')
 	{
 		$index = $index ? '/' . $index : '';
@@ -61,7 +87,7 @@ class Search_Elastic_Connection
 
 			// in elastic v2 _status has been replaced by _stats so try that next...
 			if (strpos($message, '[_status]') === false) {	// another error
-				TikiLib::lib('errorreport')->report($message . ' for index ' . $index);
+				Feedback::error($message . ' for index ' . $index, 'session');
 				return null;
 			}
 		}
@@ -71,7 +97,7 @@ class Search_Elastic_Connection
 			$message = $e->getMessage();
 
 			if (strpos($message, 'no such index') === false) {	// suppress no such index "errors"
-				TikiLib::lib('errorreport')->report($message . ' for index ' . $index);
+				Feedback::error($message . ' for index ' . $index, 'session');
 			}
 			return null;
 		}
@@ -98,10 +124,22 @@ class Search_Elastic_Connection
 			if (! empty($this->dirty[$index])) {
 				$this->refresh($index);
 			}
+			$this->validate($index, $query);
 		}
 
 		$index = implode(',', $indices);
 		return $this->get("/$index/_search?" . http_build_query($args, '', '&'), json_encode($query));
+	}
+
+	function validate($index, array $query) {
+		$result = $this->get("/$index/_validate/query?explain=true", json_encode(['query' => $query['query']]));
+		if( isset($result->valid) && $result->valid === false ) {
+			foreach( $result->explanations as $explanation ) {
+				if( $explanation->valid === false ) {
+					throw new Search_Elastic_QueryParsingException($explanation->error);
+				}
+			}
+		}
 	}
 
 	function scroll($scrollId, array $args = [])
@@ -111,12 +149,20 @@ class Search_Elastic_Connection
 
 	function storeQuery($index, $name, $query)
 	{
-		return $this->rawIndex($index, '.percolator', $name, $query);
+		if( $this->getVersion() >= 5 ) {
+			return $this->rawIndex($index, 'percolator', $name, $query);
+		} else {
+			return $this->rawIndex($index, '.percolator', $name, $query);
+		}
 	}
 
 	function unstoreQuery($index, $name)
 	{
-		return $this->delete("/$index/.percolator/$name");
+		if( $this->getVersion() >= 5 ) {
+			return $this->delete("/$index/percolator/$name");
+		} else {
+			return $this->delete("/$index/.percolator/$name");
+		}
 	}
 
 	function percolate($index, $type, $document)
@@ -126,10 +172,27 @@ class Search_Elastic_Connection
 		}
 
 		$type = $this->simplifyType($type);
-		return $this->get("/$index/$type/_percolate", json_encode(array(
-			'doc' => $document,
-			'prefer_local' => false,
-		)));
+		if( $this->getVersion() >= 5 ) {
+			$result = $this->search($index, [
+				'query' => [
+					'percolate' => [
+						'field' => 'query',
+						'document_type' => $type,
+						'document' => $document
+					],
+				],
+			]);
+			return array_map(function ($item) {
+				return $item->_id;
+			}, $result->hits->hits);
+		} else {
+			$result = $this->get("/$index/$type/_percolate", json_encode(array(
+				'doc' => $document,
+			)));
+			return array_map(function ($item) {
+				return $item->_id;
+			}, $result->matches);
+		}
 	}
 
 	function index($index, $type, $id, array $data)
@@ -281,7 +344,11 @@ class Search_Elastic_Connection
 	private function aliasExists($index)
 	{
 		try {
-			$this->get("/_alias/$index", "");
+			$response = $this->get("/_alias/$index", "");
+			$response = json_decode($response);
+			if( !empty($response->status) && $response->status == 404 ) {
+				return false;
+			}
 		} catch (Search_Elastic_Exception $e) {
 			return false;
 		}
@@ -290,6 +357,8 @@ class Search_Elastic_Connection
 
 	private function createIndex($index, callable $getIndex)
 	{
+		global $prefs;
+
 		if ($this->aliasExists($index)) {
 			return;
 		}
@@ -301,6 +370,19 @@ class Search_Elastic_Connection
 		} catch (Search_Elastic_Exception $e) {
 			// Index already exists: ignore
 		}
+
+		if( $this->getVersion() >= 5 ) {
+			$this->put("/$index/percolator/_mapping", json_encode([
+				'properties' => [
+					'query' => [
+						'type' => 'percolator'
+					],
+				],
+			]));
+			$this->put("/$index/_settings", json_encode([
+				'index.mapping.total_fields.limit' => $prefs['unified_elastic_field_limit'],
+			]));
+		}
 	}
 
 	private function get($path, $data = null)
@@ -311,6 +393,7 @@ class Search_Elastic_Connection
 				$client->setRawBody($data);
 			}
 			$client->setMethod(Zend\Http\Request::METHOD_GET);
+			$client->setHeaders(['Content-Type: application/json']);
 			$response = $client->send();
 			return $this->handleResponse($response);
 		} catch (Zend\Http\Exception\ExceptionInterface $e) {
@@ -324,6 +407,7 @@ class Search_Elastic_Connection
 			$client = $this->getClient($path);
 			$client->getRequest()->setMethod(Zend\Http\Request::METHOD_PUT);
 			$client->getRequest()->setContent($data);
+			$client->setHeaders(['Content-Type: application/json']);
 			$response = $client->send();
 
 			return $this->handleResponse($response);
@@ -338,6 +422,7 @@ class Search_Elastic_Connection
 			$client = $this->getClient($path);
 			$client->getRequest()->setMethod(Zend\Http\Request::METHOD_POST);
 			$client->getRequest()->setContent($data);
+			$client->setHeaders(['Content-Type: application/json']);
 			$response = $client->send();
 
 			return $this->handleResponse($response);
@@ -351,6 +436,7 @@ class Search_Elastic_Connection
 		try {
 			$client = $this->getClient($path);
 			$client->getRequest()->setMethod(Zend\Http\Request::METHOD_DELETE);
+			$client->setHeaders(['Content-Type: application/json']);
 			$response = $client->send();
 
 			return $this->handleResponse($response);

@@ -18,6 +18,20 @@ if (!isset($_REQUEST["forumId"])) {
 
 $smarty->assign('forumId', $_REQUEST["forumId"]);
 $commentslib = TikiLib::lib('comments');
+
+// Approval from email
+if (isset($_REQUEST["ahash"]) && isset($_REQUEST["qId"])) {
+	$msg_info = $commentslib->queue_get($_REQUEST['qId']);
+	$ahash = md5($_REQUEST['qId'] . $msg_info['title'] . $msg_info['data'] . $msg_info['user']);
+	if ($_REQUEST["ahash"] == $ahash) {
+		$commentslib->approve_queued($_REQUEST['qId']);
+		echo ("You have now approved the post by " . htmlspecialchars(TikiLib::lib('user')->clean_user($msg_info['user'])));
+	} else {
+		echo ("Error: Unable to approve queued post.");
+	}
+	die;
+}
+
 $forum_info = $commentslib->get_forum($_REQUEST["forumId"]);
 
 //Check individual permissions for this forum
@@ -64,19 +78,19 @@ if (isset($_REQUEST['qId'])) {
 		$smarty->assign('form', 'n');
 
 		if (!isset($_REQUEST['summary']))
-			$_REQUEST['summary'] = '';
+			$_REQUEST['summary'] = $msg_info['summary'];
 
 		if (!isset($_REQUEST['topic_smiley']))
-			$_REQUEST['topic_smiley'] = '';
+			$_REQUEST['topic_smiley'] = $msg_info['topic_smiley'];
 
 		if (!isset($_REQUEST['type']))
-			$_REQUEST['type'] = '';
+			$_REQUEST['type'] = $msg_info['type'];
 
 		if (!isset($_REQUEST['topic_title']))
-			$_REQUEST['topic_title'] = '';
+			$_REQUEST['topic_title'] = $msg_info['topic_title'];
 
 		if (!isset($_REQUEST['in_reply_to']))
-			$_REQUEST['in_reply_to'] = '';
+			$_REQUEST['in_reply_to'] = $msg_info['in_reply_to'];
 
 		if (!isset($_REQUEST['parentId']))
 			$_REQUEST['parentId'] = $msg_info['parentId'];
@@ -90,9 +104,9 @@ if (isset($_REQUEST['qId'])) {
 		$commentslib->replace_queue(
 			$_REQUEST['qId'],
 			$_REQUEST['forumId'],
-			'forum' . $_REQUEST['forumId'],
+			'forum:' . $_REQUEST['forumId'],
 			$_REQUEST['parentId'],
-			$user,
+			$msg_info['user'],
 			$_REQUEST['title'],
 			$_REQUEST['data'],
 			$_REQUEST['type'],
@@ -137,9 +151,9 @@ if (isset($_REQUEST['qId'])) {
 		$commentslib->replace_queue(
 			$_REQUEST['qId'],
 			$_REQUEST['forumId'],
-			'forum' . $_REQUEST['forumId'],
+			'forum:' . $_REQUEST['forumId'],
 			$_REQUEST['parentId'],
-			$user,
+			$msg_info['user'],
 			$_REQUEST['title'],
 			$_REQUEST['data'],
 			$_REQUEST['type'],

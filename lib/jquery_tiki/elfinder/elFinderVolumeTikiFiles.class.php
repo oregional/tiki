@@ -938,16 +938,31 @@ class elFinderVolumeTikiFiles extends elFinderVolumeDriver
 		//fclose($fp);
 
 		$galleryId = $this->pathToId($dir);
+		//$image_x=640;
+		//$image_y=480;
 		$fileId = 0;
 
 		// elFinder assigns standard mime types like application/vnd.ms-word to ms doc, we use application/msword etc in tiki for some obscure reason :(
 		if (strpos($stat['mime'], 'application/vnd.ms-') !== false) {
 			$stat['mime'] = str_replace('application/vnd.ms-', 'application/ms', $stat['mime']);
+		} else if ($stat['mime'] === 'unknown') {
+			if (strpos($name, '.h5p') === strlen($name) - 4) {	// cover some Tiki-specific mime types
+				$stat['mime'] = 'application/zip';
+			}
 		}
-
-		$perms = TikiLib::lib('tiki')->get_perm_object($galleryId, 'file gallery', TikiLib::lib('filegal')->get_file_gallery_info($galleryId));
+        $gal_info=TikiLib::lib('filegal')->get_file_gallery_info($galleryId);
+		
+		$perms = TikiLib::lib('tiki')->get_perm_object($galleryId, 'file gallery', $gal_info);
 		if ($perms['tiki_p_upload_files'] === 'y') {
-
+               //checking if gallery has dimensions restrictions
+			$image_x=$gal_info["image_max_size_x"];
+			$image_y=$gal_info["image_max_size_y"];
+			
+			if(!$image_x)
+			   $image_x=NULL;
+			if(!$image_y) 
+			   $image_y=NULL;  
+			
 			$fileId = $this->filegallib->upload_single_file(
 				array(
 					'galleryId' => $galleryId,
@@ -956,7 +971,10 @@ class elFinderVolumeTikiFiles extends elFinderVolumeDriver
 				$name,
 				$size,
 				$stat['mime'],
-				$data
+				$data,
+				'',
+				$image_x,
+				$image_y
 			);
 		}
 
@@ -1122,4 +1140,16 @@ class elFinderVolumeTikiFiles extends elFinderVolumeDriver
 		return false;
 	}
 
+	/**
+	 * Change file mode (chmod)
+	 *
+	 * @param  string $path file path
+	 * @param  string $mode octal string such as '0755'
+	 * @return bool
+	 * @author David Bartle,
+	 **/
+	protected function _chmod($path, $mode)
+	{
+		// Not used in Tiki
+	}
 } // END class

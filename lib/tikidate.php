@@ -151,6 +151,15 @@ class TikiDate
 		return $tz;
 	}
 
+	static function tzServerOffset( $display_tz = null ) {
+		if ( !$display_tz ) {
+			$display_tz = 'UTC';
+		}
+		$tz = new DateTimeZone($display_tz);
+		$d = new DateTime('now', $tz);
+		return $tz->getOffset($d);
+	}
+
     /**
      * @param $format
      * @param bool $is_strftime_format
@@ -387,13 +396,14 @@ class TikiDate
 	}
 
 	/**
-	 * Checks that the string is either a timezone identifier or an abbreviation.
+	 * Checks that the string is a timezone identifier (Note: timezone abbreviations
+	 * are not always valid timezones and don't handle daylight saving correctly). 
 	 * display_timezone can be manually set to an identifier in preferences but
 	 * will be an [uppercase] abbreviation if auto-detected by JavaScript.
 	 */
 	static function TimezoneIsValidId($id)
 	{
-		return in_array(strtolower($id), self::getTimezoneAbbreviations()) || in_array($id, self::getTimezoneIdentifiers());
+		return in_array($id, self::getTimezoneIdentifiers());
 	}
 
 	static function getTimezoneAbbreviations()

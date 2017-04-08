@@ -83,7 +83,8 @@ class AuthTokens
 			array( $token )
 		)->fetchRow();
 
-		global $prefs, $full, $smarty, $tikiroot;		// $full defined in route.php
+		global $prefs, $full, $tikiroot;		// $full defined in route.php
+		$smarty = TikiLib::lib('smarty');
 		$sefurl = '';
 
 		if ($prefs['feature_sefurl'] === 'y') {
@@ -94,8 +95,13 @@ class AuthTokens
 			$sefurl = $tikiroot . smarty_modifier_sefurl($sefurl, $sefurlTypeMap[$_GET[0]]);
 		}
 
+		// add an extra conversion to prevent false positives due to former missmatches
+		// in cases of "/tikiroot/My Page" vs "/tikiroot/My+Page"
+		$entry_no_tikiroot = substr($data['entry'], strlen($tikiroot));
+		$entry_encoded_no_tikiroot = urlencode($entry_no_tikiroot);
+		$full_entry_encoded = $tikiroot . $entry_encoded_no_tikiroot;
 		// entry doesn't match "or" sefurl feature is in use but that also doesn't match
-		if ( $data['entry'] != $entry && $sefurl && $data['entry']  !== $sefurl ) {
+		if ( $data['entry'] != $entry || ($sefurl && $data['entry']  !== $sefurl && $full_entry_encoded !== $sefurl )) {
 			return null;
 		}
 
@@ -176,7 +182,7 @@ class AuthTokens
 	function createToken( $entry, array $parameters, array $groups, array $arguments = array() )
 	{
 		if ( !empty($arguments['timeout']) ) {
-			$timeout = $arguments['timeout'];
+			$timeout = min($this->maxTimeout, $arguments['timeout']);
 		} else {
 			$timeout = $this->maxTimeout;
 		}

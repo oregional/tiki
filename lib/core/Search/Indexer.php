@@ -82,9 +82,9 @@ class Search_Indexer
 
 	public function update(array $objectList)
 	{
-		$this->searchIndex->invalidateMultiple($objectList);
 
-		foreach ($objectList as $object) {
+		foreach (array_unique($objectList, SORT_REGULAR) as $object) {
+			$this->searchIndex->invalidateMultiple(array($object));
 			$this->addDocument($object['object_type'], $object['object_id']);
 		}
 
@@ -100,13 +100,45 @@ class Search_Indexer
 			try {
 				$this->searchIndex->addDocument($entry);
 			} catch (Exception $e) {
-				$msg = tr('Indexing failed while processing "%0" (type %1) with the error "%2"', $objectId, $objectType, $e->getMessage());
-				TikiLib::lib('errorreport')->report($msg);
+				$msg = tr('Indexing failed while processing "%0" (type %1) with the error "%2"', $objectId, $objectType, 
+					$e->getMessage());
+				Feedback::error($msg, 'session');
 				$this->log->err($msg);
 			}
 		}
 
 		return count($data);
+	}
+
+
+	/**
+	 * Return all supported content types and their fields
+	 *
+	 * @return array
+	 */
+	public function getAvailableFields()
+	{
+		$output = [
+			'global' => [],
+			'object_types' => [],
+		];
+		/**
+		 * @var  string $objectType
+		 * @var  Search_ContentSource_Interface $contentSource
+		 */
+		foreach ($this->contentSources as $objectType => $contentSource) {
+			$output['object_types'][$objectType] = $contentSource->getProvidedFields();
+			$output['global'] = array_unique(
+				array_merge(
+					$output['global'],
+					array_keys(
+						array_filter($contentSource->getGlobalFields())
+					)
+				)
+			);
+		}
+
+		return $output;
 	}
 
 	public function getDocuments($objectType, $objectId)
@@ -122,7 +154,8 @@ class Search_Indexer
 
 			if (false !== $data = $contentSource->getDocument($objectId, $typeFactory)) {
 				if ($data === null) {
-					TikiLib::lib('errorreport')->report(tr('Object %0 type %1 returned null from getDocument function', $objectId, $objectType));
+					Feedback::error(tr('Object %0 type %1 returned null from getDocument function', $objectId, 
+						$objectType), 'session');
 					$data = array();
 				}
 				if (! is_int(key($data))) {

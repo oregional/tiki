@@ -9,7 +9,7 @@ function prefs_zend_list()
 {
 	return array(
 		'zend_mail_smtp_server' => array(
-			'name' => tra('SMTP Server'),
+			'name' => tra('SMTP server'),
 			'type' => 'text',
 			'size' => '20',
 			'perspective' => false,
@@ -84,12 +84,23 @@ function prefs_zend_list()
 			'default' => 'localhost',
 		),
 		'zend_mail_queue' => array(
-			'name' => tra('Mail Delivery'),
-			'description' => tra('When set to Queue, messages will be stored in the database. Requires using the shell script ./sendmail.php to be run for actual delivery. Only works with SMTP mail.'),
+			'name' => tra('Mail delivery'),
+			'description' => tr('When set to Queue, messages will be stored in the database. Requires using the shell script %0 to be run for actual delivery. Only works with SMTP mail.',
+								'<code>php console.php mail-queue:send</code>'),
 			'type' => 'list',
 			'options' => array(
 				'' => tra('Send immediately'),
 				'y' => tra('Queue'),
+			),
+			'default' => '',
+		),
+		'zend_http_sslverifypeer' => array(
+			'name' => tra('Verify HTTPS certificates of remote servers'),
+			'description' => tra('When set to enforce, the server will fail to connect over HTTPS to a remote server that do not have a SSL certificate that is valid and can be verified against the local list of Certificate Authority (CA)'),
+			'type' => 'list',
+			'options' => array(
+				'' => tra('Do not enforce verification'),
+				'y' => tra('Enforce verification'),
 			),
 			'default' => '',
 		),

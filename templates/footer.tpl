@@ -27,7 +27,7 @@
 	{include file="tiki-tracker_force_fill.tpl"}
 {/if}
 {if $module_pref_errors|default:null}
-	<div class="container modules">
+	<div class="container{if isset($smarty.session.fullscreen) && $smarty.session.fullscreen eq 'y'}-fluid{/if} modules">
 		{remarksbox type="warning" title="{tr}Module errors{/tr}"}
 			{tr}The following modules could not be loaded{/tr}
 			<form method="post" action="tiki-admin.php">
@@ -45,7 +45,7 @@
 {if (! isset($display) or $display eq '')}
 	{if count($phpErrors)}
 		{if ($prefs.error_reporting_adminonly eq 'y' and $tiki_p_admin eq 'y') or $prefs.error_reporting_adminonly eq 'n'}
-	<div class="container">
+	<div class="container{if isset($smarty.session.fullscreen) && $smarty.session.fullscreen eq 'y'}-fluid{/if}">
 		{button _ajax="n" _id="show-errors-button" _onclick="flip('errors');return false;" _text="{tr}Show php error messages{/tr}"}
 		<div id="errors" class="alert alert-warning" style="display:{if (isset($smarty.session.tiki_cookie_jar.show_errors) and $smarty.session.tiki_cookie_jar.show_errors eq 'y') or $prefs.javascript_enabled ne 'y'}block{else}none{/if};">
 			&nbsp;{listfilter selectors='#errors>div.rbox-data'}
@@ -91,4 +91,18 @@ if (confirm("A problem occurred while detecting JavaScript on this page, click o
 {/if}
 {if $prefs.feature_endbody_code}
 	{eval var=$prefs.feature_endbody_code}
+{/if}
+{if $prefs.site_piwik_code}
+	{eval var=$prefs.site_piwik_code}
+{/if}
+{if $prefs.webcron_enabled == 'y' && $prefs.webcron_type != 'url'}
+	<script type="text/javascript">
+		$(window).on('load', function () {
+			function cron() {
+				$.get("cron.php?token={$prefs.webcron_token|escape:url}");
+			}
+			setTimeout(cron, 500);
+			setInterval(cron, 60000);
+		});
+	</script>
 {/if}

@@ -21,7 +21,7 @@ class Tracker_Item
 	 */
 	private $definition;
 
-	private $owner;
+	private $owners;
 	private $ownerGroup;
 	private $perms;
 
@@ -140,7 +140,7 @@ class Tracker_Item
 		$users = array();
 
 		if ($this->definition->getConfiguration('writerCan' . $operation, 'n') == 'y') {
-			$users[] = $this->owner;
+			$users = array_unique(array_merge($users, $this->owners));
 		}
 
 		if ($this->definition->getConfiguration('writerGroupCan' . $operation, 'n') == 'y' && $this->ownerGroup && in_array($this->ownerGroup, $this->perms->getGroups())) {
@@ -157,7 +157,7 @@ class Tracker_Item
 			return false;
 		}
 
-		if ($this->definition->getConfiguration('writerCan' . $operation, 'n') == 'y' && $user && $this->owner && $user === $this->owner) {
+		if ($this->definition->getConfiguration('writerCan' . $operation, 'n') == 'y' && $user && $this->owners && in_array($user, $this->owners)) {
 			return true;
 		}
 
@@ -172,7 +172,7 @@ class Tracker_Item
 	{
 		global $user;
 		if ($this->definition->getConfiguration('userCanSeeOwn') == 'y') {
-			return !empty($user) && $user === $this->owner;
+			return !empty($user) && $this->owners && in_array($user, $this->owners);
 		}
 
 		return false;
@@ -180,7 +180,7 @@ class Tracker_Item
 
 	private function initialize()
 	{
-		$this->owner = $this->getItemOwner();
+		$this->owners = $this->getItemOwners();
 		$this->ownerGroup = $this->getItemGroupOwner();
 
 		$this->perms = $this->getItemPermissions();
@@ -206,37 +206,38 @@ class Tracker_Item
 	{
 		if (! $this->isNew()) {
 			$itemId = $this->info['itemId'];
-
-			$perms = Perms::get('trackeritem', $itemId);
-			$resolver = $perms->getResolver();
-			if (method_exists($resolver, 'from') && $resolver->from() != '') {
-				// Item permissions are valid if they are assigned directly to the object or category, otherwise
-				// tracker permissions are better than global ones.
-				return $perms;
-			}
+			return Perms::get('trackeritem', $itemId);
 		}
 	}
 
-	private function getItemOwner()
+	private function getItemOwners()
 	{
 		if (!is_object($this->definition)) {
-			return; // TODO: This is a temporary fix, we should be able to getItemOwner always
+			return array(); // TODO: This is a temporary fix, we should be able to getItemOwners always
 		}
 
 		if ($this->isNew()) {
 			global $user;
-			return $user;
+			return array($user);
 		}
 
 
-		if (isset($this->info['itemUser'])) {
+		if (isset($this->info['itemUsers'])) {
 			// Used by TRACKERLIST - not all data is loaded, but this is loaded separately
-			return $this->info['itemUser'];
+			return $this->info['itemUsers'];
 		}
 
-		$userField = $this->definition->getUserField();
-		if ($userField) {
-			return $this->getValue($userField);
+		$owners = array_map(function($field) {
+
+			$owners = $this->getValue($field);
+			return TikiLib::lib('trk')->parse_user_field($owners);
+			
+		}, $this->definition->getItemOwnerFields());
+
+		if( $owners ) {
+			return call_user_func_array('array_merge', $owners);
+		} else {
+			return array();
 		}
 	}
 
@@ -316,8 +317,8 @@ class Tracker_Item
 		$isHidden = $field['isHidden'];
 		$editableBy = $field['editableBy'];
 
-		if ($isHidden == 'i') {
-			// Immutable after creation
+		if ($isHidden == 'i' || $isHidden == 'a') {
+			// Immutable or editable by admin only after creation
 			return $this->isNew();
 		} elseif ($isHidden == 'c') {
 			// Creator or creator group check when field can be modified by creator only
@@ -497,7 +498,7 @@ class Tracker_Item
 				$data = $handler->getFieldData();
 
 				$permName = $field['permName'];
-				$out[$permName] = $data['value'];
+				$out[$permName] = isset($data['value']) ? $data['value'] : null;
 			}
 		}
 

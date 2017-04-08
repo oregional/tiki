@@ -187,6 +187,7 @@ class ThemeLib extends TikiLib
 				case 'gif':
 				case 'jpg':
 				case 'jpeg':
+                case 'svg':
 					$subdir = 'images/';
 					break;
 				case 'less':
@@ -201,6 +202,7 @@ class ThemeLib extends TikiLib
 			}
 		}
 
+		// Why does this look in 'themes/' . $dir_base . $subdir and 'themes/' . $subdir if and only if we have a $filename? Chealer 2017-01-16
 		if (empty($filename)) {
 			if (is_dir('themes/' . $dir_base . $theme_base . $option_base . $subdir)) {
 				$path = 'themes/' . $dir_base . $theme_base . $option_base . $subdir;
@@ -250,10 +252,12 @@ class ThemeLib extends TikiLib
 		$base_iconsets = [];
 		$iconsetlib = TikiLib::lib('iconset');
 
-		foreach (scandir('themes/base_files/iconsets') as $iconset_file) {
-			if ($iconset_file[0] != '.' && $iconset_file != 'index.php') {
-				$data = $iconsetlib->loadFile('themes/base_files/iconsets/' . $iconset_file);
-				$base_iconsets[substr($iconset_file,0,-4)] = $data['name'];
+		if (is_dir('themes/base_files/iconsets')) {
+			foreach (scandir('themes/base_files/iconsets') as $iconset_file) {
+				if ($iconset_file[0] != '.' && $iconset_file != 'index.php') {
+					$data = $iconsetlib->loadFile('themes/base_files/iconsets/' . $iconset_file);
+					$base_iconsets[substr($iconset_file, 0, -4)] = $data['name'];
+				}
 			}
 		}
 		return $base_iconsets;

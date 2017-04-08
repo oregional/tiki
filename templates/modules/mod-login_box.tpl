@@ -127,6 +127,17 @@ if (jqueryTiki.no_cookie) {
 		{if $prefs.shib_skip_admin eq 'y'}
 			<br><a class="linkmodule" href="tiki-login_scr.php?user=admin">{tr}Log in as admin{/tr}</a>
 		{/if}
+	{elseif $prefs.auth_method eq 'saml' && $showloginboxes neq 'y'}
+		<b><a class="linkmodule" href="tiki-login.php?auth=saml">{tr}
+		{if $prefs.saml_option_login_link_text eq ''}
+			Log in through SAML2 IdP
+		{else}
+			{$prefs.saml_option_login_link_text}
+		{/if}
+		{/tr}</a></b>
+		{if $prefs.saml_options_skip_admin eq 'y'}
+			<br /><a class="linkmodule" href="tiki-login_scr.php?user=admin">{tr}Log in as admin{/tr}</a>
+		{/if}
 	{else}
 		{assign var='close_tags' value=''}
 		{if $mode eq "popup"}
@@ -140,29 +151,12 @@ if (jqueryTiki.no_cookie) {
 		{/if}
 
 		<form name="loginbox" class="form{if $mode eq "header"} form-inline{/if}" id="loginbox-{$module_logo_instance}" action="{$login_module.login_url|escape}"
-				method="post" {if $prefs.feature_challenge eq 'y'}onsubmit="doChallengeResponse(this)"{/if}
+				method="post" 
 				{if $prefs.desactive_login_autocomplete eq 'y'} autocomplete="off"{/if}
 		>
 		{capture assign="close_tags"}</form>{$close_tags}{/capture}
 
-		{if $prefs.feature_challenge eq 'y'}
-			<script type='text/javascript' src="vendor/jquery/md5/js/md5.js"></script>
-			{jq notonready=true}
-				function doChallengeResponse(form) {
-					var $form = $(form), hashstr, str;
-					hashstr= $("input[name=user]", $form).val() +
-								$("input[name=pass]", $form).val() +
-								$("input[name=email]", $form).val();
-					str = $("input[name=user]", $form).val() + md5(hashstr) + $("input[name=challenge]", $form).val();
-					$("input[name=response]", $form).val(md5(str));
-					//$("input[name=pass]", $form).val(""); // (form does not submit without password)
-					$form.submit();
-					return false;
-				}
-			{/jq}
-			<input type="hidden" name="challenge" value="{$challenge|escape}" />
-			<input type="hidden" name="response" value="" />
-		{/if}
+
 		{if !empty($urllogin)}<input type="hidden" name="url" value="{$urllogin|escape}" />{/if}
 		{if $module_params.nobox neq 'y'}
 			<fieldset>
@@ -193,29 +187,17 @@ if (jqueryTiki.no_cookie) {
 				{/if}
 			</label>
 			{if !isset($loginuser) or $loginuser eq ''}
-				<div>
 					<input class="form-control" type="text" name="user" id="login-user_{$module_logo_instance}" {if !empty($error_login)} value="{$error_user|escape}"{elseif !empty($adminuser)} value="{$adminuser|escape}"{/if}/>
-				</div>
 				{jq}if ($('#login-user_{{$module_logo_instance}}:visible').length) {if ($("#login-user_{{$module_logo_instance}}").offset().top < $(window).height()) {$('#login-user_{{$module_logo_instance}}')[0].focus();} }{/jq}
 			{else}
 				<input class="form-control" type="hidden" name="user" id="login-user_{$module_logo_instance}" value="{$loginuser|escape}" /><b>{$loginuser|escape}</b>
 			{/if}
 		</div>
-		{if $prefs.feature_challenge eq 'y'} <!-- quick hack to make challenge/response work until 1.8 tiki auth overhaul -->
-			<div class="email form-group clearfix">
-				<label for="login-email_{$module_logo_instance}">{tr}eMail:{/tr}</label>
-				<div>
-					<input class="form-control" type="text" name="email" id="login-email_{$module_logo_instance}">
-				</div>
-			</div>
-		{/if}
 		<div class="pass form-group clearfix">
 			<label for="login-pass_{$module_logo_instance}">{tr}Password:{/tr}</label>
-			<div>
-				<input onkeypress="capLock(event, this)" type="password" name="pass" class="form-control" id="login-pass_{$module_logo_instance}">
-				<div class="divCapson" style="display:none;">
-					{icon name='error' istyle="vertical-align:middle"} {tr}CapsLock is on.{/tr}
-				</div>
+			<input onkeypress="capLock(event, this)" type="password" name="pass" class="form-control" id="login-pass_{$module_logo_instance}">
+			<div class="divCapson" style="display:none;">
+				{icon name='error' istyle="vertical-align:middle"} {tr}CapsLock is on.{/tr}
 			</div>
 		</div>
 		{if $prefs.rememberme ne 'disabled' and (empty($module_params.remember) or $module_params.remember neq 'n')}

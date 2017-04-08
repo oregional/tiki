@@ -37,7 +37,7 @@
 <br>
 <h2>{tr}Security checks{/tr}</h2>
 <div>
-	<a href="tiki-admin_security.php?check_files">{tr}Check all tiki files{/tr}</a>
+	<a href="tiki-admin_security.php?check_files" class="btn btn-default">{tr}Check all tiki files{/tr}</a>
 	<br>
 	{remarksbox type="tip" title="{tr}Info{/tr}"}
 		{tr}Note, that this can take a very long time. You should check your max_execution_time setting in php.ini.{/tr}
@@ -66,7 +66,7 @@
 	</div>
 {/if}
 
-<a href="tiki-admin_security.php?check_file_permissions">{tr}Check file permissions{/tr}</a>
+<a href="tiki-admin_security.php?check_file_permissions" class="btn btn-default">{tr}Check file permissions{/tr}</a>
 
 {remarksbox type="tip" title="{tr}Info{/tr}"}
 	{tr}Note, that this can take a very long time. You should check your max_execution_time setting in php.ini.{/tr}
@@ -237,11 +237,11 @@
 		<br>
 		{tr}World writable files or directories{/tr}
 		<br>
-		{tr}In some environments where you cannot get root or have no other possibilities, it is unavoidable to let your webserver write to some tiki directories like "templates_c" or "temp". In any other case this is not needed. A bug in a script or other users could easily put malicious scripts on your webspace or upload illegal content.{/tr}
+		{tr}In some environments where you cannot get root or have no other possibilities, it is unavoidable to let your webserver write to some tiki directories like or "temp". In any other case this is not needed. A bug in a script or other users could easily put malicious scripts on your webspace or upload illegal content.{/tr}
 		<br>
 		{tr}Files or directories the Webserver can write to{/tr}
 		<br>
-		{tr}The risk is almost the same in shared hosting environments without proper privilege separation (suexec wrappers). The webserver has to be able to write to some directories like "templates_c" or "temp". Review the tiki install guide for further information.{/tr}
+		{tr}The risk is almost the same in shared hosting environments without proper privilege separation (suexec wrappers). The webserver has to be able to write to some directories like "temp". Review the tiki install guide for further information.{/tr}
 		<br>
 		{tr}Strange Inodes (not file, not link, not directory){/tr}
 		<br>

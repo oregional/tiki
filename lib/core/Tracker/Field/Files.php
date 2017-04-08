@@ -45,6 +45,7 @@ class Tracker_Field_Files extends Tracker_Field_Abstract
 						'filter' => 'word',
 						'options' => array(
 							'' => tr('Links'),
+							'barelink' => tr('Bare Links'),
 							'img' => tr('Images'),
 							'vimeo' => tr('Vimeo'),
 							'googleviewer' => tr('Google Viewer'),
@@ -87,7 +88,7 @@ class Tracker_Field_Files extends Tracker_Field_Abstract
 					),
 					'browseGalleryId' => array(
 						'name' => tr('Browse Gallery ID'),
-						'description' => tr('File gallery browse files. Use 0 for root file gallery. (requires elFinder feature - experimental)'),
+						'description' => tr('File gallery browse files. Use 0 for root file gallery. (requires elFinder feature - experimental)') . '. ' . tr('Restrict permissions to view the file gallery to hide the button.') ,
 						'filter' => 'int',
 						'legacy_index' => 8,
 						'profile_reference' => 'file_gallery',
@@ -121,7 +122,23 @@ class Tracker_Field_Files extends Tracker_Field_Abstract
 							'y' => tr('Yes'),
 						),
 						'legacy_index' => 11,
-					)
+					),
+					'image_x' => array(
+						'name' => tr('Max. image width'),
+						'description' => tr('Leave blank to use selected gallery default setting or enter value in px to override gallery settings'),
+						'filter' => 'text',
+						'default' => '',
+						'legacy_index' => 12,
+					),
+					'image_y' => array(
+						'name' => tr('Max. image height'),
+						'description' => tr('Leave blank to use selected gallery default settings or enter value in px to override gallery settings'),
+						'filter' => 'text',
+						'legacy_index' => 13,
+					),
+					
+					
+					
 				),
 			),
 		);
@@ -212,6 +229,18 @@ class Tracker_Field_Files extends Tracker_Field_Abstract
 			$perms = TikiLib::lib('tiki')->get_local_perms($user, $galleryId, 'file gallery', $galinfo, false);		//get_perm_object($galleryId, 'file gallery', $galinfo);
 			$canUpload = $perms['tiki_p_upload_files'] === 'y';
 		}
+		
+		$image_x=$this->getOption('image_x');
+		$image_y=$this->getOption('image_y');
+		
+		//checking if image_x and image_y are set
+		if(!$image_x)
+		   $image_x=$galinfo['image_max_size_x'];
+		
+		if(!$image_y)
+		   $image_y=$galinfo['image_max_size_y'];
+		   
+			
 
 		return array(
 			'galleryId' => $galleryId,
@@ -221,6 +250,8 @@ class Tracker_Field_Files extends Tracker_Field_Abstract
 			'firstfile' => $firstfile,
 			'value' => $value,
 			'filter' => $this->getOption('filter'),
+			'image_x'=>$image_x,
+			'image_y'=>$image_y,
 			'gallerySearch' => $gallery_list,
 		);
 	}
@@ -228,6 +259,8 @@ class Tracker_Field_Files extends Tracker_Field_Abstract
 	function renderInput($context = array())
 	{
 		global $prefs;
+
+		$context['canBrowse'] = false;
 
 		if ($prefs['fgal_tracker_existing_search']) {
 			if ($this->getOption('browseGalleryId')) {
@@ -238,17 +271,20 @@ class Tracker_Field_Files extends Tracker_Field_Abstract
 				$defaultGalleryId = 0;
 			}
 			$deepGallerySearch = $this->getOption('galleryId');
-
+            $image_x=$this->getOption('image_x');
+			$image_y=$this->getOption('image_y');
+			
 			$context['onclick'] = 'return openElFinderDialog(this, {
 	defaultGalleryId:' . $defaultGalleryId . ',
 	deepGallerySearch: ' . $deepGallerySearch . ',
 	getFileCallback: function(file,elfinder){ window.handleFinderFile(file,elfinder); },
 	eventOrigin:this
 });';
+			$context['canBrowse'] = Perms::get(['type' => 'file gallery', 'object' => $defaultGalleryId])->view_file_gallery;
 		}
 
 		return $this->renderTemplate('trackerinput/files.tpl', $context, array(
-			'replaceFile' => 'y' == $this->getOption('replace', 'n'),
+			'replaceFile' => 'y' == $this->getOption('replace', 'n')
 		));
 	}
 
@@ -341,6 +377,13 @@ class Tracker_Field_Files extends Tracker_Field_Abstract
 						$smarty->assign('files', $files);
 						$ret = $smarty->fetch('trackeroutput/files_googleviewer.tpl');
 					}
+				} else if ($this->getOption('displayMode') == 'barelink') {					
+						$smarty = TikiLib::lib('smarty');
+						$smarty->loadPlugin('smarty_function_object_link');
+						$smarty->loadPlugin('smarty_modifier_sefurl');
+						foreach ($this->getConfiguration('files') as $fileId => $file) {
+							$ret .= smarty_modifier_sefurl($file['fileId'], 'file');
+						}
 				}
 				$ret = preg_replace('/~\/?np~/', '', $ret);
 			} else {
@@ -491,7 +534,7 @@ class Tracker_Field_Files extends Tracker_Field_Abstract
 		}
 
 		if (! is_uploaded_file($file['tmp_name'])) {
-			TikiLib::lib('errorreport')->report(tr('Problem with uploaded file: "%0"', $file['name']));
+			Feedback::error(tr('Problem with uploaded file: "%0"', $file['name']), 'session');
 			return false;
 		}
 
@@ -499,13 +542,14 @@ class Tracker_Field_Files extends Tracker_Field_Abstract
 		$gal_info = $filegallib->get_file_gallery_info($galleryId);
 
 		if (! $gal_info) {
-			TikiLib::lib('errorreport')->report(tr('No gallery for uploaded file, galleryId=%0', $galleryId));
+			Feedback::error(tr('No gallery for uploaded file, galleryId=%0', $galleryId), 'session');
 			return false;
 		}
 
 		$perms = Perms::get('file gallery', $galleryId);
 		if (! $perms->upload_files) {
-			TikiLib::lib('errorreport')->report(tr('You don\'t have permission to upload a file to gallery "%0"', $gal_info['name']));
+			Feedback::error(tr('You don\'t have permission to upload a file to gallery "%0"', $gal_info['name']), 
+				'session');
 			return false;
 		}
 

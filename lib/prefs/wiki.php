@@ -62,11 +62,11 @@ function prefs_wiki_list($partial = false)
 			'default' => 'complete',
 		),
 		'wiki_url_scheme' => array(
-			'name' => tr('Wiki URL Scheme'),
+			'name' => tr('Wiki URL scheme'),
 			'description' => tr('Alter the SEFURL pattern for page names.'),
 			'hint' => tr('Use the "View" action to regenerate your URLs after changing this setting.'),
 			'type' => 'list',
-			'default' => 'urlencode',
+			'default' => 'dash',
 			'options' => TikiLib::lib('slugmanager')->getOptions(),
 			'view' => $partial ? '' : TikiLib::lib('service')->getUrl([
 				'controller' => 'wiki',
@@ -83,6 +83,12 @@ function prefs_wiki_list($partial = false)
 		'wiki_page_name_above' => array(
 			'name' => tra('Display page name above page'),
 			'description' => tra('Display page name above page instead of inside page.'),
+			'type' => 'flag',
+			'default' => 'n',
+		),
+		'wiki_page_name_inside' => array(
+			'name' => tra('Display page name inside page'),
+			'description' => tra('Display page name inside page content.'),
 			'type' => 'flag',
 			'default' => 'n',
 		),
@@ -276,7 +282,8 @@ function prefs_wiki_list($partial = false)
 		'wiki_edit_icons_toggle' => array(
 			'name' => tra('Toggle display of section and plugin edit icons'),
 			'type' => 'flag',
-			'default' => 'n',
+			'default' => 'y',
+			'tags' => array('basic'),
 		),
 		'wiki_edit_minor' => array(
 			'name' => tra('Allow minor edits of wiki pages'),
@@ -379,6 +386,7 @@ function prefs_wiki_list($partial = false)
 			'name' => tra('Name length'),
 			'type' => 'text',
 			'size' => '3',
+			'units' => tra('characters'),
 			'filter' => 'digits',
 			'default' => '40',
 		),
@@ -416,6 +424,7 @@ function prefs_wiki_list($partial = false)
 			'name' => tra('Edit comment length'),
 			'type' => 'text',
 			'size' => '3',
+			'units' => tra('characters'),
 			'default' => '200',
 		),
 		'wiki_list_description' => array(
@@ -427,6 +436,7 @@ function prefs_wiki_list($partial = false)
 			'name' => tra('Description length'),
 			'type' => 'text',
 			'size' => '3',
+			'units' => tra('characters'),
 			'filter' => 'digits',
 			'default' => '200',
 		),
@@ -557,6 +567,7 @@ function prefs_wiki_list($partial = false)
 				'top' => tra('Top'),
 				'bottom' => tra('Bottom'),
 				'both' => tra('Both'),
+				'none' => tra('Neither'),
 			),
 			'default' => 'top',
 		),
@@ -614,27 +625,42 @@ function prefs_wiki_list($partial = false)
 		),
 		'wiki_auto_toc' => array(
 			'name' => tr('Wiki auto-toc'),
-			'description' => tr('Automatic table of contents generation for wiki pages. The generated table of contents will display as a fixed-position aside next to the page contents.'),
+			'description' => tr('Automatic table of contents generation for wiki pages. The generated table of contents will display as a fixed-position aside next to the page contents. This setting can be toggled per page, in the page properties.'),
 			'type' => 'flag',
 			'help' => 'Auto TOC',
 			'default' => 'n',
 		),
 		'wiki_inline_auto_toc' => array(
-			'name' => tr('Add inline auto-toc'),
-			'description' => tr('Automatically add an inline table of contents for wiki pages. This setting can be toggled per page, in the page properties'),
+			'name' => tr('Inline auto-toc'),
+			'description' => tr('Change the display of the table of contents for wiki pages to inline.'),
 			'type' => 'flag',
-			'default' => 'y',
+			'default' => 'n',
 			'dependencies' => array(
 				'wiki_auto_toc',
 			),
 		),
-		'wiki_inline_toc_pos' => array(
-			'name' => tr('Inline table of contents position'),
-			'description' => tr('Position for inline table of contents. One of top, left, right (right is the default)'),
-			'type' => 'text',
+		'wiki_toc_pos' => array(
+			'name' => tr('Table of contents position'),
+			'description' => tr('Position for table of contents. One of top, left, right (right is the default)'),
+			'type' => 'list',
+			'options' => array(
+				'right' => tra('Right'),
+				'left' => tra('Left'),
+				'top' => tra('Top'),
+			),
 			'default' => 'right',
 			'dependencies' => array(
-				'wiki_inline_auto_toc',
+				'wiki_auto_toc',
+			),
+		),
+		'wiki_toc_offset' => array(
+			'name' => tr('Table of contents offset'),
+			'description' => tr('Offset for table of contents. Useful when there is a fixed navbar (Default is 10). If used with inline TOC, will behave as a top margin.'),
+			'type' => 'text',
+			'filter' => 'digits',
+			'default' => '10',
+			'dependencies' => array(
+				'wiki_auto_toc',
 			),
 		),
 		'wiki_page_hide_title' => array(
@@ -644,5 +670,13 @@ function prefs_wiki_list($partial = false)
 			'default' => 'y',
 			'dependencies' => array(),
 		),
+		'wiki_heading_links' => [
+			'name' => tr('Anchor links on headings'),
+			'description' => tr('Add links that appear on hover for each heading, useful for sharing the URL to an exact location on a page'),
+			'keywords' => 'Display hidden anchor on mouseover of headings',
+			'type' => 'flag',
+			'default' => 'y',
+			'dependencies' => [],
+		],
 	);
 }

@@ -110,8 +110,8 @@ if ($tracker_info['adminOnlyViewEditItem'] === 'y') {
 }
 
 if ($tiki_p_view_trackers != 'y') {
-	$userCreatorFieldId = $writerfield;
-	$groupCreatorFieldId = $writergroupfield;
+	$userCreatorFieldId = $trackerDefinition->getWriterField();
+	$groupCreatorFieldId = $trackerDefinition->getWriterGroupField();
 	if ($user && !$my and ( (isset($tracker_info['writerCanModify']) and $tracker_info['writerCanModify'] == 'y') or
 							(isset($tracker_info['userCanSeeOwn']) and $tracker_info['userCanSeeOwn'] == 'y'))
 							 and !empty($userCreatorFieldId)) {
@@ -146,7 +146,7 @@ if (isset($_REQUEST['status'])) {
 	$_REQUEST['status'] = 'o';
 }
 foreach ($status_raw as $let => $sta) {
-	if ((isset($$sta['perm']) and $$sta['perm'] == 'y') or ($my or $ours)) {
+	if ((isset(${$sta['perm']}) and ${$sta['perm']} == 'y') or ($my or $ours)) {
 		if (in_array($let, $sts)) {
 			$sta['class'] = 'statuson';
 			$sta['statuslink'] = str_replace($let, '', implode('', $sts));
@@ -448,7 +448,11 @@ if ($my and $writerfield) {
 	if (!empty($_REQUEST['filtervalue_other'])) {
 		$filtervalue = $_REQUEST['filtervalue_other'];
 	}
-	$exactvalue = '';
+	$field = $trackerDefinition->getField($filterfield);
+	if( $field && in_array($field['type'], array('d', 'D', 'R')) )
+		$exactvalue = $filtervalue;
+	else
+		$exactvalue = '';
 }
 $smarty->assign('filtervalue', $filtervalue);
 if (is_array($filtervalue)) {
@@ -531,7 +535,7 @@ if ($tiki_p_export_tracker == 'y') {
 	$smarty->assign('recordsOffset', 1);
 }
 include_once ('tiki-section_options.php');
-$smarty->assign('uses_tabs', 'y');
+
 $smarty->assign('show_filters', 'n');
 if (count($fields['data']) > 0) {
 	foreach ($fields['data'] as $it) {
@@ -546,8 +550,7 @@ if (isset($tracker_info['useRatings']) && $tracker_info['useRatings'] == 'y' && 
 		$items['data'][$f]['my_rate'] = $tikilib->get_user_vote("tracker." . $_REQUEST["trackerId"] . '.' . $items['data'][$f]['itemId'], $user);
 	}
 }
-setcookie('tab', $cookietab);
-$smarty->assign('cookietab', $cookietab);
+
 ask_ticket('view-trackers');
 
 // Generate validation js

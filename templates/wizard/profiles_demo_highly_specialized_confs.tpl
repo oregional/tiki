@@ -1,29 +1,29 @@
 {* $Id$ *}
 
 <div class="media">
-   	<span class="pull-left fa-stack fa-lg margin-right-18em" alt="{tr}Configuration Profiles Wizard{/tr}" title="{tr}Configuration Profiles Wizard{/tr}" >
+	<span class="pull-left fa-stack fa-lg margin-right-18em" alt="{tr}Configuration Profiles Wizard{/tr}" title="{tr}Configuration Profiles Wizard{/tr}" >
 		<i class="fa fa-cubes fa-stack-2x"></i>
 		<i class="fa fa-rotate-270 fa-magic fa-stack-2x margin-left-9em"></i>
 	</span>
-    {tr}Some profiles are highly customized for very specialized use cases, and they are listed in this special category.{/tr} </br></br>
-    {remarksbox type="warning" title="{tr}Warning{/tr}"}
-        <a target="tikihelp" class="tikihelp" style="float:right" title="{tr}Demo Profiles:{/tr}
-				{tr}They are initially intended for testing environments, so that, after you have played with the feature, you don't have to deal with removing the created objects, nor with restoring the potentially changed settings in your site{/tr}.
-				<br/><br/>
-				{tr}Once you know what they do, you can also apply them in your production site, in order to have working templates of the underlying features, that you can further adapt to your site later on{/tr}."
-                >
-            {icon name="help"}
-        </a>
-    {tr}These configuration profiles <strong>require extra software</strong> to be installed in your server to function as expected{/tr}.
-    {tr}See details in the instructions page shown in your site once each profile is applied{/tr}.
-    {/remarksbox}
+	{tr}Some profiles are highly customized for very specialized use cases, and they are listed in this special category.{/tr} </br></br>
+	{remarksbox type="warning" title="{tr}Warning{/tr}"}
+		<a target="tikihelp" class="tikihelp" style="float:right" title="{tr}Demo Profiles:{/tr}
+			{tr}They are initially intended for testing environments, so that, after you have played with the feature, you don't have to deal with removing the created objects, nor with restoring the potentially changed settings in your site{/tr}.
+			<br/><br/>
+			{tr}Once you know what they do, you can also apply them in your production site, in order to have working templates of the underlying features, that you can further adapt to your site later on{/tr}."
+		>
+			{icon name="help"}
+		</a>
+		{tr}These configuration profiles <strong>require extra software</strong> to be installed in your server to function as expected{/tr}.
+		{tr}See details in the instructions page shown in your site once each profile is applied{/tr}.
+	{/remarksbox}
 	<div class="media-body">
 		<fieldset>
 			<legend>{tr}Profiles:{/tr}</legend>
 			<div class="row">
 				<div class="col-md-6">
 					<h4>{tr}CartoGraf{/tr}</h4>
-					(<a href="tiki-admin.php?profile=CartoGraf&show_details_for=CartoGraf&categories%5B%5D={$tikiMajorVersion}.x&repository=http%3a%2f%2fprofiles.tiki.org%2fprofiles&page=profiles&preloadlist=y&list=List#step2" target="_blank">{tr}apply profile now{/tr}</a>)
+					(<a href="tiki-admin.php?profile=CartoGraf_15&show_details_for=CartoGraf_15&categories%5B%5D={$tikiMajorVersion}.x&repository=http%3a%2f%2fprofiles.tiki.org%2fprofiles&page=profiles&preloadlist=y&list=List#step2" target="_blank">{tr}apply profile now{/tr}</a>)
 					<br>
 					{tr}CartoGraf is an interactive web-based mapping application to enhance learning in history and geography classes in high schools.{/tr}
 					{tr}CartoGraf is a great example of how to use profiles in a general purpose app (Tiki) to make a very specific application.{/tr}

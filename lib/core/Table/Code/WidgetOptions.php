@@ -27,6 +27,10 @@ class Table_Code_WidgetOptions extends Table_Code_Manager
 	{
 		$wo[] = 'stickyHeaders : \'ts-stickyHeader\'';
 		$wo[] = 'resizable : true';
+		//column select
+		if (parent::$s['colselect']) {
+			$wo[] = 'columnSelector_mediaqueryHidden : true';
+		}
 		//sort
 		if (parent::$sorts) {
 			//row grouping
@@ -56,7 +60,7 @@ class Table_Code_WidgetOptions extends Table_Code_Manager
 		$classes = ['Filter', 'Pager', 'Math'];
 		foreach ($classes as $option) {
 			$optarray = Table_Factory::build('WidgetOptions' . $option, parent::$s, 'code')->getOptionArray();
-			$wo = $optarray === false ? $wo : array_merge($wo, $optarray);
+			$wo = $optarray === false ? $wo : array_merge($wo, array_filter($optarray));
 		}
 
 		if (count($wo) > 0) {

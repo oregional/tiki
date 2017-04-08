@@ -4,8 +4,8 @@
 	<fieldset>
 		<legend>{tr}Get Started{/tr}</legend>
 
-		<p>
-            {icon name="check" size=2} {tr _0=$tiki_version}Congratulations! You now have a working instance of Tiki %0{/tr}.
+		<p class="wizardCongrat text-success">
+			{icon name="check" size=1} {tr _0=$tiki_version}Congratulations! You now have a working instance of Tiki %0{/tr}.
 			{tr}You may <a href="tiki-index.php">start using it right away</a>, or you may configure it to better meet your needs, using one of the configuration helpers below.{/tr}
 		</p>
 
@@ -25,7 +25,7 @@
 			{tr}Example: {/tr}
 		{/remarksbox}
 
-		<div class="media">
+		<div class="media margin-bottom-lg">
 			<span class="pull-left fa-stack fa-lg margin-right-18em" alt="{tr}Configuration Profiles Wizard{/tr}" title="{tr}Configuration Profiles Wizard{/tr}" >
 				<i class="fa fa-cubes fa-stack-2x"></i>
 				<i class="fa fa-rotate-270 fa-magic fa-stack-2x margin-left-9em"></i>
@@ -44,7 +44,7 @@
 				<input type="submit" class="btn btn-primary" name="use-default-prefs" value="{tr}Start Configuration Profiles Wizard (Macros){/tr}" />
 			</div>
 		</div>
-		<div class="media">
+		<div class="media margin-bottom-lg">
 			<span class="pull-left fa-stack fa-lg margin-right-18em" alt="{tr}Configuration Walkthrough{/tr}" title="Configuration Walkthrough">
 				<i class="fa fa-gear fa-stack-2x"></i>
 				<i class="fa fa-rotate-270 fa-magic fa-stack-2x margin-left-9em"></i>
@@ -62,7 +62,7 @@
 				<input type="submit" class="btn btn-primary" name="continue" value="{tr}Start Configuration Wizard{/tr}" />
 			</div>
 		</div>
-		<div class="media">
+		<div class="media margin-bottom-lg">
 			<span class="pull-left fa-stack fa-lg margin-right-18em" alt="{tr}Upgrade Wizard{/tr}" title="Upgrade Wizard">
 				<i class="fa fa-arrow-circle-up fa-stack-2x"></i>
 				<i class="fa fa-rotate-270 fa-magic fa-stack-2x margin-left-9em"></i>
@@ -84,7 +84,7 @@
 					<input type="submit" class="btn btn-primary" name="use-upgrade-wizard" value="{tr}Start Upgrade Wizard{/tr}" />
 			</div>
 		</div>
-		<div class="media">
+		<div class="media margin-bottom-lg">
 			<img class="pull-left" src="img/icons/large/controlpanels48x48.png" alt="{tr}Control Panels{/tr}" />
 			<div class="media-body">
 				<p>{tr}Use the <b>Control Panels</b> to manually browse through the full list of preferences{/tr}.</p>
@@ -92,10 +92,11 @@
 				{button href="tiki-admin.php" _text="{tr}Go to the Control Panels{/tr}"}
 			</div>
 		</div>
-	</fieldset>
-
-	<fieldset>
+		<div class="media margin-bottom-lg">
+			<div class="media-body">
 		<legend>{tr}Server Fitness{/tr}</legend>
 		{tr _0=$tiki_version}To check if your server meets the requirements for running Tiki version %0, please visit <a href="tiki-check.php" target="_blank">Tiki Server Compatibility Check</a>{/tr}.
+			</div>
+		</div>
 	</fieldset>
 </div>

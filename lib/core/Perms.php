@@ -22,6 +22,11 @@
  *   }
  *
  * Global permissions may be obtained using Perms::get() without a context.
+ * 
+ * Please note that the Perms will now be correct for checking trackeritem
+ * context and permissions assigned to parent tracker. If no trackeritem
+ * specific permissions are set on the object or category level, system will
+ * check parent tracker permissions before continuing to the global level.
  *
  * The facade also provides a convenient way to filter lists based on
  * permissions. Using the method will also used the underlying::bulk()
@@ -323,25 +328,26 @@ class Perms
 	private function getResolver(array $context)
 	{
 		$toSet = array();
-		$resolver = null;
+		$finalResolver = false;
 
 		foreach ($this->factories as $factory) {
 			$hash = $factory->getHash($context);
 
-			if (isset($this->hashes[$hash])) {
-				$resolver = $this->hashes[$hash];
-				break;
+			// no hash returned by factory means factory does not support that context
+			if (!$hash) {
+				continue;
+			}
+
+			if( isset($this->hashes[$hash]) ) {
+				$finalResolver = $this->hashes[$hash];
 			} else {
 				$toSet[] = $hash;
+				$finalResolver = $factory->getResolver($context);
 			}
 
-			if ($resolver = $factory->getResolver($context)) {
+			if( $finalResolver ) {
 				break;
 			}
-		}
-
-		if (! $resolver) {
-			$resolver = false;
 		}
 
 		// Limit the amount of hashes preserved to reduce memory consumption
@@ -350,10 +356,10 @@ class Perms
 		}
 
 		foreach ($toSet as $hash) {
-			$this->hashes[$hash] = $resolver;
+			$this->hashes[$hash] = $finalResolver;
 		}
 
-		return $resolver;
+		return $finalResolver;
 	}
 
 	private function loadBulk($baseContext, $bulkKey, $data)

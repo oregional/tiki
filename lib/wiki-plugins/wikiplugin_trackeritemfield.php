@@ -88,7 +88,7 @@ function wikiplugin_trackeritemfield_info()
 				),
 			),
 			'value' => array(
-				'required' => true,
+				'required' => false,
 				'name' => tra('Value'),
 				'description' => tra('Value to compare against.'),
 				'since' => '2.0',
@@ -229,7 +229,7 @@ function wikiplugin_trackeritemfield($data, $params)
 				return tra('Incorrect param');
 			}
 		}
-		$field_values = $trklib->get_item_fields($trackerId, $itemId, $all_fields, $itemUser);
+		$field_values = $trklib->get_item_fields($trackerId, $itemId, $all_fields, $itemUsers);
 		foreach ($field_values as $field_value) {
 			if (($field_value['type'] == 'p' && $field_value['options_array'][0] == 'password') || ($field_value['isHidden'] != 'n' && $field_value['isHidden'] != 'c'))
 				continue;

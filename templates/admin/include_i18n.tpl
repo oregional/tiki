@@ -11,14 +11,14 @@
 	}
 {/jq}
 <form role="form" class="form-horizontal" action="tiki-admin.php?page=i18n" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 	<input type="hidden" name="i18nsetup" />
 	<div class="t_navbar margin-bottom-md clearfix">
 		{if $tiki_p_edit_languages eq 'y'}
-			<a class="btn btn-link tips" href="{service controller=language action=manage_custom_php_translations}" title="{tr}Customized String Translation{/tr}:{tr}Manage local translations in a custom.php file{/tr}">
+			<a class="btn btn-link tips" href="{service controller=language action=manage_custom_translations language=$prefs["language"]}" title="{tr}Custom Translations{/tr}:{tr}Manage customized local string translations{/tr}">
 				{icon name="file-code-o"} {tr}Custom Translations{/tr}
 			</a>
-			<a class="btn btn-link tips" href="{service controller=language action=upload language={$edit_language}}" title="{tr}Upload Translations{/tr}:{tr}Upload a file with translations for the selected language.{/tr}">
+			<a class="btn btn-link tips" href="{service controller=language action=upload language=$prefs["language"]}" title="{tr}Upload Translations{/tr}:{tr}Upload a file with translations for the selected language.{/tr}">
 				{icon name="upload"} {tr}Upload Translations{/tr}
 			</a>
 			{if $prefs.lang_use_db eq "y"}
@@ -27,9 +27,7 @@
 			{if $prefs.freetags_multilingual eq 'y'}
 				{button _type="link" _class="tips" href="tiki-freetag_translate.php" _icon_name="tags" _text="{tr}Translate Tags{/tr}" _title=":{tr}Translate tags{/tr}"}
 			{/if}
-			<div class="pull-right">
-				<input type="submit" class="btn btn-primary btn-sm tips" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-			</div>
+			{include file='admin/include_apply_top.tpl'}
 		{/if}
 	</div>
 	{preference name=language}
@@ -89,7 +87,5 @@
 			{preference name=feature_lang_nonswitchingpages_names}
 		</div>
 	</div>
-	<div class="t_navbar margin-bottom-md text-center">
-		<input type="submit" class="btn btn-primary btn-sm tips" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

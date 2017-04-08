@@ -6,14 +6,14 @@
 	</head>
 	<body{html_body_attributes}>
 		{$cookie_consent_html}
-		
+
 		{include file="layout_fullscreen_check.tpl"}
 
 		{if $prefs.feature_ajax eq 'y'}
 			{include file='tiki-ajax_header.tpl'}
 		{/if}
 
-		<div class="container">
+		<div class="container{if $smarty.session.fullscreen eq 'y'}-fluid{/if}">
 			<div class="row">
 				<div class="col-md-12">
 					{modulelist zone=top}
@@ -29,7 +29,7 @@
 				<div class="col-md-12" id="col1">
 					{block name=title}{/block}
 					{block name=navigation}{/block}
-					{error_report}
+					{feedback}
 					{block name=content}{/block}
 				</div>
 			</div>

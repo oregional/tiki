@@ -37,12 +37,11 @@ class Tiki_Security_Policy extends Smarty_Security
 		'img/',
 		'img/icons',
 		'img/flags',
-		'img/mytiki',
 		'img/smiles',
 		'img/trackers',
 		'img/icons/mime',
 		'img/icons/large',
-		'lib/ckeditor_tiki/ckeditor-icons',
+		'img/ckeditor',
 	);
 
 	/**
@@ -250,6 +249,8 @@ class Smarty_Tiki extends Smarty
 					$str = substr($script_name, 9, strpos($script_name, '.php') - 9);
 					$str = ucwords(trim(str_replace('_', ' ', $str)));
 					$this->assign('headtitle', 'View ' . $str);
+				} else if ($prefs['urlIndex'] && strpos($script_name, $prefs['urlIndex']) === 0) {
+					$this->assign('headtitle', tra($prefs['urlIndexBrowserTitle']));	// Viewing Custom Homepage
 				} else { // still not set? guess...
 					$str = str_replace(array('tiki-', '.php', '_'), array('', '', ' '), $script_name);
 					$str = ucwords($str);
@@ -265,14 +266,14 @@ class Smarty_Tiki extends Smarty
 			$this->assign('mid_data', $data);
 
 		} elseif ($_smarty_tpl_file == 'confirm.tpl' || $_smarty_tpl_file == 'error.tpl' || $_smarty_tpl_file == 'error_ticket.tpl' || $_smarty_tpl_file == 'error_simple.tpl') {
-			ob_end_clean(); // Empty existing Output Buffer that may have been created in smarty before the call of this confirm / error* template
+			if (!empty(ob_get_status())) ob_end_clean(); // Empty existing Output Buffer that may have been created in smarty before the call of this confirm / error* template
 			if ( $prefs['feature_obzip'] == 'y' ) {
 				ob_start('ob_gzhandler');
 			}
 
 		}
 
-		if (! defined('TIKI_IN_INSTALLER')) {
+		if (! defined('TIKI_IN_INSTALLER') && ! defined('TIKI_IN_TEST')) {
 			require_once 'tiki-modules.php';
 		}
 		
@@ -351,6 +352,59 @@ class Smarty_Tiki extends Smarty
 				$loaded = true;
 			}
 		}
+
+		/**
+		 * Add security headers. By default there headers are not sent.
+		 * To change go to admin > security > site access
+		 */
+		if (!headers_sent()) {
+				if (!isset($prefs['http_header_frame_options'])) $frame = false;
+				else $frame = $prefs['http_header_frame_options'];
+				if (!isset($prefs['http_header_xss_protection'])) $xss = false;  // prevent smarty E_NOTICE
+				else $xss = $prefs['http_header_xss_protection'];
+
+			if (!isset($prefs['http_header_content_type_options']))
+				$content_type_options = false;  // prevent smarty E_NOTICE
+			else $content_type_options = $prefs['http_header_content_type_options'];
+
+			if (!isset($prefs['http_header_content_security_policy']))
+				$content_security_policy = false;  // prevent smarty E_NOTICE
+			else $content_security_policy = $prefs['http_header_content_security_policy'];
+
+			if (!isset($prefs['http_header_strict_transport_security']))
+				$strict_transport_security = false;  // prevent smarty E_NOTICE
+			else $strict_transport_security = $prefs['http_header_strict_transport_security'];
+
+			if (!isset($prefs['http_header_public_key_pins']))
+				$public_key_pins = false;  // prevent smarty E_NOTICE
+			else $public_key_pins = $prefs['http_header_public_key_pins'];
+
+			if ($frame == 'y') {
+					$header_value = $prefs['http_header_frame_options_value'];
+					header('X-Frame-Options: ' . $header_value);
+			}
+			if ($xss == 'y') {
+					$header_value = $prefs['http_header_xss_protection_value'];
+					header('X-XSS-Protection: ' . $header_value);
+			}
+			if ($content_type_options == 'y') {
+				header('X-Content-Type-Options: nosniff');
+			}
+			if ($content_security_policy == 'y') {
+				$header_value = $prefs['http_header_content_security_policy_value'];
+				header('Content-Security-Policy: ' . $header_value);
+			}
+
+			if ($strict_transport_security == 'y') {
+				$header_value = $prefs['http_header_strict_transport_security_value'];
+				header('Strict-Transport-Security: ' . $header_value);
+			}
+
+			if ($public_key_pins == 'y') {
+				$header_value = $prefs['http_header_public_key_pins_value'];
+				header('Public-Key-Pins: ' . $header_value);
+			}
+        }
 
 		/**
 		 * By default, display is used with text/html content in UTF-8 encoding
@@ -457,7 +511,7 @@ class Smarty_Tiki extends Smarty
 		if (! $this->main_template_dir) {
 			// First run only
 			$this->main_template_dir = TIKI_PATH . '/templates/';
-			$this->setCompileDir(TIKI_PATH . "/templates_c");
+			$this->setCompileDir(TIKI_PATH . "/temp/templates_c");
 			$this->setPluginsDir(
 				array(	// the directory order must be like this to overload a plugin
 					TIKI_PATH . '/' . TIKI_SMARTY_DIR,
@@ -477,9 +531,17 @@ class Smarty_Tiki extends Smarty
 				$this->addTemplateDir(TIKI_PATH . "/$theme_path/");
 				//if theme_admin is empty, use main theme and site_layout instead of site_layout_admin
 				if ($section != "admin" || empty($prefs['theme_admin'])) {
-					$this->addTemplateDir(TIKI_PATH . "/$theme_path/" . 'layouts/' . $prefs['site_layout'] . '/');
+					$layout = TIKI_PATH . "/$theme_path/" . 'layouts/' . $prefs['site_layout'] . '/';
+					if (! is_readable($layout)) {
+						$layout = TIKI_PATH . "/$theme_path/" . 'layouts/basic/';
+					}
+					$this->addTemplateDir($layout);
 				} else {
-					$this->addTemplateDir(TIKI_PATH . "/$theme_path/" . 'layouts/' . $prefs['site_layout_admin'] . '/');
+					$layout = TIKI_PATH . "/$theme_path/" . 'layouts/' . $prefs['site_layout_admin'] . '/';
+					if (! is_readable($layout)) {
+						$layout = TIKI_PATH . "/$theme_path/" . 'layouts/basic/';
+					}
+					$this->addTemplateDir($layout);
 				}
 				$this->addTemplateDir(TIKI_PATH . "/$theme_path/" . 'layouts/');
 
@@ -487,9 +549,17 @@ class Smarty_Tiki extends Smarty
 				$this->addTemplateDir(TIKI_PATH . "/$main_theme_path/");
 				//if theme_admin is empty, use main theme and site_layout instead of site_layout_admin
 				if ($section != "admin" || empty($prefs['theme_admin'])) {
-					$this->addTemplateDir(TIKI_PATH . "/$main_theme_path/" . 'layouts/' . $prefs['site_layout'] . '/');
+					$layout = TIKI_PATH . "/$main_theme_path/" . 'layouts/' . $prefs['site_layout'] . '/';
+					if (! is_readable($layout)) {
+						$layout = TIKI_PATH . "/$main_theme_path/" . 'layouts/basic/';
+					}
+					$this->addTemplateDir($layout);
 				} else {
-					$this->addTemplateDir(TIKI_PATH . "/$main_theme_path/" . 'layouts/' . $prefs['site_layout_admin'] . '/');
+					$layout = TIKI_PATH . "/$main_theme_path/" . 'layouts/' . $prefs['site_layout_admin'] . '/';
+					if (! is_readable($layout)) {
+						$layout = TIKI_PATH . "/$main_theme_path/" . 'layouts/basic/';
+					}
+					$this->addTemplateDir($layout);
 				}
 			}
 			// Tikidomain main template folder
@@ -508,9 +578,17 @@ class Smarty_Tiki extends Smarty
 		
 		//Layout templates
 		if (!empty($prefs['site_layout']) && ($section != "admin" || empty($prefs['theme_admin']))){ //use the admin layout if in the admin section
-			$this->addTemplateDir($this->main_template_dir . '/layouts/' . $prefs['site_layout'] . '/');
+			$layout = $this->main_template_dir . '/layouts/' . $prefs['site_layout'] . '/';
+			if (! is_readable($layout)) {
+				$layout =  $this->main_template_dir . '/layouts/basic/';
+			}
+			$this->addTemplateDir($layout);
 		} elseif (!empty($prefs['site_layout_admin'])) {
-			$this->addTemplateDir($this->main_template_dir . '/layouts/' . $prefs['site_layout_admin'] . '/');
+			$layout = $this->main_template_dir . '/layouts/' . $prefs['site_layout_admin'] . '/';
+			if (! is_readable($layout)) {
+				$layout =  $this->main_template_dir . '/layouts/basic/';
+			}
+			$this->addTemplateDir($layout);
 		}
 		$this->addTemplateDir($this->main_template_dir.'/layouts/');
 		$this->addTemplateDir($this->main_template_dir);

@@ -87,6 +87,10 @@ function tiki_mail_setup()
 			$options['connection_config']['ssl'] = $prefs['zend_mail_smtp_security'];
 		}
 
+		if ( $prefs['zend_mail_smtp_helo'] ) {
+			$options['name'] = $prefs['zend_mail_smtp_helo'];
+		}
+
 		if ($prefs['openpgp_gpg_pgpmimemail'] == 'y') {
 			$transport = new OpenPGP_Zend_Mail_Transport_Smtp();
 		} else {
@@ -100,7 +104,7 @@ function tiki_mail_setup()
 			array(
 				'path' => TIKI_PATH . '/temp',
 				'callback' => function ($transport) {
-					return 'Mail_' . date('YmdHis') . '_' . mt_rand() . '.tmp';
+					return 'Mail_' . date('YmdHis') . '_' . mt_rand() . '.eml';
 				},
 			)
 		);

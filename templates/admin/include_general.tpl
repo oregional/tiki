@@ -1,26 +1,18 @@
 {* $Id$ *}
 <form class="form-horizontal" action="tiki-admin.php?page=general" class="admin" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
-	<input type="hidden" name="new_prefs" />
+	{include file='access/include_ticket.tpl'}
 	<div class="t_navbar margin-bottom-md">
 		{button _class="btn btn-link tips" _type="text" href="tiki-install.php" _icon_name="database" _text="{tr}Tiki installer{/tr}" _title=":{tr}Reset or upgrade your database{/tr}"}
 		{button _class="btn btn-link tips" _type="text" href="tiki-admin_menus.php" _icon_name="menu" _text="{tr}Menus{/tr}" _title=":{tr}Create and edit menus{/tr}"}
 		{button _class="btn btn-link tips" _type="text" href="tiki-admin.php?page=general&amp;forcecheck=1" _icon_name="search" _text="{tr}Check for updates now{/tr}" _title=":{tr}Check for updates now{/tr}"}
 		{button _class="btn btn-link tips" _type="text" href="tiki-check.php" _icon_name="heartbeat" _text="{tr}Server Fitness{/tr}" _title=":{tr}Check if your server meets the requirements for running Tiki{/tr}"}
-		<div class="pull-right">
-			<input type="submit" class="btn btn-primary btn-sm tips" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-		</div>
+		{include file='admin/include_apply_top.tpl'}
 	</div>
-	{if !empty($error_msg)}
-		{remarksbox type='warning' title="{tr}Warning{/tr}" icon='error'}
-			{$error_msg}
-		{/remarksbox}
-	{/if}
 	{tabset name="admin_general"}
 		{tab name="{tr}General Preferences{/tr}"}
-			<h2>{tr}General Preferences{/tr}</h2>
+			<br>
 			<fieldset>
-				<legend>{tr}Release Check{/tr}</legend>
+				<legend>{tr}Release check{/tr}</legend>
 				{remarksbox type="info" title="{tr}Tiki version{/tr}" close="n"}
 					{if !empty($lastup)}
 						{tr}Last update from SVN{/tr} ({$tiki_version}): {$lastup|tiki_long_datetime}
@@ -41,9 +33,9 @@
 				</div>
 			</fieldset>
 			<fieldset>
-				<legend>{tr}Site Identity{/tr}</legend>
-				{preference name=sender_email}
+				<legend>{tr}Site identity{/tr}</legend>
 				{preference name=browsertitle}
+				{preference name=sender_email}
 				{preference name=site_title_location}
 				{preference name=site_title_breadcrumb}
 				{remarksbox type="info" title="{tr}Themes{/tr}"}
@@ -90,7 +82,7 @@
 				{preference name=newsletter_external_client}
 			</fieldset>
 			<fieldset>
-				<legend>{tr}Logging and Reporting{/tr}</legend>
+				<legend>{tr}Logging and reporting{/tr}</legend>
 				<div class="adminoptionbox">
 					{preference name=error_reporting_level}
 					<div class="adminoptionboxchild">
@@ -105,9 +97,25 @@
 					{preference name=log_sql_perf_min}
 				</div>
 			</fieldset>
+			<fieldset>
+				<legend>{tr}Web Cron{/tr}</legend>
+				<div class="adminoptionbox">
+					{preference name=webcron_enabled}
+					<div class="adminoptionboxchild" id="webcron_enabled_childcontainer">
+						{preference name=webcron_type}
+						{preference name=webcron_run_interval}
+						{preference name=webcron_token}
+						{if $prefs.webcron_type != 'js'}
+							{remarksbox type="note" title="{tr}Call Web Cron URL{/tr}"}
+							{$base_url}cron.php?token={$prefs.webcron_token|escape:url}
+							{/remarksbox}
+						{/if}
+					</div>
+				</div>
+			</fieldset>
 		{/tab}
 		{tab name="{tr}General Settings{/tr}"}
-			<h2>{tr}General Settings{/tr}</h2>
+			<br>
 			<fieldset>
 				<legend>{tr}Server{/tr}</legend>
 				{preference name=tmpDir}
@@ -166,23 +174,7 @@
 				{preference name=count_admin_pvs}
 			</fieldset>
 			<fieldset>
-				<legend>{tr}Print{/tr}</legend>
-				{preference name=print_pdf_from_url}
-				<div class="adminoptionboxchild print_pdf_from_url_childcontainer webkit">
-					{preference name=print_pdf_webkit_path}
-				</div>
-				<div class="adminoptionboxchild print_pdf_from_url_childcontainer weasyprint">
-					{preference name=print_pdf_weasyprint_path}
-				</div>
-				<div class="adminoptionboxchild print_pdf_from_url_childcontainer webservice">
-					{preference name=print_pdf_webservice_url}
-				</div>
-				<div class="adminoptionboxchild print_pdf_from_url_childcontainer mpdf">
-					{preference name=print_pdf_mpdf_path}
-				</div>
-			</fieldset>
-			<fieldset>
-				<legend>{tr}Terms and Conditions{/tr}</legend>
+				<legend>{tr}Terms and conditions{/tr}</legend>
 				{preference name=conditions_enabled}
 				<div class="adminoptionboxchild" id="conditions_enabled_childcontainer">
 					{preference name=conditions_page_name}
@@ -190,18 +182,15 @@
 				</div>
 			</fieldset>
 			<fieldset>
-				<legend>{tr}Miscellaneous{/tr}</legend>
+				<legend>{tr}Help{/tr}</legend>
 				{preference name=feature_help}
 				<div class="adminoptionboxchild" id="feature_help_childcontainer">
 					{preference name=helpurl}
 				</div>
-				{remarksbox type="info" title="{tr}Change admin password{/tr}"}
-					{tr}Change the <strong>Admin</strong> password:{/tr} <a href="tiki-adminusers.php?find=admin" class="alert-link">{tr}User administration{/tr}</a>
-				{/remarksbox}
 			</fieldset>
 		{/tab}
 		{tab name="{tr}Navigation{/tr}"}
-			<h2>{tr}Navigation{/tr}</h2>
+			<br>
 			<fieldset>
 				<legend>{tr}Menus{/tr}</legend>
 				<div class="adminoptionbox">
@@ -213,10 +202,11 @@
 					<div id="menus_items_icons_childcontainer">
 						{preference name='menus_items_icons_path'}
 					</div>
+					{preference name=menus_edit_icon}
 				</div>
 			</fieldset>
 			<fieldset>
-				<legend>{tr}Home Page{/tr}</legend>
+				<legend>{tr}Home page{/tr}</legend>
 				<div class="adminoptionbox">
 					{preference name=useGroupHome}
 					<div id="useGroupHome_childcontainer">
@@ -227,6 +217,7 @@
 				{preference name=useUrlIndex}
 				<div class="adminoptionboxchild" id="useUrlIndex_childcontainer">
 					{preference name=urlIndex}
+					{preference name=urlIndexBrowserTitle}
 				</div>
 				{preference name=wikiHomePage}
 				{preference name=home_blog}
@@ -258,7 +249,7 @@
 				{preference name='urlOnUsername'}
 			</fieldset>
 			<fieldset>
-				<legend>{tr}Site Access{/tr}</legend>
+				<legend>{tr}Site access{/tr}</legend>
 				{preference name=site_closed}
 				<div class="adminoptionboxchild" id="site_closed_childcontainer">
 					{preference name=site_closed_msg}
@@ -303,40 +294,42 @@
 			</fieldset>
 		{/tab}
 		{tab name="{tr}Date and Time{/tr}"}
-			<h2>{tr}Date and Time{/tr}{help url="Date+and+Time"}</h2>
 			{remarksbox type="info" title="{tr}php.net{/tr}"}
 				<a class="alert-link" href="http://www.php.net/manual/en/function.strftime.php">
 					{tr}Date and Time Format Help{/tr}
 				</a>
 			{/remarksbox}
-			{preference name=server_timezone}
-			{preference name=users_prefs_display_timezone}
-			<div class="clearfix">
-				{preference name=long_date_format}
-				<span class="help-block col-md-8 col-md-push-4">
+			<fieldset>
+				<legend>{tr}Time zone and format{/tr}{help url="Date+and+Time"}</legend>
+				{preference name=server_timezone}
+				{preference name=users_prefs_display_timezone}
+				<div class="clearfix">
+					{preference name=long_date_format}
+					<span class="help-block col-md-8 col-md-push-4">
 					{tr}Sample:{/tr} {$now|tiki_long_date}
 				</span>
-			</div>
-			<div class="clearfix">
-				{preference name=short_date_format}
-				<span class="help-block col-md-8 col-md-push-4">
+				</div>
+				<div class="clearfix">
+					{preference name=short_date_format}
+					<span class="help-block col-md-8 col-md-push-4">
 					{tr}Sample:{/tr} {$now|tiki_short_date}
 				</span>
-			</div>
-			<div class="clearfix">
-				{preference name=long_time_format}
-				<span class="help-block col-md-8 col-md-push-4">
+				</div>
+				<div class="clearfix">
+					{preference name=long_time_format}
+					<span class="help-block col-md-8 col-md-push-4">
 					{tr}Sample:{/tr} {$now|tiki_long_time}
 				</span>
-			</div>
-			<div class="clearfix">
-				{preference name=short_time_format}
-				<span class="help-block col-md-8 col-md-push-4">
+				</div>
+				<div class="clearfix">
+					{preference name=short_time_format}
+					<span class="help-block col-md-8 col-md-push-4">
 					{tr}Sample:{/tr} {$now|tiki_short_time}
 				</span>
-			</div>
-			{preference name=short_date_format_js}
-			{preference name=short_time_format_js}
+				</div>
+				{preference name=short_date_format_js}
+				{preference name=short_time_format_js}
+			</fieldset>
 			<fieldset>
 				<legend>{tr}Date/time selectors{/tr}</legend>
 				{preference name=display_field_order}
@@ -352,7 +345,5 @@
 			{preference name=wikiplugin_convene}
 		{/tab}
 	{/tabset}
-	<div class="t_navbar margin-bottom-md text-center">
-		<input type="submit" class="btn btn-primary btn-sm tips" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

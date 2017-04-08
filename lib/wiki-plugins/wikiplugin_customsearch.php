@@ -183,7 +183,9 @@ function wikiplugin_customsearch($data, $params)
 	if (empty($params['wiki']) && empty($params['tpl'])) {
 		return tra('Template is not specified');
 	} elseif (!empty($params['wiki']) && !TikiLib::lib('tiki')->page_exists($params['wiki'])) {
-		return tra('Template page not found');
+		$link = new WikiParser_OutputLink;
+		$link->setIdentifier($params['wiki']);
+		return tra('Template page not found') . ' ' . $link->getHtml();
 	}
 
 	if (isset($params['id'])) {
@@ -238,7 +240,11 @@ function wikiplugin_customsearch($data, $params)
 	}
 	$builder = new Search_Query_WikiBuilder($query);
 	$builder->apply($matches);
-
+	$tsret = $builder->applyTablesorter($matches);
+	if (!empty($tsret['max']) || !empty($_GET['numrows'])) {
+		$max = !empty($_GET['numrows']) ? $_GET['numrows'] : $tsret['max'];
+		$builder->wpquery_pagination_max($query, $max);
+	}
 	$paginationArguments = $builder->getPaginationArguments();
 
 	// Use maxRecords set in LIST parameters rather then global default if set.
@@ -254,9 +260,9 @@ function wikiplugin_customsearch($data, $params)
 	$paginationArguments['_onclick'] = "$('#customsearch_$id').submit();return false;";
 
 	$builder = new Search_Formatter_Builder;
+	$builder->setId('wpcs-' . $id);
 	$builder->setPaginationArguments($paginationArguments);
-	$builder->apply($matches);
-	$formatter = $builder->getFormatter();
+	$builder->setTsOn($tsret['tsOn']);
 
 	$facets = new Search_Query_FacetWikiBuilder;
 	$facets->apply($matches);
@@ -266,8 +272,10 @@ function wikiplugin_customsearch($data, $params)
 		$definitionKey, serialize(
 			array(
 				'query' => $query,
-				'formatter' => $formatter,
+				'data' => $data,
+				'builder' => $builder,
 				'facets' => $facets,
+				'tsret' => $tsret,
 			)
 		),
 		'customsearch'
@@ -344,6 +352,10 @@ var customsearch = {
 		}
 
 		$(selector).tikiModal(cs.options.searchfadetext);
+
+		var resultsTop = $(cs.options.results).offset().top;
+		if( $(window).scrollTop() > resultsTop )
+			$('html, body').animate({scrollTop: resultsTop + 'px'}, 'fast');
 
 		cs._load(function (data) {
 			$(selector).tikiModal();
@@ -465,7 +477,7 @@ $(document).trigger('formSearchReady');
 	}
 
 	global $page;
-	$script .= "
+	$script .= "$('.icon-pdf').parent().click(function(){storeSortTable('#customsearch_" . $id . "_results',$('#customsearch_" . $id . "_results').html())});
 customsearch._load = function (receive) {
 	var datamap = {
 		definition: this.definition,
@@ -515,12 +527,13 @@ $iconinsert";
 
 	if ($params['customsearchjs']) {
 		TikiLib::lib('header')->add_jsfile('lib/jquery_tiki/customsearch.js');
+
 	}
 
 	$out = '<div id="customsearch_' . $id . '_form"><form id="customsearch_' . $id . '">' . $matches->getText() . '</form></div>';
 
 	if (empty($params['destdiv'])) {
-		$out .= '<div id="customsearch_' . $id . '_results"></div>';
+		$out .= '<div id="customsearch_' . $id . '_results" class="customsearch_results"></div>';
 	}
 
 	if (!empty($params['wiki'])) {
@@ -713,7 +726,7 @@ $('#$fieldid').change(function() {
 ";
 
 		foreach ($cats as $c) {
-			$option = $document->createElement('option', $_categpath ? $c['relativePathString'] : $c['name']);
+			$option = $document->createElement('option', $_categpath ? $c['relativePathString'] : str_replace("&","&amp;",$c['name']));
 			$option->setAttribute('value', $c['categId']);
 			$element->appendChild($option);
 			if ($default && in_array($c['categId'], (array) $default)) {
@@ -912,6 +925,9 @@ function cs_design_daterange($id, $fieldname, $fieldid, $arguments, $default, &$
 
 	$script .= "
 $('#{$fieldid_from}_dptxt,#{$fieldid_to}_dptxt').change(function() {
+	updateDateRange_$fieldid();
+});
+function updateDateRange_$fieldid() {
 	var from = $('#$fieldid_from').val();
 	var to = $('#$fieldid_to').val();
 	from = from.substr(0,10);to = to.substr(0,10); // prevent trailing 000 from date picker
@@ -920,10 +936,61 @@ $('#{$fieldid_from}_dptxt,#{$fieldid_to}_dptxt').change(function() {
 		name: 'daterange',
 		value: from + ',' + to
 	});
-});
+}
+updateDateRange_$fieldid();
 ";
 
 	return $picker;
+}
+
+function cs_design_distance($id, $fieldname, $fieldid, $arguments, $default, &$script)
+{
+	$document = new DOMDocument;
+	$distanceElement = $document->createElement('input');
+	if (!empty($arguments['id'])) {
+		$arguments['id'] = $fieldid . '_dist';
+	}
+	cs_design_setbasic($distanceElement, $fieldid . '_dist', $fieldname, $arguments);
+	$latElement = $document->createElement('input');
+	if (!empty($arguments['id'])) {
+		$arguments['id'] = $fieldid . '_lat';
+	}
+	cs_design_setbasic($latElement, $fieldid . '_lat', $fieldname, $arguments);
+	$lonElement = $document->createElement('input');
+	if (!empty($arguments['id'])) {
+		$arguments['id'] = $fieldid . '_lon';
+	}
+	cs_design_setbasic($lonElement, $fieldid . '_lon', $fieldname, $arguments);
+
+	if (!empty($default)) {
+		$arguments['default'] = $default;
+	}
+	$script .= "
+(function (id, config, fieldname) {
+	var fields = $('input[name=$fieldname]');
+	fields.change(function() {
+		var filter = {
+			config: config,
+			name: 'distance',
+			value: fields.map(function () {return $(this).val();}).get().join()
+		};
+		customsearch.add($(this).attr('name'), filter);
+	}).change();
+	
+})('$fieldid', " . json_encode($arguments) . ", " . json_encode($fieldname) . ");
+";
+
+	$arguments = new JitFilter($arguments);
+
+	$distanceElement->setAttribute('value', $arguments->_distance->text());
+	$latElement->setAttribute('value', $arguments->_lat->text());
+	$lonElement->setAttribute('value', $arguments->_lon->text());
+
+	$document->appendChild($distanceElement);
+	$document->appendChild($latElement);
+	$document->appendChild($lonElement);
+
+	return $document->saveHTML();
 }
 
 function cs_design_store($id, $fieldname, $fieldid, $arguments, $default, &$script)

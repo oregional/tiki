@@ -44,7 +44,7 @@ function prefs_article_list()
 			'default' => 'n',
 		),
 		'article_remembers_creator' => array(
-			'name' => tra('Article creator remains article owner.'),
+			'name' => tra('Article creator remains article owner'),
 			'description' => tra('Last article editor does not automatically become author (owner).'),
 			'type' => 'flag',
 			'default' => 'n',
@@ -53,6 +53,7 @@ function prefs_article_list()
 			'name' => tra('User ratings on articles'),
 			'description' => tra('Allows users to rate the articles.'),
 			'type' => 'flag',
+			'hint' => tr('Permissions involved: %0. Also, when configuring articles, "Admin Types > Comment can rate article" needs to be set.', 'rate_article, ratings_view_results'),
 			'default' => 'n',
 		),
 		'article_user_rating_options' => array(
@@ -99,6 +100,14 @@ function prefs_article_list()
 			'hint' => tra('Number of pixels ("0" to default to the view mode maximum)'),
 			'default' => '0',
 		),
+		'article_image_file_size_max' => array(
+			'name' => tra('Image article maximum file size'),
+			'description' => tra('Maximum size for an Image Article in kilobyte (default = 500000). Article images are stored in the database so it should remain low'),
+			'type' => 'text',
+			'size' => '10',
+			'filter' => 'digits',
+			'default' => 500000,
+		),
 		'article_custom_attributes' => array(
 			'name' => tra('Custom attributes for article types'),
 			'description' => tra('Enable additional custom fields for article types'),
@@ -123,7 +132,7 @@ function prefs_article_list()
 			),
 		),
 		'article_use_new_list_articles' => array(
-			'name' => tr('Use New Articles'),
+			'name' => tr('Use new articles'),
 			'description' => tr('Uses the new article lists using CustomSearch rather than the DB'),
 			'type' => 'flag',
 			'default' => 'n',

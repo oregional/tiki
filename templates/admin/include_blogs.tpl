@@ -1,17 +1,15 @@
 {* $Id$ *}
 <form role="form" class="form-horizontal" action="tiki-admin.php?page=blogs" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 	<div class="t_navbar margin-bottom-md clearfix">
-		<a role="button" class="btn btn-link" href="tiki-list_blogs.php" title="{tr}List{/tr}">
+		<a role="button" class="btn btn-link tips" href="tiki-list_blogs.php" title=":{tr}Blogs listing{/tr}">
 			{icon name="list"} {tr}Blogs{/tr}
 		</a>
-		<div class="pull-right">
-			<input type="submit" class="btn btn-primary btn-sm tips" title=":{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-		</div>
+		{include file='admin/include_apply_top.tpl'}
 	</div>
 	{tabset name="admin_blogs"}
 		{tab name="{tr}General Settings{/tr}"}
-			<h2>{tr}General Settings{/tr}</h2>
+			<br>
 			<fieldset>
 				<legend>{tr}Activate the feature{/tr}</legend>
 				{preference name=feature_blogs visible="always"}
@@ -25,7 +23,6 @@
 				<legend>
 					{tr}Features{/tr}{help url="Blog+Config"}
 				</legend>
-				<input type="hidden" name="blogfeatures" />
 				{preference name=feature_blog_rankings}
 				{preference name=feature_blog_heading}
 				{preference name=feature_blog_edit_publish_date}
@@ -38,7 +35,6 @@
 				</fieldset>
 			<fieldset>
 				<legend>{tr}Comments{/tr}</legend>
-				<input type="hidden" name="blogcomprefs" />
 				{preference name=feature_blogposts_comments}
 				{preference name=blog_comments_per_page}
 				{preference name=blog_comments_default_ordering}
@@ -54,11 +50,10 @@
 			</fieldset>
 		{/tab}
 		{tab name="{tr}Blogs Listings{/tr}"}
-			<h2>{tr}Blogs Listings{/tr}</h2>
-			<input type="hidden" name="bloglistconf" />
+			<br>
 			{preference name=blog_list_order}
 			<fieldset>
-				<legend>{tr}Select which items to display when listing blogs:{/tr}</legend>
+				<legend>{tr}Items to display{/tr}</legend>
 				{preference name=blog_list_title}
 				<div class="adminoptionboxchild" id="blog_list_title_childcontainer">
 					{preference name=blog_list_title_len}
@@ -73,7 +68,5 @@
 			</fieldset>
 		{/tab}
 	{/tabset}
-	<div class="t_navbar margin-bottom-md text-center">
-		<input type="submit" class="btn btn-primary btn-sm" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

@@ -80,7 +80,7 @@ class Services_Edit_Controller
 
 		$page = $autoSaveIdParts[2];	// plugins use global $page for approval
 
-		if (!Perms::get('wiki page', $page)->edit || $user != $tikilib->get_semaphore_user($page)) {
+		if (!Perms::get('wiki page', $page)->edit || $user != TikiLib::lib('service')->internal('semaphore', 'get_user', ['object_id' => $page, 'check' => 1])) {
 			return '';
 		}
 
@@ -111,6 +111,7 @@ class Services_Edit_Controller
 
 			$smarty->assign('inPage', $input->inPage->int() ? true : false);
 
+			$parserlib = TikiLib::lib('parser');
 			if ($input->inPage->int()) {
 				$diffstyle = $input->diff_style->text();
 				if (!$diffstyle) {	// use previously set diff_style
@@ -146,16 +147,17 @@ class Services_Edit_Controller
 						$diffnew = $data;
 					}
 					if ($diffstyle === 'htmldiff') {
-						$diffnew = $tikilib->parse_data($diffnew, $options);
-						$diffold = $tikilib->parse_data($diffold, $options);
+						$diffnew = $parserlib->parse_data($diffnew, $options);
+						$diffold = $parserlib->parse_data($diffold, $options);
 					}
 					$data = diff2($diffold, $diffnew, $diffstyle);
 					$smarty->assign_by_ref('diffdata', $data);
 
-					$smarty->assign('translation_mode', 'y');
+					$smarty->assign('translation_mode', 'y');	// disables the headings etc
+					$smarty->assign('show_version_info', 'n');	// disables the headings etc
 					$data = $smarty->fetch('pagehistory.tpl');
 				} else {
-					$data = $tikilib->parse_data($data, $options);
+					$data = $parserlib->parse_data($data, $options);
 				}
 				$parsed = $data;
 
@@ -178,9 +180,8 @@ $(window).on("load", function(){
 '
 				);
 				$smarty->assign('headtitle', tra('Preview'));
-				$data = '<div id="c1c2"><div id="wrapper"><div id="col1"><div id="tiki-center" class="wikitext">';
+				$data = '<div class="container"><div class="row row-middle"><div class="col-sm-12"><div class="wikitext">';
 				if (TikiLib::lib('autosave')->has_autosave($input->editor_id->text(), $input->autoSaveId->text())) {
-					$parserlib = TikiLib::lib('parser');
 					$data .= $parserlib->parse_data(
 						$editlib->partialParseWysiwygToWiki(
 							TikiLib::lib('autosave')->get_autosave($input->editor_id->text(), $input->autoSaveId->text())
@@ -200,11 +201,11 @@ $(window).on("load", function(){
 				$_SERVER['HTTP_X_REQUESTED_WITH'] = 'xmlhttprequest';	// to fool Services_Broker into putputting full page
 			}
 
-			if ($prefs['feature_wiki_footnotes']) {
+			if ($prefs['feature_wiki_footnotes'] === 'y') {
 
 				$footnote = $input->footnote->text();
 				if ($footnote) {
-					$footnote = $tikilib->parse_data($footnote);
+					$footnote = $parserlib->parse_data($footnote);
 				} else {
 					$footnote = $wikilib->get_footnote($user, $page);
 				}
@@ -213,127 +214,6 @@ $(window).on("load", function(){
 			return array('parsed' => $parsed, 'parsed_footnote' => $footnote);
 		}
 	}
-
-    function action_wikiLingo(JitFilter $input)
-    {
-        global $user, $prefs, $page;
-        $tikilib = TikiLib::lib('tiki');
-        $globalPerms = Perms::get();
-
-        $page = urldecode($input->page->none());
-
-        if (!self::page_editable($input->autoSaveId->text(), $page)) {
-            return array();
-        }
-
-        $scripts = new WikiLingo\Utilities\Scripts("vendor/wikilingo/wikilingo/");
-        $wikiLingo = new WikiLingo\Parser($scripts);
-	    require_once("lib/wikiLingo_tiki/WikiLingoEvents.php");
-	    (new WikiLingoEvents($wikiLingo));
-
-        if ($input->wysiwyg->int() == 1) {
-            $toWikiLingo = new WYSIWYGWikiLingo\Parser();
-            $data = $input->data->none();
-            $source = $toWikiLingo->parse($data);
-        } else {
-            $source = $input->data->none();
-        }
-
-        $result = array();
-
-        //save a wiki page
-        if ($input->save->int() === 1) {
-            $wysiwyg = $input->wysiwyg->int();
-            $info = $tikilib->get_page_info($page, false);
-            $exists = $tikilib->page_exists($page);
-
-            $wiki_authors_style = '';
-            if ( $prefs['wiki_authors_style_by_page'] === 'y' ) {
-                $wiki_authors_style_updated = $input->wiki_authors_style->text();
-                if ( $globalPerms->admin_wiki && !empty($wiki_authors_style_updated)) {
-                    $wiki_authors_style = $wiki_authors_style_updated;
-                } elseif ( isset($info['wiki_authors_style']) ) {
-                    $wiki_authors_style = $info['wiki_authors_style'];
-                }
-            }
-
-            $hash = array(
-                'lock_it' => (!$input->lock_it->text() === 'on' ? 'y' : 'n'),
-                'comments_enabled' => ($input->comments_enabled->text() === 'on' ? 'y' : 'n'),
-                'contributions' => $input->contributions->text(),
-                'contributors' => $input->contributors->text()
-            );
-
-            if ($exists) {
-                $tikilib->update_page(
-                    $page,
-                    $source,
-                    $input->comment->text() ?: $info['comment'],
-                    $user,
-                    $tikilib->get_ip_address(),
-                    $input->description->text() ?: $info['description'],
-                    ($input->isminor->text() === 'on' ? 1 : 0),
-                    $input->lang->text() ?: $info['lang'],
-                    false,
-                    $hash,
-                    null,
-                    ($wysiwyg == 0 ? 'n' : 'y'),
-                    $wiki_authors_style
-                );
-                $result['status'] = 'updated';
-            } else {
-                $tikilib->create_page(
-                    $page,
-                    0,
-                    $source,
-                    $tikilib->now,
-                    $input->comment->text(),
-                    $user,
-                    $tikilib->get_ip_address(),
-                    $input->description->text(),
-                    $input->lang->text(),
-                    false,
-                    $hash,
-                    ($wysiwyg == 0 ? 'n' : 'y'),
-                    $wiki_authors_style
-                );
-                $result['status'] = 'created';
-            }
-        }
-
-        $version = $result['version'] = $tikilib->getOne("SELECT version FROM `tiki_pages` WHERE pageName=? ORDER BY `version` DESC", array($page));
-        $tikilib->query("INSERT INTO tiki_output (entityId, objectType, outputType, version) VALUES (?,?,?,?)", array($page, 'wikiPage', 'wikiLingo', $version));
-
-        if ($input->preview->bool()) {
-            $result['parsed'] = $wikiLingo->parse($source);
-            $result['script'] = $scripts->renderScript();
-            $result['css'] = $scripts->renderCss();
-        }
-
-        return $result;
-    }
-
-    function action_update_output_type(JitFilter $input)
-    {
-        $page = $input->page->text();
-        $output_type = $input->output_type->text();
-
-        if (self::page_editable(null, $page)) {
-            $tikilib = TikiLib::lib('tiki');
-            //delete colums from tiki_output if they're already created so new values can be inserted to use wikiLingo as the parser
-            $version = $tikilib->getOne("SELECT version FROM `tiki_pages` WHERE pageName=? ORDER BY `version` DESC", array($page));
-            $tikilib->query("DELETE FROM `tiki_output` WHERE `entityId` = ? AND `objectType` = ? AND `version` = ?", array($page, 'wikiPage', $version));
-            if (!empty($output_type)){
-                $tikilib->query("INSERT INTO tiki_output (entityId, objectType, outputType, version) VALUES (?,?,?,?)", array($page, 'wikiPage', $output_type, $version));
-            }
-            return array(
-                'updated' => true,
-                'value' => $output_type
-            );
-        }
-
-        return false;
-    }
 
     public static function page_editable($autoSaveId = null, &$page = null)
     {
@@ -349,7 +229,8 @@ $(window).on("load", function(){
             $page = $autoSaveIdParts[2];	// plugins use global $page for approval
         }
 
-        if (!Perms::get('wiki page', $page)->edit || $user != $tikilib->get_semaphore_user($page)) {
+        if (!Perms::get('wiki page', $page)->edit || $user != TikiLib::lib('service')->internal('semaphore', 'get_user', ['object_id' => $page, 'check' => 1])
+		) {
             return false;
         }
 

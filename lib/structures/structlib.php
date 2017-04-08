@@ -683,7 +683,7 @@ class StructLib extends TikiLib
 		}
 		return $back;
 	}
-	public function get_toc($page_ref_id,$order='asc',$showdesc=false,$numbering=true,$numberPrefix='',$type='plain',$page='',$maxdepth=0, $structurePageName='')
+	public function get_toc($page_ref_id,$order='asc',$showdesc=false,$numbering=true,$numberPrefix='',$type='plain',$page='',$maxdepth=0,$mindepth=0, $sortalpha=0, $structurePageName='')
 	{
 		global $user, $prefs;
 
@@ -720,11 +720,46 @@ class StructLib extends TikiLib
 						'type' => $type,
 						'page' => $page,
 						'maxdepth' => $maxdepth,
+						'mindepth' => $mindepth,
+						'sortalpha' => $sortalpha,
 						'structurePageName' => $structurePageName
 					)
 				);
 				TikiLib::lib('smarty')->assign('json_params', $json_params);
 
+			}
+		}
+
+		if ($structure_tree != '') {
+			if ($mindepth > 0) {
+				$currentLevel = $structure_tree;
+				for ($i = 0; $i < $mindepth; $i++) {
+					$deeperLevel = array();
+					if ($currentLevel != '') {
+						foreach ($currentLevel as $leaf) {
+							if (isset($leaf['sub']) && is_array($leaf['sub'])) {
+								foreach ($leaf['sub'] as $sub) {
+									$deeperLevel[] = $sub;
+								}
+							}
+						}
+					}
+					$currentLevel = $deeperLevel;
+				}
+				if ($maxdepth > 0) {
+					$maxdepth = $maxdepth - $mindepth;
+					if ($maxdepth <= 0) {
+						$maxdepth = 1;
+					}
+				}
+				$structure_tree = $currentLevel;
+			}
+			if ($sortalpha == 'alpha'){
+				if ($order == 'asc') {
+					usort($structure_tree, array($this, 'compareByPageName'));
+				} else {
+					usort($structure_tree, array($this, 'compareByPageNameDesc'));
+				}
 			}
 		}
 
@@ -734,6 +769,17 @@ class StructLib extends TikiLib
 		}
 		return $nodelist ."\n";
 	}
+
+	public function compareByPageName($a, $b)
+	{
+		return strcasecmp($a['pageName'], $b['pageName']);
+	}
+
+	public function compareByPageNameDesc($a, $b)
+	{
+		return strcasecmp($b['pageName'], $a['pageName']);
+	}
+
 	public function fetch_toc($structure_tree,$showdesc,$numbering,$type='plain',$page='',$maxdepth=0,$cur_depth=0,$structurePageName='')
 	{
 		$smarty = TikiLib::lib('smarty');
@@ -741,6 +787,7 @@ class StructLib extends TikiLib
 		$ret='';
 		if ($structure_tree != '') {
 			if (($maxdepth <= 0) || ($cur_depth < $maxdepth)) {
+
 
 				$smarty->assign('toc_type', $type);
 				$ret.= $smarty->fetch('structures_toc-startul.tpl')."\n";
@@ -1198,7 +1245,7 @@ class StructLib extends TikiLib
 				$res['description']=$res['pageName'];
 			}
 	  		$pageName=$res['pageName'].'|'.$res['description'];
-	  		$dat = $this->parse_data($res['data']);
+	  		$dat = TikiLib::lib('parser')->parse_data($res['data']);
 	  		//Now dump the page
 	  		$dat = preg_replace("/tiki-index.php\?page=([^\'\" ]+)/", "$1.html", $dat);
 	  		$dat = str_replace('?nocache=1', '', $dat);
@@ -1334,24 +1381,7 @@ class StructLib extends TikiLib
 			$this->query($query, array($structure_id, $structure_id, $pos+1, $page_ref_id));
 		}
 	}
-	public function move_to_structure_child($parent_ref_id, $structure_id, $first=true)
-	{
-		$query = "update `tiki_structures` set `pos`=`pos`-1 where `pos`>? and `parent_id`=?";
-		$this->query($query, array((int) $page_info["pos"], (int) $parent_ref_id));
-		if ($first) {
-			$query = "update `tiki_structures` set `pos`=`pos`+1 where `parent_id`=?";
-			$this->query($query, array($structure_id));
-			$pos = 1;
-			$query = "update `tiki_structures` set `structure_id`=?, `parent_id`=?, `pos`=? where `page_ref_id`=?";
-			$this->query($query, array($structure_id, $structure_id, $pos+1, $page_ref_id));
-		} else {
-			$query = "select max(`pos`) from `tiki_structures` where `parent_id`=?";
-			$pos = $this->getOne($query, array($structure_id));
-			$query = "update `tiki_structures` set `structure_id`=?, `parent_id`=?, `pos`=? where `page_ref_id`=?";
-			$this->query($query, array($structure_id, $structure_id, $pos+1, $page_ref_id));
-		}
-		return true;
-	}
+
 	/* transform a structure into a menu */
 	public function to_menu($channels, $structure, $sectionLevel=0, $cumul=0, $params=array())
 	{

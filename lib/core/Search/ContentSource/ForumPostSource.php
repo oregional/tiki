@@ -40,6 +40,10 @@ class Search_ContentSource_ForumPostSource implements Search_ContentSource_Inter
 		$commentslib->extras_enabled(false);
 		$comment = $commentslib->get_comment($objectId);
 
+		if (! $comment) {
+			return false;
+		}
+
 		$root_thread_id = $commentslib->find_root($comment['parentId']);
 		if ($comment['parentId']) {
 			$root = $commentslib->get_comment($root_thread_id);
@@ -79,6 +83,7 @@ class Search_ContentSource_ForumPostSource implements Search_ContentSource_Inter
 
 			'forum_id' => $typeFactory->identifier($comment['object']),
 			'forum_section' => $typeFactory->identifier($forum_info['section']),
+			'forum_title' => $typeFactory->sortable($forum_info['name']),
 
 			'post_content' => $typeFactory->wikitext($content),
 			'post_author' => $typeFactory->wikitext($comment['userName']),
@@ -151,6 +156,7 @@ class Search_ContentSource_ForumPostSource implements Search_ContentSource_Inter
 			'post_snippet',
 			'forum_id',
 			'forum_section',
+			'forum_title',
 			'parent_thread_id',
 
 			'parent_view_permission',

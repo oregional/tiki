@@ -1,5 +1,5 @@
 {* $Id$ *}
-{if !$tsAjax}
+{if !$ts.ajax}
 	{title help="Forums" admpage="forums" url='tiki-admin_forums.php'}{tr}Admin Forums{/tr}{/title}
 
 	<div class="t_navbar margin-bottom-md">
@@ -20,13 +20,12 @@
 		{/if}
 	</div>
 {/if}
-{include file='utilities/feedback.tpl'}
 {tabset}
 
 	{tab name="{tr}Forums{/tr}"}
 		<h2>{tr}Forums{/tr}</h2>
 
-		{if ($channels or ($find ne '')) && !$tsOn}
+		{if ($channels or ($find ne '')) && !$ts.enabled}
 			{include file='find.tpl'}
 		{/if}
 		{if $prefs.javascript_enabled !== 'y'}
@@ -39,17 +38,15 @@
 			{$liend = ''}
 		{/if}
 		<form method='post' id="admin_forums">
-			<div id="{$ts_tableid}-div" class="{if $js === 'y'}table-responsive{/if} ts-wrapperdiv" {if $tsOn}style="visibility:hidden;"{/if}>
-				<table  id="{$ts_tableid}" class="table table-striped table-hover" data-count="{$cant|escape}">
+			<div id="{$ts.tableid}-div" class="{if $js === 'y'}table-responsive{/if} ts-wrapperdiv" {if $ts.enabled}style="visibility:hidden;"{/if}>
+				<table id="{$ts.tableid}" class="table table-striped table-hover" data-count="{$cant|escape}">
 					{$numbercol = 0}
 					<thead>
 						<tr>
-							{if $channels}
-								{$numbercol = $numbercol+1}
-								<th id="checkbox" style="text-align:center">
-									{select_all checkbox_names='checked[]'}
-								</th>
-							{/if}
+							{$numbercol = $numbercol+1}
+							<th id="checkbox" style="text-align:center">
+								{select_all checkbox_names='checked[]'}
+							</th>
 							<th id="name">
 								{self_link _sort_arg='sort_mode' _sort_field='name'}{tr}Name{/tr}{/self_link}
 								{$numbercol = $numbercol+1}
@@ -142,7 +139,7 @@
 								</td>
 							</tr>
 						{sectionelse}
-							{if !$tsOn || ($tsOn && $tsAjax)}
+							{if !$ts.enabled || ($ts.enabled && $ts.ajax)}
 								{norecords _colspan=$numbercol _text="No forums found"}
 							{else}
 								{norecords _colspan=$numbercol _text="Retrieving forums..."}
@@ -151,7 +148,7 @@
 					</tbody>
 				</table>
 			</div>
-			{if !$tsAjax}
+			{if !$ts.ajax}
 				{if $channels}
 					<div class="text-left form-group">
 						<br>
@@ -180,11 +177,11 @@
 				{/if}
 			{/if}
 		</form>
-	{if !$tsOn}
+	{if !$ts.enabled}
 		{pagination_links cant=$cant step=$maxRecords offset=$offset}{/pagination_links}
 	{/if}
 	{/tab}
-	{if !$tsAjax}
+	{if !$ts.ajax}
 		{tab name="{tr}Create/Edit Forums{/tr}"}
 
 			{if !isset($dup_mode) or $dup_mode != 'y'}

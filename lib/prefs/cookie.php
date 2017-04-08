@@ -10,7 +10,7 @@ function prefs_cookie_list()
 	return array(
 		'cookie_name' => array(
 			'name' => tra('Cookie name'),
-            'description' => tra("Name of the cookie to remember the user's login"),
+			'description' => tra("Name of the cookie to remember the user's login"),
 			'type' => 'text',
 			'size' => 35,
 			'perspective' => false,
@@ -18,7 +18,7 @@ function prefs_cookie_list()
 		),
 		'cookie_domain' => array(
 			'name' => tra('Domain'),
-            'description' => tra('The domain that the cookie is available to.'),
+			'description' => tra('The domain that the cookie is available to.'),
 			'type' => 'text',
 			'size' => 35,
 			'perspective' => false,
@@ -26,7 +26,7 @@ function prefs_cookie_list()
 		),
 		'cookie_path' => array(
 			'name' => tra('Path'),
-            'description' => tra('The path on the server in which the cookie will be available on. Tiki will detect if it is installed in a subdirectory and will use that automatically.'),
+			'description' => tra('The path on the server in which the cookie will be available on. Tiki will detect if it is installed in a subdirectory and will use that automatically.'),
 			'hint' => 'N.B. Needs to start with a / character to work properly in Safari',
 			'type' => 'text',
 			'size' => 35,
@@ -48,6 +48,7 @@ function prefs_cookie_list()
 			'type' => 'text',
 			'size' => 35,
 			'default' => 'tiki_cookies_accepted',
+			'tags' => array('experimental'),
 		),
 		'cookie_consent_expires' => array(
 			'name' => tra('Cookie consent expiration'),
@@ -55,6 +56,7 @@ function prefs_cookie_list()
 			'type' => 'text',
 			'filter' => 'int',
 			'default' => 365,
+			'tags' => array('experimental'),
 		),
 		'cookie_consent_description' => array(
 			'name' => tra('Cookie consent text'),
@@ -63,6 +65,7 @@ function prefs_cookie_list()
 			'type' => 'textarea',
 			'size' => 6,
 			'default' => tra('This website would like to place cookies on your computer to improve the quality of your experience of the site. To find out more about the cookies, see our ((privacy notice)).'),
+			'tags' => array('experimental'),
 		),
 		'cookie_consent_question' => array(
 			'name' => tra('Cookie consent question'),
@@ -71,6 +74,7 @@ function prefs_cookie_list()
 			'type' => 'text',
 			'size' => 35,
 			'default' => tra('I accept cookies from this site.'),
+			'tags' => array('experimental'),
 		),
 		'cookie_consent_button' => array(
 			'name' => tra('Cookie consent button'),
@@ -78,6 +82,7 @@ function prefs_cookie_list()
 			'type' => 'text',
 			'size' => 35,
 			'default' => tra('Continue'),
+			'tags' => array('experimental'),
 		),
 		'cookie_consent_alert' => array(
 			'name' => tra('Cookie consent alert'),
@@ -85,6 +90,7 @@ function prefs_cookie_list()
 			'type' => 'text',
 			'size' => 35,
 			'default' => tra('Sorry, cookie consent required'),
+			'tags' => array('experimental'),
 		),
 		'cookie_consent_mode' => array(
 			'name' => tra('Cookie consent mode'),
@@ -97,6 +103,7 @@ function prefs_cookie_list()
 				'dialog' => tra('Dialog'),
 			),
 			'default' =>'',
+			'tags' => array('experimental'),
 		),
 		'cookie_consent_dom_id' => array(
 			'name' => tra('Cookie consent dialog ID'),
@@ -104,6 +111,14 @@ function prefs_cookie_list()
 			'type' => 'text',
 			'size' => 35,
 			'default' => 'cookie_consent_div',
+			'tags' => array('experimental'),
+		),
+		'cookie_consent_disable' => array(
+			'name' => tra('Cookie consent disabled'),
+			'description' => tra('Do not give the option to refuse cookies but still inform the user about cookie usage.'),
+			'type' => 'flag',
+			'default' => 'n',
+			'tags' => array('experimental'),
 		),
 		'cookie_refresh_rememberme' => array(
 			'name' => tr('Refresh the remember-me cookie expiration'),

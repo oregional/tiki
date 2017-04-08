@@ -45,6 +45,9 @@ class UsersLib extends TikiLib
 	static $cas_initialized = false;
 	static $userexists_cache = array();
 
+
+
+
 	function __construct()
 	{
 		parent::__construct();
@@ -55,6 +58,7 @@ class UsersLib extends TikiLib
 		$this->groupinclude_cache = array();
 		$this->get_object_permissions_for_user_cache = array();
 	}
+
 
 	function assign_object_permission($groupName, $objectId, $objectType, $permName)
 	{
@@ -216,6 +220,15 @@ class UsersLib extends TikiLib
 		}
 		return $userexists_cache[$user];
 	}
+	function user_exists_by_email($email)
+	{
+		if (!isset($userexists_cache[$email])) {
+			$query = 'select count(*) from `users_users` where upper(`email`) = ?';
+			$result = $this->getOne($query, array(TikiLib::strtoupper($email)));
+			$userexists_cache[$email] = $result;
+		}
+		return $userexists_cache[$email];
+	}
 	function get_user_real_case($user)
 	{
 		$query = 'select `login` from `users_users` where upper(`login`) = ?';
@@ -274,6 +287,22 @@ class UsersLib extends TikiLib
 				$lslib->set_operator_status($user, 'offline');
 			}
 		}
+
+		if ($prefs['auth_method'] === 'saml' && $prefs['saml_options_slo'] == 'y') {
+			$saml_instance = $this->get_saml_auth();
+			if (isset($saml_instance)) {
+				$nameId = null;
+				$sessionIndex = null;
+				if (isset($_SESSION['saml_nameid'])) {
+					$nameId = $_SESSION['saml_nameid']; 
+				}
+				if (isset($_SESSION['saml_sessionindex'])) {
+					$sessionIndex = $_SESSION['saml_sessionindex'];
+				}				
+				$saml_instance->logout(null, array(), $nameId, $sessionIndex);
+			}
+		}
+
 		setcookie($user_cookie_site, '', -3600, $prefs['cookie_path'], $prefs['cookie_domain']);
 		/* change group home page or deactivate if no page is set */
 		if (!empty($redir)) {
@@ -304,6 +333,7 @@ class UsersLib extends TikiLib
 		} else {
 			header('Location: ' . $url);
 		}
+
 		return;
 	}
 
@@ -328,21 +358,6 @@ class UsersLib extends TikiLib
 		return $r;
 	}
 
-	function generate_challenge()
-	{
-		$val = md5($this->genPass());
-
-		return $val;
-	}
-
-	function validate_hash($user, $hash)
-	{
-		return $this->getOne(
-			'select count(*) from `users_users` where binary `login` = ? and `hash`=?',
-			array($user, $hash)
-		);
-	}
-
 	/**
 	 * Force a logout for the specified user
 	 * @param $user
@@ -362,7 +377,7 @@ class UsersLib extends TikiLib
 
 	// For each auth method, validate user in auth, if valid, verify tiki user exists and create if necessary (as configured)
 	// Once complete, update_lastlogin and return result, username and login message.
-	function validate_user($user, $pass, $challenge = '', $response = '', $validate_phase=false)
+	function validate_user($user, $pass, $validate_phase=false)
 	{
 		global $prefs;
 		
@@ -407,10 +422,15 @@ class UsersLib extends TikiLib
 		$shib_create_tiki = ($prefs['shib_create_user_tiki'] == 'y');
 		$shib_skip_admin = ($prefs['shib_skip_admin'] == 'y');
 
+		// see if we are to use SAML
+		$auth_saml = ($prefs['auth_method'] == 'saml');
+ 		$saml_create_tiki = (isset($prefs['saml_options_autocreates']) && $prefs['saml_options_autocreates'] == 'y');
+ 		$saml_skip_admin = (isset($prefs['saml_options_skip_admin']) && $prefs['saml_options_skip_admin'] == 'y');
+
 		// first attempt a login via the standard Tiki system
 		//
-		if (!($auth_shib || $auth_cas) || $user == 'admin') { //redflo: does this mean, that users in cas and shib are not replicated to tiki tables? Does this work well?
-			list($result, $user) = $this->validate_user_tiki($user, $pass, $challenge, $response, $validate_phase);
+		if (!($auth_shib || $auth_cas || $auth_saml) || $user == 'admin') { //redflo: does this mean, that users in cas and shib are not replicated to tiki tables? Does this work well?
+			list($result, $user) = $this->validate_user_tiki($user, $pass, $validate_phase);
 		} else {
 			$result = NULL;
 		}
@@ -449,10 +469,11 @@ class UsersLib extends TikiLib
 		// if we are using tiki auth or if we're using an alternative auth except for admin
 
 		// todo: bad hack. better search for a more general solution here
-		if ((!$auth_ldap && !$auth_pam && !$auth_cas && !$auth_shib && !$auth_phpbb)
+		if ((!$auth_ldap && !$auth_pam && !$auth_cas && !$auth_shib&& !$auth_saml && !$auth_phpbb)
 				|| (
 						( ($auth_ldap && $skip_admin)
 							|| ($auth_shib && $shib_skip_admin)
+							|| ($auth_saml && $saml_skip_admin)
 							|| ($auth_pam && $pam_skip_admin)
 							|| ($auth_cas && $cas_skip_admin)
 							|| ($auth_phpbb && $phpbb_skip_admin)
@@ -696,7 +717,135 @@ class UsersLib extends TikiLib
 					exit;
 				}
 			}
+		} else if ($auth_saml) {
+			// next see if we need to check SAML
+			if (isset($_SESSION['samlUserdata']) && !empty($_SESSION['samlUserdata']) ||
+				isset($_SESSION['samlNameId']) && !empty($_SESSION['samlNameId'])
+				) {
+				
+				$saml_username = $saml_email = '';
+				$saml_groups = array();
 
+				if (empty($_SESSION['samlUserdata'])) {
+					$saml_username = $_SESSION['samlNameId'];
+					$saml_email = $saml_username;
+				} else {
+					$usernameMapping = isset($prefs['saml_attrmap_username'])? $prefs['saml_attrmap_username'] : '';
+					$emailMapping = isset($prefs['saml_attrmap_mail'])? $prefs['saml_attrmap_mail']: '';
+					$groupMapping = isset($prefs['saml_attrmap_group'])? $prefs['saml_attrmap_group']: '';
+
+					if (!empty($usernameMapping) && isset($_SESSION['samlUserdata'][$usernameMapping]) && !empty($_SESSION['samlUserdata'][$usernameMapping][0])) {
+						$saml_username = $_SESSION['samlUserdata'][$usernameMapping][0];
+					}
+
+					if (!empty($emailMapping) && isset($_SESSION['samlUserdata'][$emailMapping]) && !empty($_SESSION['samlUserdata'][$usernameMapping][0])) {
+						$saml_email = $_SESSION['samlUserdata'][$emailMapping][0];
+					}
+
+					if (!empty($groupMapping) && isset($_SESSION['samlUserdata'][$groupMapping]) && !empty($_SESSION['samlUserdata'][$groupMapping])) {
+						$group_values = $_SESSION['samlUserdata'][$groupMapping];
+
+						foreach($group_values as $group_value) {
+							if (isset($prefs['saml_groupmap_admins']) && !empty($prefs['saml_groupmap_admins'])) {
+								if (strcasecmp($prefs['saml_groupmap_admins'], $group_value) == 0) {
+									$saml_groups[] = "Admins";
+								}
+							}
+							if (isset($prefs['saml_groupmap_registered']) && !empty($prefs['saml_groupmap_registered'])) {
+								if (strcasecmp($prefs['saml_groupmap_registered'], $group_value) == 0) {
+									$saml_groups[] = "Registered";
+								}
+							}
+						}
+					}
+
+					// Code SAML Custom role here
+				}
+
+				$matcher = isset($prefs['saml_option_account_matcher'])? $prefs['saml_option_account_matcher'] : 'email';
+
+				if ($matcher == 'email') {
+					if (empty($saml_email)) {
+						Feedback::error(tra("The email could not be retrieved from the IdP and is required"));
+						return array(false, $username, SERVER_ERROR);
+					} else {
+						$username = $this->get_user_by_email($saml_email);
+						if ($this->user_exists($username)) {
+							$userTikiPresent = true;
+						} else {
+							$userTikiPresent = false;
+							if (!isset($prefs['saml_options_autocreate']) || $prefs['saml_options_autocreate'] != 'y') {
+								Feedback::error(tr('The user [ %0 ] is not registered with this wiki and autocreate is disabled.', $saml_email));
+								return array(false, $username, USER_NOT_FOUND);
+							}
+						}
+					}
+				} else {
+					if (empty($saml_username)) {
+						Feedback::error(tra("The username could not be retrieved from the IdP and is required"));
+						return array(false, $username, SERVER_ERROR);
+					} else {
+						$username = $saml_username;
+						if ($this->user_exists($saml_username)) {
+							$userTikiPresent = true;
+						} else {
+							$userTikiPresent = false;
+
+							if (!isset($prefs['saml_options_autocreate']) || $prefs['saml_options_autocreate'] != 'y') {
+								Feedback::error(tr('The user [ %0 ] is not registered with this wiki and autocreate is disabled.', $saml_username));
+								return array(false, $username, USER_NOT_FOUND);
+							}
+						}
+					}
+				}
+
+				if (empty($username)) {
+					$username = $saml_username;
+				}
+
+				$cookie_site = preg_replace("/[^a-zA-Z0-9]/", "", $prefs['cookie_name']);
+				$user_cookie_site = 'tiki-user-' . $cookie_site;
+				$_SESSION["$user_cookie_site"] = $username;
+
+				$randompass = $this->genPass();
+				if (!$userTikiPresent) {
+					// Create user
+					if (empty($saml_groups)) {
+						if (isset($prefs['saml_option_default_group']) && !empty($prefs['saml_option_default_group'])) {
+							$saml_groups[] = $prefs['saml_option_default_group'];
+						}
+					}
+
+					$result = $this->add_user($username, $randompass, $saml_email, '', false, NULL, NULL, NULL, $saml_groups);
+
+					if (!$result) {
+						Feedback::error(tr('The user [ %0|%1 ] is not registered with this wiki and the creation process failed.', $username, $saml_email));
+						return array(false, $username, SERVER_ERROR);
+					}
+
+					// if it worked ok, just log in
+					if ($result == USER_VALID) {
+						// before we log in, update the login counter
+						return array($this->update_lastlogin($username), $username, $result);
+					} elseif ($result == SERVER_ERROR) {
+						// check the notification status for this type of error
+						return array(false, $username, $result);
+					} else {
+						// otherwise don't log in.
+						return array(false, $username, $result);
+					}
+				} else {
+					// Update user
+					if ($username != 'admin') { // Prevent change groups of the admin account
+						if (isset($prefs['saml_options_sync_group']) && $prefs['saml_options_sync_group'] == 'y') {
+							if (!empty($saml_groups)) {
+								$this->assign_user_to_groups($username, $saml_groups);
+							}
+						}
+					}
+					return array($this->update_lastlogin($username), $username, USER_VALID);
+				}
+			}
 		} else if ($auth_ldap) {
 			// next see if we need to check LDAP
 			// check the user account
@@ -991,6 +1140,155 @@ class UsersLib extends TikiLib
 	}
 
 	/**
+	 * Get php-saml auth object
+	 */
+	function check_saml_authentication($user_cookie_site) {
+		global $prefs, $base_url;
+
+		$clicked_on_saml_link = false;
+
+		// Check endpoints
+		if (array_key_exists('auth', $_REQUEST) && $_REQUEST['auth'] == 'saml') {
+			$saml_instance = $this->get_saml_auth();
+			$saml_instance->login();
+		} else if (array_key_exists('saml_metadata', $_REQUEST)) {
+			$samlSettingsInfo = $this->get_saml_settings();
+			$saml_settings = new OneLogin_Saml2_Settings($samlSettingsInfo, true);
+			$metadata = $saml_settings->getSPMetadata();
+			$errors = $saml_settings->validateMetadata($metadata);
+			if (empty($errors)) {
+				header('Content-Type: text/xml');
+				echo $metadata;
+				exit();
+			} else {
+				throw new OneLogin_Saml2_Error(
+					'Invalid SP metadata: '.implode(', ', $errors),
+					OneLogin_Saml2_Error::METADATA_SP_INVALID
+				);
+			}
+		}
+		else if (array_key_exists('saml_acs', $_REQUEST)) {
+			$clicked_on_saml_link = true;
+			$saml_instance = $this->get_saml_auth();
+			try {
+				$saml_instance->processResponse();
+			} catch (Exception $e) {
+				Feedback::error($e->getMessage());
+				return;
+			}
+			$errors = $saml_instance->getErrors();
+			if (!empty($errors)) {
+				Feedback::error(implode(', ', $errors));
+				return;
+			}
+			if (!$saml_instance->isAuthenticated()) {
+				Feedback::error(tra("SAML Login failed. User not authenticated"));
+				return;
+			}
+
+			$_SESSION['samlUserdata'] = $saml_instance->getAttributes();
+			$_SESSION['samlNameId'] = $saml_instance->getNameId();
+			$_SESSION['samlSessionIndex'] = $saml_instance->getSessionIndex();
+/*
+			if (isset($_POST['RelayState']) && OneLogin_Saml2_Utils::getSelfURL() != $_POST['RelayState']) {
+				$saml_instance->redirectTo($_POST['RelayState']);
+			}
+*/
+		} else if (array_key_exists('saml_sls', $_REQUEST)) {
+			$saml_instance = $this->get_saml_auth();
+
+			try {
+				$saml_instance->processSLO(false);
+			} catch (Exception $e) {
+				Feedback::error($e->getMessage());
+				return;
+			}
+			$errors = $saml_instance->getErrors();
+			if (!empty($errors)) {
+				Feedback::error(implode(', ', $errors));
+				return;
+			} else {
+				unset($_SESSION['samlUserdata']);
+				unset($_SESSION['samlNameId']);
+				unset($_SESSION['samlSessionIndex']);
+			}
+		}
+
+		$already_logged_as_admin = isset($_SESSION["$user_cookie_site"]) && $_SESSION["$user_cookie_site"] == 'admin';
+		$force_saml_login = !(isset($prefs['saml_options_skip_admin']) && $prefs['saml_options_skip_admin'] == 'y');
+
+		if ($clicked_on_saml_link || ($force_saml_login && !$already_logged_as_admin)) {
+			$this->validate_user("", "", "", "");
+		}
+	}
+
+	/**
+	 * Get php-saml auth object
+	 */
+	function get_saml_auth() {
+		$samlSettingsInfo = $this->get_saml_settings();
+
+		try {
+			$auth = new OneLogin_Saml2_Auth($samlSettingsInfo);
+		} catch (Exception $e) {
+			print_r("There is a problem with the SAML settings, review them: ". $e->getMessage());
+			exit();
+		}
+
+		return $auth;
+	}
+
+	/**
+	 * Build a settingsInfo array based on SAML settings store at Tiki
+	 */
+	function get_saml_settings() {
+		global $prefs;
+		global $base_url;
+
+		$samlSettingsInfo = array (
+			'strict' => isset($prefs['saml_advanced_strict']) && $prefs['saml_advanced_strict'] == 'y'? true : false,
+			'debug' => isset($prefs['saml_advanced_debug']) && $prefs['saml_advanced_debug'] == 'y'? true : false,
+			'sp' => array (
+				'entityId' => (!empty($prefs['saml_advanced_sp_entity_id'])? $prefs['saml_advanced_sp_entity_id'] : 'php-saml'),
+				'assertionConsumerService' => array (
+					'url' => $base_url . 'tiki-login.php?saml_acs'
+				),
+				'singleLogoutService' => array (
+					'url' => $base_url . 'tiki-login.php?saml_sls'
+				),
+				'NameIDFormat' => (!empty($prefs['saml_advanced_nameidformat'])? $prefs['saml_advanced_nameidformat'] : 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified'),
+				'x509cert' => isset($prefs['saml_advanced_sp_x509cert']) ? $prefs['saml_advanced_sp_x509cert'] : '',
+				'privateKey' => isset($prefs['saml_advanced_sp_privatekey']) ? $prefs['saml_advanced_sp_privatekey'] : '',
+			),
+			'idp' => array (
+				'entityId' => isset($prefs['saml_idp_entityid']) ? $prefs['saml_idp_entityid'] : '',
+				'singleSignOnService' => array (
+					'url' => isset($prefs['saml_idp_sso']) ? $prefs['saml_idp_sso'] : '',
+				),
+				'singleLogoutService' => array (
+					'url' => isset($prefs['saml_idp_slo']) ? $prefs['saml_idp_slo'] : '',
+				),
+				'x509cert' => isset($prefs['saml_idp_x509cert']) ? $prefs['saml_idp_x509cert']: '',
+				'lowercaseUrlencoding' => isset($prefs['saml_advanced_idp_lowercase_url_encoding']) && $prefs['saml_advanced_idp_lowercase_url_encoding'] == 'y'? true: false,
+			),
+			'security' => array (
+				'signMetadata' => isset($prefs['saml_advanced_metadata_signed']) && $prefs['saml_advanced_metadata_signed'] == 'y'? true: false,
+				'nameIdEncrypted' => isset($prefs['saml_advanced_nameid_encrypted']) && $prefs['saml_advanced_nameid_encrypted'] == 'y'? true: false,
+				'authnRequestsSigned' => isset($prefs['saml_advanced_authn_request_signed']) && $prefs['saml_advanced_authn_request_signed'] == 'y'? true: false,
+				'logoutRequestSigned' => isset($prefs['saml_advanced_logout_request_signed']) && $prefs['saml_advanced_logout_request_signed'] == 'y'? true: false,
+				'logoutResponseSigned' => isset($prefs['saml_advanced_logout_response_signed']) && $prefs['saml_advanced_logout_response_signed'] == 'y'? true: false,
+				'wantMessagesSigned' => isset($prefs['saml_advanced_want_message_signed']) && $prefs['saml_advanced_want_message_signed'] == 'y'? true: false,
+				'wantAssertionsSigned' => isset($prefs['saml_advanced_want_assertion_signed']) && $prefs['saml_advanced_want_assertion_signed'] == 'y'? true: false,
+				'wantAssertionsEncrypted' => isset($prefs['saml_advanced_want_assertion_encrypted']) && $prefs['saml_advanced_want_assertion_encrypted'] == 'y'? true: false,
+				'requestedAuthnContext' => isset($prefs['saml_advanced_requestedauthncontext']) && $prefs['saml_advanced_requestedauthncontext'],
+        		'signatureAlgorithm' => isset($prefs['saml_advanced_sign_algorithm'])? $prefs['saml_advanced_sign_algorithm'] : 'http://www.w3.org/2000/09/xmldsig#rsa-sha1',
+			)
+		);
+		return $samlSettingsInfo;
+	}
+
+
+	/**
 	 * Initiates the Tiki LDAP library.
 	 *
 	 * Passes it a set of options according to Tiki's preferences. 
@@ -1135,13 +1433,13 @@ class UsersLib extends TikiLib
 	 */
 	function disable_tiki_auth($user)
 	{
-		global $tiki, $prefs, $logslib;
+		global $tiki, $prefs;
 
 		if ($prefs['auth_ldap_debug'] == 'y') {
-			$logslib->add_log('ldap', 'UserLib::disable_tiki_auth()');
+			TikiLib::lib('logs')->add_log('ldap', 'UserLib::disable_tiki_auth()');
 		}
-		$query = 'update `users_users` set `password`=?, `hash`=? where binary `login` = ?';
-		$result = $this->query($query, array('', '', $user));
+		$query = 'update `users_users` set `hash`=? where binary `login` = ?';
+		$result = $this->query($query, array('', $user));
 	}
 
 	/**
@@ -1236,9 +1534,9 @@ class UsersLib extends TikiLib
 	 */
 	public function ldap_sync_all_groups()
 	{
-		global $prefs, $logslib;
+		global $prefs;
 		if ($prefs['auth_ldap_debug'] == 'y') {
-			$logslib->add_log('ldap', 'UsersLib::ldap_sync_all_groups()');
+			TikiLib::lib('logs')->add_log('ldap', 'UsersLib::ldap_sync_all_groups()');
 		}
 
 		if ($prefs['syncGroupsWithDirectory'] != 'y') {
@@ -1488,10 +1786,9 @@ class UsersLib extends TikiLib
 	function _ldap_sync_user_and_groups($user,$pass)
 	{
 		global $prefs;
-		global $logslib;
 
 		if ($prefs['auth_ldap_debug'] == 'y') {
-			$logslib->add_log('ldap', 'UsersLib::_ldap_sync_user_and_groups()');
+			TikiLib::lib('logs')->add_log('ldap', 'UsersLib::_ldap_sync_user_and_groups()');
 		}
 
 		$ret = true;
@@ -1545,91 +1842,103 @@ class UsersLib extends TikiLib
 	 * @param user: username
 	 * @param pass: password
 	 */
-	function validate_user_tiki($user, $pass, $challenge, $response, $validate_phase = false)
+	function validate_user_tiki($user, $pass, $validate_phase = false)
 	{
 		global $prefs;
 
+		$userUpper =TikiLib::strtoupper($user);
 		// first verify that the user exists
-		$query = 'select * from `users_users` where binary `login` = ?';
-		$result = $this->query($query, array($user));
+		$query = 'select `userId`,`login`,`waiting`, `hash`, `email`,`valid` from `users_users` where upper(`login`) = ?';
+		$result = $this->query($query, array($userUpper));
 
-		if (! $result->numRows()) {
-			$query = 'select * from `users_users` where upper(`login`) = ?';
-			$result = $this->query($query, array(TikiLib::strtoupper($user)));
-
-			switch ($result->numRows()) {
-				case 0:
-					if ($prefs['login_allow_email']) {
-						//if users can login with email
-						$query = 'select * from `users_users` where upper(`email`) = ?';
-						$result = $this->query($query, array(TikiLib::strtoupper($user)));
-						if ($result->numRows() > 1) {
-							return array(EMAIL_AMBIGUOUS, $user);	
-						} elseif ($result->numRows() > 0) {
-							break;
-						}
+		
+		switch ($result->numRows()) {													
+			case 0:
+				if ($prefs['login_allow_email']) {								//if no users found, check check if email is being used to login
+					$query = 'select `userId`,`login`,`waiting`, `hash`, `email`,`valid` from `users_users` where upper(`email`) = ?';
+					$result = $this->query($query, array($userUpper));
+					if ($result->numRows() > 1) {
+						return array(EMAIL_AMBIGUOUS, $user);					// if there is more than one user with that email
+					} elseif ($result->numRows() == 1) {
+						break;													// if there is only one user, exit switch
 					}
-					return array(USER_NOT_FOUND, $user);
+				}
+				return array(USER_NOT_FOUND, $user);
 
-				case 1:
-					break;
+			case 1:
+				break;
 
-				default:
-					return array(USER_AMBIGOUS, $user);
-			}
+			default:
+				return array(USER_AMBIGOUS, $user);
 		}
+	
 
 
 		$res = $result->fetchRow();
 		$user = $res['login'];
 
+		// check for account flags
+        if ($res['waiting'] == 'u'){				// if account is in validation mode.
+
+				if ($pass == $res['valid']) 			// if user successfully provides code from email
+					return array(USER_VALID, $user);
+				else
+					return array(ACCOUNT_WAITING_USER, $user);  // if code validation fails, (or user tries to log in before verifying)
+			}else if ($res['waiting'] == 'a') {         // if account needs administrator validation
+                if ($pass == $res['valid']) 			// if admin successfully validates account
+                    return array(USER_VALID, $user);
+                else return array(ACCOUNT_DISABLED, $user);
+            }
+
+			if ($validate_phase)									 
+				return array(USER_PREVIOUSLY_VALIDATED, $user);		// if email verification code is used an a validated account, deny.
+
+
 		// next verify the password with every hashes methods
-		if ($prefs['feature_challenge'] == 'n' || empty($response)) {
-			if (!empty($res['valid']) && $pass == $res['valid']) // used for validation of user account before activation
-				return array(USER_VALID, $user);
 
-			if ($res['waiting'] == 'u')
-				return array(ACCOUNT_WAITING_USER, $user);
-			if ($res['waiting'] == 'a')
-				return array(ACCOUNT_DISABLED, $user);
-
-			if ($res['hash'] == md5($user.$pass.trim($res['email']))) // very old method md5(user.pass.email), for compatibility
-				return array(USER_VALID, $user);
-
-			if ($res['hash'] == md5($user.$pass)) // old method md5(user.pass), for compatibility
-				return array(USER_VALID, $user);
-
-			if ($res['hash'] == md5($pass)) // normal method md5(pass)
-				return array(USER_VALID, $user);
-
-			if ($this->hash_pass($pass, $res['hash']) == $res['hash']) // new method (crypt-md5) and tikihash method (md5(pass))
-				return array(USER_VALID, $user);
-
-			if ($validate_phase && empty($res['waiting'])) {
-				return array(USER_PREVIOUSLY_VALIDATED, $user);
+			
+			if ($res['hash'][0] == '$'){				// if password was created by crypt (old tiki hash) or password_hash (current tiki hash)
+				
+				if (password_verify($pass,$res['hash'])){
+					if (password_needs_rehash($res['hash'], PASSWORD_DEFAULT))
+						$this->set_user_password($res['userId'],$pass);			//if its a old hash style, rehash it in a more secure way
+					return array(USER_VALID, $user);
+				}else return array(PASSWORD_INCORRECT, $user);      // if the password was incorrect, dont give the md5's a spin
 			}
+
+			if ($res['hash'] == md5($pass)){ 						// very method md5(pass), for compatibility
+				$this->set_user_password($res['userId'],$pass);
+				return array(USER_VALID, $user);
+			}
+			if ($res['hash'] == md5($user.$pass)){ 					// ancient method md5(user.pass), for compatibility
+				$this->set_user_password($res['userId'],$pass);
+				return array(USER_VALID, $user);
+			}
+			if ($res['hash'] == md5($user.$pass.trim($res['email']))){ // very ancient method md5(user.pass.email), for compatibility
+				$this->set_user_password($res['userId'],$pass);
+				return array(USER_VALID, $user);
+			}
+
 			return array(PASSWORD_INCORRECT, $user);
-		} else {
-			// Use challenge-reponse method
-			// Compare pass against md5(user,challenge,hash)
-			$hash = $this->getOne('select `hash` from `users_users` where binary `login`=?', array($user));
-
-			if (!isset($_SESSION["challenge"]))
-				return array(false, $user);
-
-			//print("pass: $pass user: $user hash: $hash <br />");
-			//print("challenge: ".$_SESSION["challenge"]." challenge: $challenge<br />");
-			//print("response : $response<br />");
-			if ($response == md5($user . $hash . $_SESSION["challenge"])) {
-				$this->update_lastlogin($user);
-				return array(USER_VALID, $user);
-			} else {
-				return array(false, $user);
-			}
-		}
-
-		return array(PASSWORD_INCORRECT, $user);
+	
 	}
+
+
+	/**
+	 * Stores a users passowrd in the database
+	 *
+	 * @param userId: the database column id of the user.
+	 * @param pass: the clear text password to be hashed and stored
+	 */
+	private function set_user_password($userId, $pass){   // sets a suer passwod given a username and password
+
+		$hash = password_hash($pass, PASSWORD_DEFAULT);
+		$query = 'update `users_users` set `hash`=? where `userId`=?';
+		$result = $this->query($query, array($hash, $userId));
+
+	//todo: a little error checking woul be nice.
+	}
+ 
 
 	/**
 	 * Synchronizes Tiki user and group info from LDAP.
@@ -1641,10 +1950,9 @@ class UsersLib extends TikiLib
 	{
 		global $prefs;
 		global $tikilib;
-		global $logslib;
 
 		if ($prefs['auth_ldap_debug'] == 'y') {
-			$logslib->add_log('ldap', 'UsersLib::_ldap_sync_and_update_lastlogin()');
+			TikiLib::lib('logs')->add_log('ldap', 'UsersLib::_ldap_sync_and_update_lastlogin()');
 		}
 
 		$ret = $this->update_lastlogin($user);
@@ -1773,7 +2081,7 @@ class UsersLib extends TikiLib
 			} else {
 				$mid .= ' and uu.`login` like ?';
 			}
-			$bindvars[] = array($findesc);
+			$bindvars[] = $findesc;
 		}
 
 		$query = "select uu.`login` from `users_users` uu $mid order by " . $this->convertSortMode($sort_mode);
@@ -1816,7 +2124,7 @@ class UsersLib extends TikiLib
 			$bindvars=array();
 		}
 
-		$query = 'select `login` from `users_users` $mid order by ' . $this->convertSortMode($sort_mode);
+		$query = "select `login` from `users_users` $mid order by " . $this->convertSortMode($sort_mode);
 		$result = $this->query($query, $bindvars, $maxRecords, $offset);
 		$ret = array();
 
@@ -1829,11 +2137,27 @@ class UsersLib extends TikiLib
 
 	function get_members($group)
 	{
-		$users = $this->fetchAll('SELECT login FROM `users_usergroups` ug INNER JOIN `users_users` u ON u.userId = ug.userId WHERE ug.groupName = ?', [$group]);
+		$group_results = true;
+		if( !is_array($group) ) {
+			$group = array($group);
+			$group_results = false;
+		} elseif( count($group) == 0 ) {
+			return array();
+		}
+		$users = $this->fetchAll('SELECT ug.groupName, u.login FROM `users_usergroups` ug INNER JOIN `users_users` u ON u.userId = ug.userId WHERE ug.groupName IN ('
+			.implode(',', array_fill(0, count($group), '?')).')', $group);
 
-		return array_map(function ($row) {
-			return $row['login'];
-		}, $users);
+		if( !$group_results ) {
+			return array_map(function ($row) {
+				return $row['login'];
+			}, $users);
+		} else {
+			$grouped = array();
+			foreach( $users as $row ) {
+				$grouped[$row['groupName']][] = $row['login'];
+			}
+			return $grouped;
+		}
 	}
 
 	function get_users($offset = 0, $maxRecords = -1, $sort_mode = 'login_asc', $find = '', $initial = '', $inclusion=false,
@@ -1917,7 +2241,6 @@ class UsersLib extends TikiLib
 				// Filter out sensitive data
 				unset($res['email']);
 				unset($res['hash']);
-				unset($res['password']);
 				unset($res['provpass']);
 			}
 
@@ -2080,6 +2403,7 @@ class UsersLib extends TikiLib
 		$userid = $this->get_user_id($user);
 		$query = 'delete from `users_usergroups` where `userId` = ?';
 		$result = $this->query($query, array($userid));
+		TikiLib::events()->trigger('tiki.user.update', array('type' => 'user', 'object' => $user));
 	}
 
 	function get_groups_userchoice()
@@ -2211,6 +2535,24 @@ class UsersLib extends TikiLib
 		return $list;
 	}
 
+	function list_all_groups_with_permission() {
+		$groups = array_map( function($g) {
+			return array('groupName' => $g);
+		}, $this->list_all_groups() );
+		
+		$filtered = Perms::filter(
+			array( 'type' => 'group' ), 
+			'object',
+			$groups,
+			array( 'object' => 'groupName' ),
+			'group_view'
+		);
+
+		return array_map(function($g) {
+			return $g['groupName'];
+		}, $filtered);
+	}
+
 
 	function remove_user($user)
 	{
@@ -2259,6 +2601,9 @@ class UsersLib extends TikiLib
 		$this->query('delete from `tiki_user_mailin_struct` where `username` = ?', array($user));
 
 		$cachelib->invalidate('userslist');
+
+		TikiLib::events()->trigger('tiki.user.delete', array('type' => 'user', 'object' => $user));
+
 		return true;
 	}
 
@@ -2413,7 +2758,7 @@ class UsersLib extends TikiLib
 		$cachelib->invalidate('grouplist');
 		$cachelib->invalidate('group_theme_' . $group);
 
-		return true;
+		return $result;
 	}
 
 	function get_user_default_group($user)
@@ -2448,34 +2793,55 @@ class UsersLib extends TikiLib
 		return $ret;
 	}
 
+	/**
+	 * Returns the wiki page name for the current user and checks for useGroupHome pref
+	 *
+	 * @param string $user  current logged in user
+	 * @return string       page name
+	 */
 	function get_user_default_homepage($user)
 	{
-		$result = $this->get_user_default_group($user);
-		if (!is_null($result)) {
-			$home = $this->get_group_home($result);
-			if ($home != '')
-				return $this->best_multilingual_page($home);
+		global $prefs;
+
+		if ($prefs['useGroupHome'] !== 'y') {
+			return $prefs['wikiHomePage'];
 		}
-		$query = "select g.`groupHome`, g.`groupName`" .
-						" from `users_usergroups` as gu, `users_users` as u, `users_groups`as g" .
-						" where gu.`userId`= u.`userId` and u.`login`=? and gu.`groupName`= g.`groupName` and g.`groupHome` != '' and g.`groupHome` is not null";
 
-		$result = $this->query($query, array($user));
 		$home = '';
-		$group = '';
+		$group = $this->get_user_default_group($user);
 
-		while ($res = $result->fetchRow()) {
-			if ($home != '') {
-				$groups = $this->get_included_groups($res['groupName']);
-				if (in_array($group, $groups)) {
+		if ($group) {
+			$home = $this->get_group_home($group);
+		}
+		if (! $home) {	// work through the other groups this user is a member of
+
+			$query = "select g.`groupHome`, g.`groupName`" .
+				" from `users_usergroups` as gu, `users_users` as u, `users_groups`as g" .
+				" where gu.`userId`= u.`userId` and u.`login`=? and gu.`groupName`= g.`groupName` and g.`groupHome` != '' and g.`groupHome` is not null";
+
+			$result = $this->query($query, array($user));
+
+			while ($res = $result->fetchRow()) {
+				if ($home != '') {
+					$groups = $this->get_included_groups($res['groupName']);
+					if (in_array($group, $groups)) {
+						$home = $res['groupHome'];
+						$group = $res['groupName'];
+					}
+				} else {
 					$home = $res['groupHome'];
 					$group = $res['groupName'];
 				}
 			}
-			$home = $res['groupHome'];
-			$group = $res['groupName'];
+
 		}
-		return $this->best_multilingual_page($home);
+		$home = $this->best_multilingual_page($home);
+
+		if (! TikiLib::lib('tiki')->page_exists($home)) {
+			$home = $prefs['wikiHomePage'];
+		}
+
+		return $home;
 	}
 
 	function best_multilingual_page($page)
@@ -2495,23 +2861,6 @@ class UsersLib extends TikiLib
 		}
 
 		return $this->get_page_name_from_id($bestLangPageId);
-	}
-
-	function get_user_default_homepage2($user)
-	{
-		global $prefs;
-
-		if ($prefs['useGroupHome'] == 'y') {
-			$groupHome = $this->get_user_default_homepage($user);
-			if (!empty($groupHome))
-				$p = $groupHome;
-			else
-				$p = $prefs['wikiHomePage'];
-		} else {
-			$p = $prefs['wikiHomePage'];
-		}
-
-		return $p;
 	}
 
 	/* Returns a theme/style for this ithe default group of the current user. */
@@ -2688,6 +3037,7 @@ class UsersLib extends TikiLib
 		$extra = '';
 		if ($show_popup == "n") {
 			//do nothing for adding a tip
+			$title = '';
 		} elseif ($prefs['feature_community_mouseover'] == 'y' && ($this->get_user_preference($auser, 'show_mouseover_user_info', 'y') == 'y' || $prefs['feature_friends'] == 'y')) {
 			$data = TikiLib::lib('service')->getUrl(array(
 				'controller' => 'user',
@@ -3298,6 +3648,15 @@ class UsersLib extends TikiLib
 				'type' => 'bigbluebutton',
 				'admin' => false,
 				'prefs' => array('bigbluebutton_feature'),
+				'scope' => 'object',
+			),
+			array(
+				'name' => 'tiki_p_xmpp_join',
+				'description' => tra('Can join a chat'),
+				'level' => 'admin',
+				'type' => 'xmpp',
+				'admin' => false,
+				'prefs' => array('xmpp_feature'),
 				'scope' => 'object',
 			),
 			array(
@@ -5676,6 +6035,15 @@ class UsersLib extends TikiLib
 				'scope' => 'global',
 			),
 			array(
+				'name' => 'tiki_p_view_webservices',
+				'description' => tra('Can view results from webservice requests'),
+				'level' => 'basic',
+				'type' => 'tiki',
+				'admin' => false,
+				'prefs' => array('feature_webservices'),
+				'scope' => 'global',
+			),
+			array(
 				'name' => 'tiki_p_admin_toolbars',
 				'description' => tra('Can admin toolbars'),
 				'level' => 'admin',
@@ -6128,13 +6496,16 @@ class UsersLib extends TikiLib
 		}
 	}
 
-	function get_group_banned_users($group, $offset = 0, $max = -1, $what = 'login', $sort_mode = 'login_asc')
+	function get_group_banned_users($group, $offset = 0, $max = -1, $what = 'login', $sort_mode = 'source_itemId_asc')
 	{
-		$res = TikiLib::lib('relation')->get_relations_to('group', $group, 'tiki.user.banned');
-		$ret = array();
+		$res = TikiLib::lib('relation')->get_relations_to('group', $group, 'tiki.user.banned', $sort_mode);
+		$temp = array();
 		foreach ($res as $r) {
-			$ret[] = $r['itemId'];
+			$temp[] = $r['itemId'];
 		}
+		$max = $max > 0 ? $max : null;
+		$ret['data'] = array_slice($temp, $offset, $max);
+		$ret['cant'] = count($res);
 		return $ret;
 	}
 
@@ -6143,63 +6514,6 @@ class UsersLib extends TikiLib
 		return TikiLib::lib('relation')->get_relation_id('tiki.user.banned', 'user', $user, 'group', $group) > 0;
 	}
 
-	function hash_pass($pass, $salt = NULL)
-	{
-		global $prefs;
-
-		$hashmethod=$prefs['feature_crypt_passwords'];
-
-		if (!is_null($salt)) {
-			$len=strlen($salt);
-			if ($len == 13) { // CRYPT_STD_DES
-				$hashmethod='crypt-des';
-			} else if ($len == 34) { // CRYPT_MD5
-				$hashmethod='crypt-md5';
-			} else if ($len == 32) { // md5()
-				$hashmethod='tikihash';
-			} else if ($len == 0) { // password is disabled in tiki -> external authentification
-				$hashmethod='pass_disabled';
-			} else {
-				die('Unknown password format');
-			}
-		}
-
-		switch($hashmethod) {
-
-			case 'crypt':
-				return crypt($pass);
-
-			case 'crypt-des':
-				if (CRYPT_STD_DES != 1)
-					die('CRYPT_STD_DES not implemented on this system');
-
-				if (is_null($salt)) {
-					$letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./';
-					$salt = '';
-					for ($i=0; $i<2; $i++)
-						$salt .= $letters[rand(0, strlen($letters) - 1)];
-				}
-				return crypt($pass, $salt);
-
-			case 'crypt-md5':
-				if (CRYPT_MD5 != 1)
-					die('CRYPT_MD5 not implemented on this system');
-
-				if (is_null($salt)) {
-					$letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./';
-					$salt = '$1$';
-					for ($i=0; $i<8; $i++)
-						$salt .= $letters[rand(0, strlen($letters) - 1)];
-					$salt .= '$';
-				}
-				return crypt($pass, $salt);
-
-			case 'pass_disabled': // md5(someting) is not empty string
-			case 'tikihash':
-			default:
-				return md5($pass);
-		}
-	}
 
 	function confirm_user($user)
 	{
@@ -6279,16 +6593,12 @@ class UsersLib extends TikiLib
 		// Generate a unique hash; this is also done below in set_user_fields()
 		$lastLogin = null;
 		if (empty($openid_url)) {
-			$hash = $this->hash_pass($pass);
+			$hash = password_hash($pass, PASSWORD_DEFAULT);
 		} else {
 			$hash = '';
 			if (!isset($prefs['validateRegistration']) || $prefs['validateRegistration'] != 'y') {
 				$lastLogin = $tikilib->now;
 			}
-		}
-
-		if ( $prefs['feature_clear_passwords'] == 'n' ) {
-			$pass = '';
 		}
 
 		if ( $pass_first_login ) {
@@ -6301,7 +6611,6 @@ class UsersLib extends TikiLib
 		$userId = $userTable->insert(
 			array(
 				'login' => $user,
-				'password' => $pass,
 				'email' => $email,
 				'provpass' => $provpass,
 				'registrationDate' => (int) $this->now,
@@ -6429,7 +6738,7 @@ class UsersLib extends TikiLib
 		// lfagundes - only if pass is provided, admin doesn't need it
 		// is this still necessary?
 		if (!empty($pass)) {
-			$hash = $this->hash_pass($pass);
+			$hash = password_hash($pass, PASSWORD_DEFAULT);
 			$query = 'update `users_users` set `hash`=? where binary `login`=?';
 			$result = $this->query($query, array($hash, $user));
 		}
@@ -6445,24 +6754,15 @@ class UsersLib extends TikiLib
 		return true;
 	}
 
-	function get_user_password($user)
-	{
-		$query = 'select `password`,`provpass` from `users_users` where binary `login`=?';
-
-		$result = $this->query($query, array($user));
-		$res = $result->fetchRow();
-		if (empty($res['provpass']))
-			return $res['password'];
-		else
-			return $res['provpass'];
-	}
-
 	function get_user_email($user)
 	{
 		global $prefs;
-		return ($prefs['login_is_email'] == 'y' && $user != 'admin')
-						? $user
-						: $this->getOne('select `email` from `users_users` where binary `login`=?', array($user));
+
+		if (($prefs['login_is_email'] == 'y' && $user != 'admin')) {
+			return $this->user_exists($user) ? $user : '';
+		} else {
+			return $this->getOne('select `email` from `users_users` where binary `login`=?', array($user));
+		}
 	}
 
 	function get_userId_what($userIds, $what = 'email')
@@ -6612,12 +6912,10 @@ class UsersLib extends TikiLib
 	private function generate_provisional_password()
 	{
 		$tikilib = TikiLib::lib('tiki');
-		require_once 'lib/phpsec/phpsec/phpsec.rand.php';
 
 		$site_hash = $tikilib->get_site_hash();
 
-		$random_value = phpsecRand::bytes(40);
-
+		$random_value = \phpseclib\Crypt\Random::string(40);
 		return base64_encode(sha1($random_value . $site_hash, true));
 	}
 
@@ -6627,15 +6925,16 @@ class UsersLib extends TikiLib
 		$query = 'select `provpass` from `users_users` where `login`=?';
 		$pass = $this->getOne($query, array($user));
 		if (($pass <> '') && ($actpass == md5($pass))) {
-			$hash = $this->hash_pass($pass);
-			$query = 'update `users_users` set `password`=?, `hash`=?, `pass_confirm`=? where `login`=?';
-			$result = $this->query($query, array('', $hash, (int)$this->now, $user));
+			$hash = password_hash($pass, PASSWORD_DEFAULT);
+			$query = 'update `users_users` set `hash`=?, `pass_confirm`=? where `login`=?';
+			$result = $this->query($query, array($hash, (int)$this->now, $user));
 			return $pass;
 		}
 		return false;
 	}
 
-	/* Tests the password against policy enforcement (Admin->Login), namelly:
+   /**
+    * Tests the password against policy enforcement (Admin->Login), namely
 	* $min_pass_length
 	* $pass_chr_num
 	* $pass_ud_chr_num
@@ -6652,75 +6951,77 @@ class UsersLib extends TikiLib
 			$errors[] = tr('Password should be at least %0 characters long', $prefs['min_pass_length']);
 		}
 
-		// Check this code
+        if ($prefs['pass_chr_case'] == 'y') {
+            if (!preg_match_all('/[a-z]+/', $pass) || !preg_match_all('/[A-Z]+/', $pass)) {
+                $errors[] = tra('Password must contain at least one lowercase alphabetical character like "a" and one uppercase character like "A".');
+            }
+        }
+
+        if ($prefs['pass_repetition'] == 'y') {
+            $chars = str_split($pass);
+            $previous = '';
+            foreach ($chars as $char) {
+                if ($char == $previous) {
+                    $errors[] = tra('Password must not contain a consecutive repetition of the same character such as "111" or "aab"');
+                    break;
+                }
+                $previous = $char;
+            }
+        }
+
+        $pass = strtolower($pass); // from here on in, we dont check upper case in the password.
+
+        // Check this code
 		if ($prefs['pass_chr_num'] == 'y') {
-			if (!preg_match_all('/[0-9]+/', $pass, $foo) || !preg_match_all('/[A-Za-z]+/', $pass, $foo)) {
+			if (!preg_match_all('/[0-9]+/', $pass) || !preg_match_all('/[a-z]+/', $pass)) {
 				$errors[] = tra('Password must contain both letters and numbers');
 			}
 		}
 
-		if ($prefs['pass_chr_case'] == 'y') {
-			if (!preg_match_all('/[a-z]+/', $pass, $foo) || !preg_match_all('/[A-Z]+/', $pass, $foo)) {
-				$errors[] = tra('Password must contain at least one lowercase alphabetical character like "a" and one uppercase character like "A".');
-			}
-		}
 
 		if ($prefs['pass_chr_special'] == 'y') {
-			$chars = str_split($pass);
-			$ok = false;
-			foreach ($chars as $char) {
-				if (!preg_match('/[0-9A-Za-z]+/', $char, $foo)) {
-					$ok = true;
-					break;
-				}
-			}
-			if (!$ok) $errors[] = tra('Password must contain at least one special character in lower case like " / $ % ? & * ( ) _ + ...');
-		}
-
-		if ($prefs['pass_repetition'] == 'y') {
-			$chars = str_split($pass);
-			$previous = '';
-			foreach ($chars as $char) {
-				if ($char == $previous) {
-					$errors[] = tra('Password must not contain a consecutive repetition of the same character such as "111" or "aab"');
-					break;
-				}
-				$previous = $char;
+			if (preg_match_all('/^[0-9a-z]+$/', $pass) > 0) {
+                $errors[] = tra('Password must contain at least one special character in lower case like " / $ % ? & * ( ) _ + ...');
 			}
 		}
 
 		if ($prefs['pass_diff_username'] == 'y') {
-			if (strtolower($user) == strtolower($pass)) {
+			if (strtolower($user) == $pass) {
 				$errors[] = tra('The password must be different from the user\'s log-in name.');
 			}
 		}
 
-		return empty($errors) ? '' : implode(' ', $errors);
+        if ($prefs['pass_blacklist'] === 'y') {
+
+            $query = 'SELECT 1 FROM tiki_password_blacklist WHERE BINARY password=?;';
+            $result = $this->query($query, array($pass));
+            $isCommon = $result->fetchRow();
+            if ($isCommon[1] == 1) {
+                $errors[] = tra('The password is blacklisted because it is too common.');
+            }
+        }
+
+
+        return empty($errors) ? '' : implode(' ', $errors);
 	}
 
 	function change_user_password($user, $pass, $pass_first_login=false)
 	{
-		global $prefs;
 
-		$hash = $this->hash_pass($pass);
+		$hash = password_hash($pass, PASSWORD_DEFAULT);
 		$new_pass_confirm = $this->now;
-		$provpass = $pass;
 
-		if ($prefs['feature_clear_passwords'] == 'n') {
-			$pass = '';
-		}
-
-		if ($pass_first_login) {
-			if (!empty($provpass)) {
-				$query = 'update `users_users` set `hash`=? ,`password`=? ,`pass_confirm`=?, `provpass`=?, `pass_confirm`=? where binary `login`=?';
-				$this->query($query, array($hash, $pass, $new_pass_confirm, $provpass, 0, $user));
+		if ($pass_first_login) {					// if true, set pass_confirm to force passord change upon next login
+			if (!empty($pass)) {
+				$query = 'update `users_users` set `hash`=? , `provpass`=?, `pass_confirm`=? where binary `login`=?';
+				$this->query($query, array($hash, $pass, 0, $user));
 			} else {
 				$query = 'update `users_users` set `pass_confirm`=? where binary `login`=?';
 				$this->query($query, array(0, $user));
 			}
 		} else {
-			$query = 'update `users_users` set `hash`=? ,`password`=? ,`pass_confirm`=?, `provpass`=? where binary `login`=?';
-			$this->query($query, array($hash, $pass, $new_pass_confirm, '',	$user));
+			$query = 'update `users_users` set `hash`=? ,`pass_confirm`=?, `provpass`=? where binary `login`=?';
+			$this->query($query, array($hash, $new_pass_confirm, '',	$user));
 		}
 		// invalidate the cache so that after a fresh install, the admin (who has no user details at the install) can log in
 		$cachelib = TikiLib::lib('cache');
@@ -6734,7 +7035,7 @@ class UsersLib extends TikiLib
 	function add_group($group, $desc = '', $home = '', $utracker = 0,
 		$gtracker = 0, $rufields = '', $userChoice = '', $defcat = 0,
 		$theme = '', $ufield = 0, $gfield = 0,$isexternal = 'n',
-		$expireAfter = 0, $emailPattern = '', $anniversary = '', $prorateInterval = '')
+		$expireAfter = 0, $emailPattern = '', $anniversary = '', $prorateInterval = '', $color = '')
 	{
 		$tikilib = TikiLib::lib('tiki');
 		$group = trim($group);
@@ -6749,6 +7050,7 @@ class UsersLib extends TikiLib
 			'groupHome' => $home,
 			'groupDefCat' => $defcat,
 			'groupTheme' => $theme,
+			'groupColor' => $color,
 			'usersTrackerId' => (int) $utracker,
 			'groupTrackerId' => (int) $gtracker,
 			'registrationUsersFieldIds' => $rufields,
@@ -6779,7 +7081,7 @@ class UsersLib extends TikiLib
 	function change_group($olgroup, $group, $desc, $home, $utracker = 0,
 		 $gtracker = 0, $ufield = 0, $gfield = 0, $rufields = '', $userChoice = '',
 		 $defcat = 0, $theme = '', $isexternal = 'n', $expireAfter = 0,
-		 $emailPattern = '', $anniversary = '', $prorateInterval = '')
+		 $emailPattern = '', $anniversary = '', $prorateInterval = '', $color = '')
 	{
 
 		if ( $olgroup == 'Anonymous' || $olgroup == 'Registered' ) {
@@ -6801,7 +7103,8 @@ class UsersLib extends TikiLib
 				$expireAfter,
 				$emailPattern,
 				$anniversary,
-				$prorateInterval
+				$prorateInterval,
+				$color
 			);
 		}
 
@@ -6815,6 +7118,7 @@ class UsersLib extends TikiLib
 			'groupHome' => $home,
 			'groupDefCat' => $defcat,
 			'groupTheme' => $theme,
+			'groupColor' => $color,
 			'usersTrackerId' => (int) $utracker,
 			'groupTrackerId' => (int) $gtracker,
 			'registrationUsersFieldIds' => $rufields,
@@ -6926,19 +7230,6 @@ class UsersLib extends TikiLib
 
 		$q = array();
 		$bindvars = array();
-
-		if (isset($u['password'])) {
-			if ($prefs['feature_clear_passwords'] == 's') {
-				$q[] = '`password` = ?';
-				$bindvars[] = strip_tags($u['password']);
-			}
-
-			// I don't think there are currently cases where login and email are undefined
-			//$hash = md5($u['login'] . $u['password'] . $u['email']);
-			$hash = $this->hash_pass($u['password']);
-			$q[] = '`hash` = ?';
-			$bindvars[] = $hash;
-		}
 
 		if (isset($u['email'])) {
 			if ($prefs['user_unique_email'] == 'y' && $this->other_user_has_email($u['login'], $u['email'])) {
@@ -7133,25 +7424,29 @@ class UsersLib extends TikiLib
 					}
 
 					$definition = Tracker_Definition::get($re['usersTrackerId']);
-					$items = $trklib->list_items(
-						$re['usersTrackerId'],
-						0,
-						1,
-						'',
-						$listfields,
-						$definition->getUserField(),
-						'',
-						'',
-						'',
-						$name,
-						'',
-						null,
-						true,
-						true
-					);
+					if ($definition) {
+						$items = $trklib->list_items(
+							$re['usersTrackerId'],
+							0,
+							1,
+							'',
+							$listfields,
+							$definition->getUserField(),
+							'',
+							'',
+							'',
+							$name,
+							'',
+							null,
+							true,
+							true
+						);
 
-					if (isset($items['data'][0]))
-						$smarty->assign_by_ref('item', $items['data'][0]);
+						if (isset($items['data'][0]))
+							$smarty->assign_by_ref('item', $items['data'][0]);
+					} else {
+						Feedback::error(tr('No user tracker found with id #%0', $re['usersTrackerId']));
+					}
 				}
 			}
 			$mail_data = $smarty->fetch('mail/moderate_validation_mail.tpl');
@@ -7210,7 +7505,6 @@ class UsersLib extends TikiLib
 				)
 			);
 
-			$smarty->assign('mail_pass', $pass);
 			$mail_data = $smarty->fetch("mail/$mailTemplate.tpl");
 			$mail = new TikiMail();
 			$mail->setText($mail_data);
@@ -7301,7 +7595,6 @@ class UsersLib extends TikiLib
 		$apass = $this->renew_user_password($user);
 		$apass = md5($apass);
 		$smarty->assign('mail_apass', $apass);
-		$smarty->assign('mail_pass', $_REQUEST['pass']);
 		$smarty->assign('mail_ip', $tikilib->get_ip_address());
 		$smarty->assign('user', $user);
 		$mail = new TikiMail();
@@ -7570,6 +7863,8 @@ class UsersLib extends TikiLib
 			$date = $this->now;
 			//this is a new membership
 			$new = true;
+		} else {
+			$new = false;
 		}
 		//convert start date to object
 		$rawstartutc = new DateTimeImmutable('@' . $date);
@@ -7740,6 +8035,9 @@ class UsersLib extends TikiLib
 		$finalusers = array();
 		foreach ($usrs as $u) {
 			$u = trim($u);
+			if (!$u) {
+				continue;
+			}
 			if ($u == 'admin') {
 				$finalusers[] = $u;
 			} elseif ($key == 'userId' && preg_match('/\(([0-9]+)\)$/', $u, $matches)) {
@@ -7925,13 +8223,17 @@ class UsersLib extends TikiLib
 	 * @throws Exception
 	 */
 	function invite_tempuser($emails, $groups, $timeout, $prefix = 'guest', $path = 'index.php') {
-		global $smarty, $user, $prefs;
+		global $user, $prefs;
+		$smarty = TikiLib::lib('smarty');
 		include_once ('lib/webmail/tikimaillib.php');
+		$referer = Services_Utilities::noJsPath();
 
 		$mail = new TikiMail();
 		foreach ($emails as $email) {
 			if (!validate_email($email)) {
-				throw new Exception(tr('Invalid email address "%0"', $email));
+				$mes = empty($email) ? tr('Email address is required.') : tr('Invalid email address "%0"', $email);
+				Feedback::error($mes);
+				Services_Utilities::sendFeedback($referer);
 			}
 		}
 		$foo = parse_url($_SERVER['REQUEST_URI']);
@@ -7960,7 +8262,8 @@ class UsersLib extends TikiLib
 					$mailerrors = print_r($mail->errors, true);
 					$errormsg .= $mailerrors;
 				}
-				throw new Exception($errormsg);
+				Feedback::error($errormsg);
+				Services_Utilities::sendFeedback($referer);
 			}
 			$smarty->assign_by_ref('user', $user);
 		}
@@ -7979,6 +8282,8 @@ class UsersLib extends TikiLib
 		}
 	}
 }
+
+
 
 /* For the emacs weenies in the crowd.
 Local Variables:

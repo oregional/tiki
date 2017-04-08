@@ -18,7 +18,9 @@ class Search_Expr_Parser
 			if (in_array(strtoupper($part), $this->special)) {
 				$tokens[] = strtoupper($part);
 			} elseif (strpos($part, ' ') === false) {
-				$tokens[] = new Search_Expr_Token($part);
+				if ( ! $this->isAStopWord($part)) {
+					$tokens[] = new Search_Expr_Token($part);
+				}
 			} else {
 				$tokens[] = new Search_Expr_ExplicitPhrase($part);
 			}
@@ -161,7 +163,7 @@ class Search_Expr_Parser
 			$tokens[$key] = new Search_Expr_Not($tokens[$key + 1]);
 			$tokens[$key + 1] = null;
 		} else {
-			$tokens[$key] = null;
+			$tokens[$key] = new Search_Expr_Not(new Search_Expr_Token(''));
 		}
 	}
 
@@ -182,6 +184,26 @@ class Search_Expr_Parser
 		}
 
 		return $out;
+	}
+
+	/**
+	 * when using AND as the default operator queries including stopped words fail
+	 * so remove them here for the relevant engines (elastic and lucene only so far)
+	 *
+	 * @param string $word
+	 * @return boolean
+	 */
+	private function isAStopWord($word)
+	{
+		global $prefs;
+
+		if ($prefs['unified_lucene_default_operator'] == 0 || $prefs['unified_engine'] === 'mysql') {
+			return false;
+		}
+
+		$stopwords = $prefs['unified_stopwords'];
+
+		return in_array($word, $stopwords);
 	}
 }
 

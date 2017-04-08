@@ -241,6 +241,8 @@ $smarty->assign('find', $find);
 $smarty->assign_by_ref('sort_mode', $sort_mode);
 if (isset($_REQUEST['numrows'])) {
 	$maxRecords = $_REQUEST['numrows'];
+} else {
+	$maxRecords = $prefs['maxRecords'];
 }
 $channels = $commentslib->list_forums($offset, $maxRecords, $sort_mode, $find);
 $max = count($channels["data"]);
@@ -256,28 +258,6 @@ for ($i = 0; $i < $max; $i++) {
 		$channels["data"][$i]["individual"] = 'n';
 	}
 }
-
-//add tablesorter sorting and filtering
-$tsOn = Table_Check::isEnabled(true);
-$smarty->assign('tsOn', $tsOn);
-$tsAjax = Table_Check::isAjaxCall();
-$smarty->assign('tsAjax', $tsAjax);
-static $iid = 0;
-++$iid;
-$ts_tableid = 'adminforums' . $iid;
-$smarty->assign('ts_tableid', $ts_tableid);
-//initialize tablesorter
-if ($tsOn && !$tsAjax) {
-	//set tablesorter code
-	Table_Factory::build(
-		'TikiAdminForums',
-		array(
-			'id' => $ts_tableid,
-			'total' => $channels['cant'],
-		)
-	);
-}
-
 $smarty->assign_by_ref('channels', $channels["data"]);
 $smarty->assign_by_ref('cant', $channels["cant"]);
 $cat_type = 'forum';
@@ -309,6 +289,20 @@ if (preg_match('/^([\d\.]+)([gmk])?$/i', $maxAttachSize, $matches) && !empty($ma
 			$maxAttachSize*= 1024;
 	}
 }
+
+//add tablesorter sorting and filtering
+$ts = Table_Check::setVars('adminforums', true);
+if ($ts['enabled'] && !$ts['ajax']) {
+	//set tablesorter code
+	Table_Factory::build(
+		'TikiAdminForums',
+		array(
+			'id' => $ts['tableid'],
+			'total' => $channels['cant'],
+		)
+	);
+}
+
 $smarty->assign_by_ref('maxAttachSize', $maxAttachSize);
 
 $oneday = 60 * 60 * 24;
@@ -429,19 +423,6 @@ $smarty->assign(
 	)
 );
 
-if (isset($_POST['ajaxtype'])) {
-	$smarty->assign('ajaxfeedback', 'y');
-	$ajaxpost = array_intersect_key($_POST, [
-		'ajaxtype' => '',
-		'ajaxheading' => '',
-		'ajaxitems' => '',
-		'ajaxmsg' => '',
-		'ajaxtoMsg' => '',
-		'ajaxtoList' => '',
-	]);
-	$smarty->assign($ajaxpost);
-}
-
 $sections = $tikilib->get_forum_sections();
 $smarty->assign_by_ref('sections', $sections);
 include_once ('tiki-section_options.php');
@@ -449,7 +430,7 @@ ask_ticket('admin-forums');
 // disallow robots to index page:
 $smarty->assign('metatag_robots', 'NOINDEX, NOFOLLOW');
 // Display the template
-if ($tsAjax) {
+if ($ts['ajax']) {
 	$smarty->display('tiki-admin_forums.tpl');
 } else {
 	$smarty->assign('mid', 'tiki-admin_forums.tpl');

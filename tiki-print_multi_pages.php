@@ -100,11 +100,11 @@ if (isset($_REQUEST['display']) && $_REQUEST['display'] == 'pdf') {
 	$pdf = $pdfname = '';
 
 	if (!empty($printpages)) {
-		$pdf = $generator->getPdf('tiki-print_multi_pages.php', array('print' => 'print', 'printpages' => $_REQUEST['printpages'] ));
+		$pdf = $generator->getPdf('tiki-print_multi_pages.php', array('print' => 'print', 'printpages' => $printpages));
 		$pdfname = implode(', ', $printpages);
 
 	} else if (!empty($printstructures)) {
-		$pdf = $generator->getPdf('tiki-print_multi_pages.php', array('print' => 'print', 'printstructures' => $_REQUEST['printstructures'] ));
+		$pdf = $generator->getPdf('tiki-print_multi_pages.php', array('print' => 'print', 'printstructures' => $printstructures ));
 		$pdfname = implode(', ', $printstructures);
 
 	} else {
@@ -112,14 +112,23 @@ if (isset($_REQUEST['display']) && $_REQUEST['display'] == 'pdf') {
 		die;
 	}
 
-	header('Cache-Control: private, must-revalidate');
-	header('Pragma: private');
-	header("Content-Description: File Transfer");
-	header('Content-disposition: attachment; filename="'. $pdfname . '.pdf"');
-	header("Content-Type: application/pdf");
-	header("Content-Transfer-Encoding: binary");
-	header('Content-Length: '. strlen($pdf));
-	echo $pdf;
+	if (empty($generator->error)) {
+		header('Cache-Control: private, must-revalidate');
+		header('Pragma: private');
+		header("Content-Description: File Transfer");
+		header('Content-disposition: attachment; filename="'. $pdfname . '.pdf"');
+		header("Content-Type: application/pdf");
+		header("Content-Transfer-Encoding: binary");
+		header('Content-Length: '. strlen($pdf));
+		echo $pdf;
+	} else {
+		Feedback::error($generator->error, 'session');
+		$tab = '';
+		if (strpos($_SERVER['HTTP_REFERER'], 'tiki-print_pages.php') !== false && !empty($printpages)) {
+			$tab = '#contenttabs_print_pages-2';
+		}
+		$access->redirect($_SERVER['HTTP_REFERER'] . $tab);
+	}
 
 } else {
 	$smarty->display("tiki-print_multi_pages.tpl");

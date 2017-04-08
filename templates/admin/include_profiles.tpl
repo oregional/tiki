@@ -1,6 +1,6 @@
 {* $Id$ *}
 {jq notonready=true}
-	var baseURI = '{$smarty.server.REQUEST_URI}';
+	var baseURI = '{$smarty.server.REQUEST_URI}&ticket={{$ticket|escape}}&daconfirm=y';
 	{literal}
 		function refreshCache( entry ) { // {{{
 			var datespan = document.getElementById( 'profile-date-' + entry );
@@ -17,17 +17,22 @@
 			req.onreadystatechange = function (aEvt) {
 				if (req.readyState == 4) {
 					if(req.status == 200) {
-						var data = eval( "(" + req.responseText + ")" );
-						$.each(['open', 'pending', 'closed'], function (key, value) {
-							if (value == data.status) {
-								$('#profile-status-' + entry + ' > span.icon-status-' + value).show();
-							} else {
-								$('#profile-status-' + entry + ' > span.icon-status-' + value).hide();
-							}
-						});
-						datespan.innerHTML = data.lastupdate;
-					} else
-						alert("Error loading page\n");
+						if (req.responseText.slice(0,1) !== '<') {
+							var data = eval( "(" + req.responseText + ")" );
+							$.each(['open', 'pending', 'closed'], function (key, value) {
+								if (value == data.status) {
+									$('#profile-status-' + entry + ' > span.icon-status-' + value).show();
+								} else {
+									$('#profile-status-' + entry + ' > span.icon-status-' + value).hide();
+								}
+							});
+							datespan.innerHTML = data.lastupdate;
+						} else {
+							feedback(tr('Error loading page'), 'error');
+						}
+					} else {
+						feedback(tr('Error loading page'), 'error');
+					}
 				}
 			};
 			req.send('');
@@ -192,6 +197,9 @@
 						body.style.borderWidth = '2px';
 						body.style.borderColor = 'black';
 						body.style.padding = '8px';
+						body.style.resize = 'both';
+						body.style.overflow = 'auto';
+
 
 						cell.appendChild( body );
 
@@ -254,9 +262,9 @@
 					{tr}Some of your Profiles Repositories are not connecting. This may prevent you from applying certain profiles{/tr}
 				{/remarksbox}
 			{/if}
-			<form method="get" action="tiki-admin.php">
-				<input type="hidden" name="ticket" value="{$ticket|escape}">
-				<h4>{tr}Find Profiles{/tr} <small>{tr}Search by name, types and repository{/tr}</small></h4>
+			<form method="get" action="tiki-admin.php?page=profiles">
+				{include file='access/include_ticket.tpl'}
+				<h4>{tr}Find profiles{/tr} <small>{tr}Search by name, types and repository{/tr}</small></h4>
 				<div class="row">
 					<div class="col-sm-6">
 						<div class="form-group">
@@ -265,7 +273,7 @@
 						</div>
 						{if isset($category_list) and count($category_list) gt 0}
 							<div class="form-group">
-								<label class="control-label" for="categories">{tr}Profile Types{/tr}</label>
+								<label class="control-label" for="categories">{tr}Profile types{/tr}</label>
 									<select multiple="multiple" name="categories[]" id="categories" class="form-control" style="min-height: 8em; max-height: 15em">
 										{foreach item=cat from=$category_list}
 											<option value="{$cat|escape}"{if !empty($categories) and in_array($cat, $categories)} selected="selected"{/if}>{$cat|escape}</option>
@@ -274,7 +282,7 @@
 							</div>
 						{/if}
 						<div class="form-group">
-							<label class="control-label" for="repository">{tr}Profile Repository{/tr}</label>
+							<label class="control-label" for="repository">{tr}Profile repository{/tr}</label>
 							<select name="repository" id="repository" class="form-control">
 								<option value="">{tr}All{/tr}</option>
 								{foreach item=source from=$sources}
@@ -282,7 +290,8 @@
 								{/foreach}
 							</select>
 						</div>
-						<input type="hidden" name="page" value="profiles"/>
+						<input type="hidden" name="page" value="profiles">
+						<input type="hidden" name="redirect" value=0>
 								{jq}
 										if ($("#profile-0").length > 0) {
 											$(".quickmode_notes").hide();
@@ -300,7 +309,7 @@
 									{/jq}
 
 						<div class="form-group text-center">
-							<input type="submit" class="btn btn-primary" name="list" value="{tr}Find{/tr}" />
+							<input type="submit" class="btn btn-primary timeout" name="list" value="{tr}Find{/tr}" />
 						</div>
 					</div>
 					<div class="col-sm-6">
@@ -339,11 +348,11 @@
 			</form>
 			<a id="step2"></a>
 			{if isset($result) && $result|@count != '0'}
-				<h4>{tr}Select and apply profile <small>Click on a Configuration Profile Name below to review it and apply it on your site</small>{/tr}</h4>
+				<h4>{tr}Select and apply profile <small>Click on a configuration profile name below to review it and apply it on your site</small>{/tr}</h4>
 				<div class="table-responsive">
 					<table class="table">
 						<tr>
-							<th>{tr}Profile Name{/tr}</th>
+							<th>{tr}Profile name{/tr}</th>
 							<th>{tr}Repository{/tr}</th>
 							<th>{tr}Profile type{/tr}</th>
 						</tr>
@@ -366,7 +375,7 @@
 							<tr><td colspan="3" class="odd">{tr}None{/tr}</td></tr>
 						{/if}
 					</table>
-					{if $show_details_for_profile_num != ""}
+					{if isset($show_details_for_profile_num) && $show_details_for_profile_num != ""}
 						{jq}showDetails('profile-{{$show_details_for_profile_num}}', '{{$show_details_for_domain}}', '{{$show_details_for_fullname}}');{/jq}
 					{/if}
 				</div>
@@ -379,22 +388,23 @@
 	{/tab}
 
 	{tab name="{tr}Export{/tr}"}
-		<h2>{tr}Export{/tr}</h2>
+		<br>
 		<form class="form-horizontal" action="tiki-admin.php?page=profiles" method="post" role="form">
-			<input type="hidden" name="ticket" value="{$ticket|escape}">
+			{include file='access/include_ticket.tpl'}
+			<input type="hidden" name="redirect" value=0>
 			<fieldset id="export_to_yaml">
 				<legend>{tr}Export YAML{/tr}</legend>
 				{if !empty($export_yaml)}
 					<div class="wikitext">{$export_yaml}</div>
 				{/if}
 				<div class="form-group">
-					<label class="control-label col-sm-2" for="export_type">{tr}Object Type{/tr}</label>
+					<label class="control-label col-sm-2" for="export_type">{tr}Object type{/tr}</label>
 					<div class="col-sm-5">
 					<select name="export_type" id="export_type" class="form-control">
-						<option value="prefs"{if $export_type eq "prefs"} selected="selected"{/if}>
+						<option value="prefs"{if !empty($export_type) && $export_type eq "prefs"} selected="selected"{/if}>
 							{tr}Preferences{/tr}
 						</option>
-						<option value="modules"{if $export_type eq "modules"} selected="selected"{/if}>
+						<option value="modules"{if !empty($export_type) && $export_type eq "modules"} selected="selected"{/if}>
 							{tr}Modules{/tr}
 						</option>
 					</select>
@@ -471,7 +481,7 @@
 						});
 					{/jq}
 					<div class="text-center submit input_submit_container">
-						<input type="submit" class="btn btn-primary" name="export" value="{tr}Export{/tr}" />
+						<input type="submit" class="btn btn-primary timeout" name="export" value="{tr}Export{/tr}" />
 					</div>
 				</fieldset>
 			</fieldset>
@@ -479,9 +489,9 @@
 	{/tab}
 
 	{tab name="{tr}Advanced{/tr}"}
-		<h2>{tr}Advanced{/tr}</h2>
+		<br>
 		<fieldset>
-			<h4>{tr}Repository Status{/tr} <small>{tr}Status of the registered profile repositories{/tr}</small></h4>
+			<h4>{tr}Repository status{/tr} <small>{tr}status of the registered profile repositories{/tr}</small></h4>
 			<table class="table">
 				<tr>
 					<th>{tr}Profile repository{/tr}</th>
@@ -511,25 +521,26 @@
 				{/foreach}
 			</table>
 			<form class="form-horizontal" action="tiki-admin.php?page=profiles" method="post">
-				<input type="hidden" name="ticket" value="{$ticket|escape}">
+				{include file='access/include_ticket.tpl'}
 				{preference name=profile_unapproved}
 				{preference name=profile_sources}
 				{preference name=profile_channels}
 				<div class="text-center submit">
-					<input type="submit" class="btn btn-primary" name="config" value="{tr}Save{/tr}" />
+					<input type="submit" class="btn btn-primary timeout" name="config" value="{tr}Save{/tr}" />
 				</div>
 			</form>
 		</fieldset>
 		<fieldset><legend>{tr}Profile tester{/tr}</legend>
 			<form class="form-horizontal" action="tiki-admin.php?page=profiles" method="post">
-				<input type="hidden" name="ticket" value="{$ticket|escape}">
+				{include file='access/include_ticket.tpl'}
+				<input type="hidden" name="redirect" value=0>
 				{remarksbox type="warning" title="{tr}Warning{/tr}"}
 					{tr}Paste or type wiki markup and YAML (with or without the {literal}{CODE}{/literal} tags) into the text area below{/tr}<br>
 					<em><strong>{tr}This will run the profile and make potentially unrecoverable changes in your database!{/tr}</strong></em>
 				{/remarksbox}
 				<div class="adminoptionbox">
 					<div class="adminoptionlabel form-group">
-						<label for="profile_tester_name" class="control-label col-sm-4">{tr}Test Profile Name:{/tr} </label>
+						<label for="profile_tester_name" class="control-label col-sm-4">{tr}Test profile name{/tr} </label>
 						<div class="col-sm-4 margin-bottom-sm">
 						<input class="form-control" type="text" name="profile_tester_name" id="profile_tester_name" value="{if isset($profile_tester_name)}{$profile_tester_name}{else}Test{/if}" />
 						</div>
@@ -549,7 +560,7 @@
 						<textarea data-codemirror="true" data-syntax="yaml" id="profile_tester" name="profile_tester" class="form-control">{if isset($test_source)}{$test_source}{/if}</textarea>
 					</div>
 				</div>
-				<div align="center" style="padding:1em;"><input type="submit" class="btn btn-default" name="test" value="{tr}Test{/tr}" /></div>
+				<div align="center" style="padding:1em;"><input type="submit" class="btn btn-default timeout" name="test" value="{tr}Test{/tr}"></div>
 			</form>
 		</fieldset>
 	{/tab}

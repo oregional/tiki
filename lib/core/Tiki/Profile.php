@@ -5,6 +5,8 @@
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
 // $Id$
 
+use Symfony\Component\Yaml\Yaml;
+
 class Tiki_Profile
 {
 	const SHORT_PATTERN = '/^\$((([\w\.\/-]+):)?((\w+):))?(\w+)$/';
@@ -264,7 +266,7 @@ class Tiki_Profile
 		$profile->transport = new Tiki_Profile_Transport_File($path, $name);
 
 		if (file_exists($ymlPath)) {
-			$profile->data = Horde_Yaml::load(file_get_contents($ymlPath));
+			$profile->data = Yaml::parse(file_get_contents($ymlPath));
 
 			$profile->fetchExternals();
 			$profile->getObjects();
@@ -331,7 +333,7 @@ class Tiki_Profile
 				|| $match->getName() == 'profile' ) {
 				$yaml = $match->getBody();
 
-				$data = Horde_Yaml::load($yaml);
+				$data = Yaml::parse($yaml);
 
 				foreach ( $data as $key => $value ) {
 					if ( array_key_exists($key, $this->data) )
@@ -692,7 +694,13 @@ class Tiki_Profile
 				'user_signup' => !empty($groupInfo['userChoice']) ? $groupInfo['userChoice'] : 'n',
 				'default_category' => !empty($groupInfo['groupDefCat']) ? $groupInfo['groupDefCat'] : 0,
 				'theme' => !empty($groupInfo['groupTheme']) ? $groupInfo['groupTheme'] : '',
+				'color' => !empty($groupInfo['groupColor']) ? $groupInfo['groupColor'] : '',
 				'registration_fields' => !empty($groupInfo['registrationUsersFieldIds']) ? explode(':', $groupInfo['registrationUsersFieldIds']) : array(),
+				'is_external' => !empty($groupInfo['isExternal']) ? $groupInfo['isExternal'] : 'n',
+				'expire_after' => !empty($groupInfo['expireAfter']) ? $groupInfo['expireAfter'] : 0,
+				'email_pattern' => !empty($groupInfo['emailPattern']) ? $groupInfo['emailPattern'] : '',
+				'anniversary' => !empty($groupInfo['anniversary']) ? $groupInfo['anniversary'] : '',
+				'prorate_interval' => !empty($groupInfo['prorateInterval']) ? $groupInfo['prorateInterval'] : '',
 				'include' => array(),
 				'autojoin' => 'n',
 			);

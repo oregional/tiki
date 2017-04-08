@@ -68,25 +68,11 @@ class ModLib extends TikiLib
 			$query = "delete from `tiki_user_modules` where `name`=?";
 			$result = $this->query($query, array($name), -1, -1, false);
 			$query = "insert into `tiki_user_modules`(`name`,`title`,`data`, `parse`) values(?,?,?,?)";
-
-            //BEGIN wikiLingo integration
-            if ($prefs['feature_wikilingo'] == 'y') {
-                $this->query("DELETE FROM `tiki_output` WHERE `objectType` = ? AND `entityId` = ?", array("userModule", $name));
-
-                switch (strtolower($parse))
-                {
-                    case 'wikilingo':
-                        $this->query("INSERT INTO `tiki_output` (`objectType`, `entityId`, `version`) VALUES  (?, ?, ?)", array("userModule", $name, 1));
-                        $parse = 'y';
-                }
-            }
-            //END wikiLingo integration
 			$result = $this->query($query, array($name,$title,$data,$parse));
 
 			$cachelib = TikiLib::lib('cache');
 			$cachelib->invalidate("user_modules_$name");
 
-			$wikilib = TikiLib::lib('wiki');
 			$converter = new convertToTiki9();
 			$converter->saveObjectStatus($name, 'tiki_user_modules', 'new9.0+');
 
@@ -528,10 +514,12 @@ class ModLib extends TikiLib
 
 			$ok = false;
 			foreach ((array) $params['theme'] as $t) {
+				// remove any css extension
+				$t = preg_replace('/\.css$/i', '', $t);
 				if ( $t{0} != '!' ) { // usual behavior
 					if ( !empty($tc_theme) && $t === $tc_theme ) {
 						$ok = true;
-					} elseif ( $t === $prefs['style'] && empty($tc_theme)) {
+					} elseif ( $t === $prefs['theme'] && empty($tc_theme)) {
 						$ok = true;
 					}
 				} else { // negation behavior
@@ -539,7 +527,7 @@ class ModLib extends TikiLib
 					$ok = true;
 					if ( !empty($tc_theme) && $excluded_theme === $tc_theme ) {
 						return false;
-					} elseif ( $excluded_theme === $prefs['style'] && empty( $tc_theme )) {
+					} elseif ( $excluded_theme === $prefs['theme'] && empty( $tc_theme )) {
 						return false;
 					}
 				}
@@ -600,7 +588,7 @@ class ModLib extends TikiLib
 			}
 		}
 
-		if ( $prefs['cookie_consent_feature'] == 'y' ) {		// check if consent required to show
+		if ( $prefs['cookie_consent_feature'] == 'y' && $prefs['cookie_consent_disable'] !=='y' ) {		// check if consent required to show
 			if (!empty($params['cookie_consent']) && $params['cookie_consent'] === 'y') {
 				global $feature_no_cookie;
 				if ($feature_no_cookie) {
@@ -640,7 +628,12 @@ class ModLib extends TikiLib
 			return true;
 		}
 
-		$categories = (array) $params['category'];
+		// Multi-value params of custom modules need transformation into an array
+		if ( is_array($params['category']) ) {
+			$categories = (array) $params['category'];
+		} else {
+			$categories = explode(';',$params['category']);
+		}
 
 		return ! $this->matches_any_in_category_list($categories, $catIds, ! empty($params['subtree']));
 	}
@@ -666,7 +659,12 @@ class ModLib extends TikiLib
 			return false;
 		}
 
-		$categories = (array) $params['nocategory'];
+		// Multi-value params of custom modules need transformation into an array
+		if ( is_array($params['nocategory']) ) {
+			$categories = (array) $params['nocategory'];
+		} else {
+			$categories = explode(';',$params['nocategory']);
+		}
 
 		return $this->matches_any_in_category_list($categories, $catIds, ! empty($params['subtree']));
 	}
@@ -949,7 +947,7 @@ class ModLib extends TikiLib
 			)
 		);
 
-		if ($prefs['cookie_consent_feature'] === 'y') {
+		if ($prefs['cookie_consent_feature'] === 'y' && $prefs['cookie_consent_disable'] !=='y') {
 			$info['params']['cookie_consent'] = array(
 				'name' => tra('Cookie Consent'),
 				'description' => 'n|y '.tra('Show only if consent to accept cookies has been granted.'),
@@ -1197,30 +1195,12 @@ class ModLib extends TikiLib
 
     function parse($info)
     {
-        global $prefs, $headerlib;
+        global $prefs;
 		$tikilib = TikiLib::lib('tiki');
-        //allow for wikiLingo parsing, will only return 'y' if turned on AND enabled for this particular module
-        if (isset($info['wikiLingo']) && $info['wikiLingo'] == 'y' && $prefs['feature_wikilingo'] == 'y') {
-	        //TODO: correct the paths for scripts and output them to the header
-	        $scripts = new WikiLingo\Utilities\Scripts();
-	        $parser = new WikiLingo\Parser($scripts);
-	        $info['data'] = $parser->parse($info['data']);
-	        $info['title'] = $parser->parse($info['title']);
 
-	        /* output css from wikiLingo in a literal so smarty doesn't throw up.
-	         * NOTE: this is not added to headerlib because it has already passed the opportunity to get more css
-	         */
-	        $info['data'] = '{literal}' . $scripts->renderCss() . '{/literal}' . $info['data'];
-
-	        //output js to headerlib, because js is at bottom and has not yet been output
-	        foreach ( $scripts->scriptLocations as $scriptLocation ) {
-		        $headerlib->add_jsfile($scriptLocation);
-	        }
-	        $headerlib->add_js(implode($scripts->scripts));
-
-        } else if (isset($info['parse']) && $info['parse'] == 'y') {
-            $info['data'] = $tikilib->parse_data($info['data'], array('is_html' => true, 'suppress_icons' => true));
-            $info['title'] = $tikilib->parse_data($info['title'], array('noparseplugins' => true, 'is_html' => true));
+		if (isset($info['parse']) && $info['parse'] == 'y') {
+            $info['data'] = TikiLib::lib('parser')->parse_data($info['data'], array('is_html' => true, 'suppress_icons' => true));
+            $info['title'] = TikiLib::lib('parser')->parse_data($info['title'], array('noparseplugins' => true, 'is_html' => true));
         }
 
         return $info;
@@ -1424,18 +1404,7 @@ class ModLib extends TikiLib
      */
     function get_user_module($name)
 	{
-        global $prefs;
-
-		$info = $this->table('tiki_user_modules')
-            ->fetchFullRow(array('name' => $name));
-
-        if ($prefs['feature_wikilingo'] == 'y') {
-            if ($this->getOne('SELECT 1 FROM `tiki_output` WHERE `objectType` = ? AND `entityId` = ?', array('userModule', $name)) != null) {
-                $info['wikiLingo'] = 'y';
-            }
-        }
-
-        return $info;
+		return $this->table('tiki_user_modules')->fetchFullRow(array('name' => $name));
 	}
 
 	/**
@@ -1490,7 +1459,7 @@ class ModLib extends TikiLib
 
 		$content = file_get_contents($filename);
 		if (!$content) {
-			TikiLib::lib('errorreport')->report(tr('Module file "%0" not found.', $filename));
+			Feedback::error(tr('Module file "%0" not found.', $filename), 'session');
 			return '';
 		}
 

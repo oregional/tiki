@@ -5,28 +5,44 @@
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
 // $Id$
 
-/*
-	 Tikiwiki CSRF protection.
-	 also called Sea-Surfing
-
-	 please report to security@tikiwiki.org
-	 if you find a better way to handle sea surfing nastiness
- */
-
 //this script may only be included - so its better to die if called directly.
 if (strpos($_SERVER['SCRIPT_NAME'], basename(__FILE__)) !== false) {
 	header('location: index.php');
 	exit;
 }
 
-// Deprecated in favor of key_get($area)
+/*
+	 Tikiwiki CSRF protection.
+	 also called Sea-Surfing
+
+	 This protection is deprecated. Previous uses in the form...
+	 if (isset($_REQUEST['perform_action']) {
+	 	check_ticket('foo');
+	 	restricted_modification();
+	 }
+	 ask_ticket('foo');
+	 
+	 ...can now simply use...
+	 $access->check_authenticity();
+	 restricted_modification();
+ */
+
+/**
+ * @param $area
+ * @return bool
+ * @deprecated. See above comment
+ */
 function ask_ticket($area)
 {
 	$_SESSION['antisurf'] = $area;
 	return true;
 }
 
-// Deprecated in favor of key_check($area)
+/**
+ * @param $area
+ * @return bool
+ * @deprecated. See above comment
+ */
 function check_ticket($area)
 {
 	if (!isset($_SESSION['antisurf'])) {
@@ -49,62 +65,3 @@ function check_ticket($area)
 	return true;
 }
 
-// new valid functions for ticketing:
-// * @param string $area is not used any longer
-function key_get($area = null, $confirmation_text = '', $confirmaction = '',  $returnHtml = true)
-{
-	global $prefs;
-	if ($prefs['feature_ticketlib2'] == 'y' || $returnHtml === false) {
-		$ticket = md5(uniqid(rand()));
-		$_SESSION['tickets'][$ticket] = time();
-		if ($returnHtml) {
-			$smarty = TikiLib::lib('smarty');
-			$smarty->assign('ticket', $ticket);
-			if (empty($confirmation_text)) {
-				$confirmation_text = tra('Click here to confirm your action');
-			}
-
-			if (empty($confirmaction)) {
-				$confirmaction = $_SERVER['PHP_SELF'];
-			}
-
-			// Display the confirmation in the main tiki.tpl template
-			$smarty->assign('post', $_POST);
-			$smarty->assign('dblclickedit', 'n');
-			$smarty->assign('print_page', 'n');
-			$smarty->assign('confirmation_text', $confirmation_text);
-			$smarty->assign('confirmaction', $confirmaction);
-			$smarty->assign('mid', 'confirm.tpl');
-			$smarty->display('tiki.tpl');
-			die();
-		} else {
-			return ['ticket' => $ticket];
-		}
-	}
-}
-// * @param string $area is not used any longer
-function key_check($area = null, $returnHtml = true)
-{
-	global $prefs, $jitRequest;
-	if ($prefs['feature_ticketlib2'] == 'y' || $returnHtml === false) {
-		if (isset($_REQUEST['ticket'])) {
-			$ticket = $_REQUEST['ticket'];
-		} elseif (isset($jitRequest['ticket'])) {
-			$ticket = $jitRequest->ticket->alnum();
-		}
-		if (isset($ticket) && isset($_SESSION['tickets'][$ticket])) {
-			$time = $_SESSION['tickets'][$ticket];
-			if ($time < time() && $time > (time()-(60*15))) {
-				return true;
-			}
-		}
-		if ($returnHtml) {
-			$smarty = TikiLib::lib('smarty');
-			$smarty->assign('msg', tra('Possible cross-site request forgery (CSRF, or "sea surfing") detected. Operation blocked.'));
-			$smarty->display('error.tpl');
-			exit();
-		} else {
-			return false;
-		}
-	}
-}

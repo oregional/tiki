@@ -108,6 +108,7 @@
 			<div class="table-responsive">
 				<div class="permission_table">
 					{treetable _data=$perms _checkbox=$permGroups _checkboxTitles=$groupNames
+						_checkboxTooltips=['_checkboxTitles', 'permDesc', 'permName'] _checkboxTooltipFormat='%0: %1 [%2]'
 						_checkboxColumnIndex=$permGroupCols _valueColumnIndex="permName"
 						_columns="\"label\"=\"{tr}Permission{/tr}\"" _groupColumn='type' _openall='y'
 						_showSelected='y' _columnsContainHtml='y' class='table table-striped objectperms'}
@@ -224,7 +225,7 @@
 			{foreach item=permgroup from=$quickperms}
 				<th>{$permgroup.name}</th>
 			{/foreach}
-				<th class="tips" title="{tr}A couple of userdefined permissions are currently assigned (See tab Assign Permissions){/tr}">Advanced</th>
+				<th class="tips" title="|{tr}Individual permissions are currently assigned (See tab Assign Permissions){/tr}">Advanced</th>
 			</tr>
 
 			{section name=grp loop=$groups}
@@ -239,7 +240,7 @@
 						</td>
 						{/foreach}
 						<td>
-							<input type="radio" name="perm_{$groups[grp].groupName|escape:url}" value="userdefined" {if $groups[grp].groupSumm eq 'userdefined'}checked{/if} disabled>
+							<input type="radio" name="perm_{$groups[grp].groupName|escape:url}" value="userdefined" {if $groups[grp].groupSumm eq 'userdefined'}checked{/if} onclick="return false;">
 						</td>
 					</tr>
 				{/if}

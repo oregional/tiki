@@ -184,6 +184,9 @@ if (!empty($page_ref_id)) {
 }
 
 $page = $_REQUEST['page'];
+if ($prefs['wiki_url_scheme'] !== 'urlencode') {
+	$page = TikiLib::lib('wiki')->get_page_by_slug($page);
+}
 $smarty->assign_by_ref('page', $page);
 
 $cat_type = 'wiki page';
@@ -353,6 +356,8 @@ if (empty($info) && !($user && $prefs['feature_wiki_userpage'] == 'y' && strcase
 					$smarty->assign('canonical_ending', urlencode(trim(substr($page, strlen($newPage)))));
 					$page = $newPage;
 					$info = $tikilib->get_page_info($_REQUEST['page']);
+					$statslib->stats_hit($suffix, 'trackeritem');
+					unset($_REQUEST['sort_mode']); // prevent invalid sort_mode when coming from tracker listing to cause search fatal error in any LIST plugins
 				}
 			}
 		}
@@ -482,34 +487,6 @@ if (!in_array($page, $_SESSION['breadCrumb'])) {
 // Now increment page hits since we are visiting this page
 $tikilib->add_hit($page);
 
-// Check if we have to perform an action for this page
-// for example lock/unlock
-if ( $objectperms->admin_wiki
-		|| ($user and $objectperms->lock and ($prefs['feature_wiki_usrlock'] == 'y'))
-) {
-	if ( isset($_REQUEST['action']) ) {
-		check_ticket('index');
-		if ( $_REQUEST['action'] == 'lock' ) {
-			$wikilib->lock_page($page);
-			$pageRenderer->setInfo('flag', 'L');
-			$info['flag'] = 'L';
-		}
-	}
-}
-
-if ( $objectperms->admin_wiki
-		|| ($user and ($user == $info['user']) and $objectperms->lock and ($prefs['feature_wiki_usrlock'] == 'y'))
-) {
-	if ( isset($_REQUEST['action']) ) {
-		check_ticket('index');
-		if ( $_REQUEST['action'] == 'unlock' ) {
-			$wikilib->unlock_page($page);
-			$pageRenderer->setInfo('flag', 'U');
-			$info['flag'] = 'U';
-		}
-	}
-}
-
 // Save to notepad if user wants to
 if ( $user
 			&& $objectperms->notepad
@@ -533,7 +510,7 @@ if ( isset($_REQUEST['undo']) ) {
 			$info = $tikilib->get_page_info($page);
 			$pageRenderer->setInfos($info);
 		} else {
-			TikiLib::lib('errorreport')->report(tra('There is nothing to undo'));
+			Feedback::note(tra('There is nothing to undo.'));
 		}
 	}
 }
@@ -547,15 +524,6 @@ include_once('tiki-section_options.php');
 
 if ( isset($_REQUEST['pagenum']) && $_REQUEST['pagenum'] > 0 ) {
 	$pageRenderer->setPageNumber((int) $_REQUEST['pagenum']);
-}
-
-$just_saved = false;
-if (isset($_SESSION['saved_msg']) && $_SESSION['saved_msg'] == $info['pageName'] && $info['user'] == $user ) {
-	// Generate the 'Page has been saved...' message
-	require_once('lib/smarty_tiki/modifier.userlink.php');
-	$smarty->assign('saved_msg', sprintf(tra('Page saved (version %d).'), $info['version']));
-	unset($_SESSION['saved_msg']);
-	$just_saved = true;
 }
 
 if ( $prefs['feature_wiki_attachments'] == 'y' && $prefs['feature_use_fgal_for_wiki_attachments'] != 'y' ) {

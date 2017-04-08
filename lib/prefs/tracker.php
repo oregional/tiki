@@ -1,6 +1,6 @@
 <?php
 // (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
-// 
+//
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
 // $Id$
@@ -9,7 +9,7 @@ function prefs_tracker_list()
 {
 	return array(
 		'tracker_remote_sync' => array(
-			'name' => tr('Synchronize Remote Tracker'),
+			'name' => tr('Synchronize remote tracker'),
 			'description' => tr('Allows a tracker to be cloned on a remote host and synchronize the data locally on demand.'),
 			'type' => 'flag',
 			'default' => 'n',
@@ -36,8 +36,8 @@ function prefs_tracker_list()
 			'profile_reference' => 'tracker',
 		),
 		'tracker_change_field_type' => array(
-			'name' => tr('Change Field Types'),
-			'description' => tr('Allow field type to be changed after creation.'),
+			'name' => tr('Change field types and permanent name'),
+			'description' => tr('Allow field type and the Permanent Name to be changed after creation.'),
 			'type' => 'flag',
 			'default' => 'n',
 			'warning' => tra('Use with care!'),
@@ -47,7 +47,7 @@ function prefs_tracker_list()
 			'description' => tr('Show comments for a tracker item below the item itself as in other trackers, instead of enclosed in a tab'),
 			'type' => 'flag',
 			'default' => 'n',
-		),		
+		),
 		'tracker_legacy_insert' => array(
 			'name' => tr('Use legacy tracker insertion screen'),
 			'description' => tr('Use the legacy tracker insertion screen (a tab) instead of a popup dialog.'),
@@ -80,8 +80,8 @@ function prefs_tracker_list()
  			'description' => tr('Have a tracker to supplement article information'),
  			'type' => 'flag',
 			'tags' => array('advanced'),
- 			'default' => 'n', 
- 			'dependencies' => array('feature_articles', 'feature_trackers', 'tracker_article_trackerId'), 
+ 			'default' => 'n',
+ 			'dependencies' => array('feature_articles', 'feature_trackers', 'tracker_article_trackerId'),
  		),
  		'tracker_article_trackerId' => array(
  			'name' => tr('Tracker ID of tracker for articles'),
@@ -94,21 +94,21 @@ function prefs_tracker_list()
  			'profile_reference' => 'tracker',
  		),
 		'tracker_article_indexing' => array(
-			'name' => tr("Index article info in trackeritem. See Description for more info."),
-			'description' => tr('Sets whether the article info should be indexed in the trackeritem. This automatically sets the article field to read-only and sets up categorization synchronization between articles and tracker items.'),
+			'name' => tr("Index article info in tracker item"),
+			'description' => tr('Sets whether the article info should be indexed in the tracker item. This automatically sets the article field to read-only and sets up categorization synchronization between articles and tracker items.'),
 			'type' => 'flag',
 			'tags' => array('advanced'),
 			'default' => 'n',
 			'dependencies' => array('feature_articles', 'feature_trackers', 'tracker_article_trackerId', 'tracker_article_tracker'),
 		),
 		'tracker_tabular_enabled' => array(
-			'name' => tr('Tracker Tabular'),
+			'name' => tr('Tracker tabular'),
 			'description' => tr('Allows management of import/export tracker profiles and management of custom list formats.'),
 			'type' => 'flag',
 			'default' => 'n',
 			'dependencies' => ['feature_trackers'],
-			'tags' => ['advanced', 'experimental'],
-            'help' => 'Tracker+Tabular',
+			'tags' => ['advanced'],
+			'help' => 'Tracker+Tabular',
 		),
 		'tracker_always_notify' => array(
 			'name' => tr('Always notify watchers'),
@@ -158,6 +158,12 @@ function prefs_tracker_list()
 			'type' => 'flag',
 			'default' => 'y',
 			'dependencies' => ['feature_trackers','feature_sefurl', 'feature_sefurl_tracker_prefixalias'],
+		),
+		'tracker_report_resize_button' => array(
+			'name' => tr('Tracker report resize button'),
+			'description' => tr('Adds a button to resize long tracker reports'),
+			'type' => 'flag',
+			'default' => 'n',
 		),
 	);
 }

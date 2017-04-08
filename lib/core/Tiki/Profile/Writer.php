@@ -5,6 +5,8 @@
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
 // $Id$
 
+use Symfony\Component\Yaml\Yaml;
+
 class Tiki_Profile_Writer
 {
 	private $data;
@@ -18,7 +20,7 @@ class Tiki_Profile_Writer
 		$this->externalWriter = new Tiki_Profile_Writer_ExternalWriter("$directory/$profileName");
 		if (file_exists($this->filePath)) {
 			$content = file_get_contents($this->filePath);
-			$this->data = Horde_Yaml::load($content);
+			$this->data = Yaml::parse($content);
 		} else {
 			$this->data = array(
 				'permissions' => array(),
@@ -158,6 +160,9 @@ class Tiki_Profile_Writer
 	 */
 	function removeUnknown($type, $id, $replacement)
 	{
+		if( !is_array($this->data['unknown_objects']) ) {
+			return;
+		}
 		foreach ($this->data['unknown_objects'] as $key => $entry) {
 			if ($entry['type'] == $type && $entry['id'] == $id) {
 				$token = $entry['token'];
@@ -310,9 +315,11 @@ class Tiki_Profile_Writer
 	private function generateTemporaryReference($type, $id)
 	{
 		// Find existing entry for unknown reference
-		foreach ($this->data['unknown_objects'] as $entry) {
-			if ($entry['type'] == $type && $entry['id'] == $id) {
-				return $entry['token'];
+		if( is_array($this->data['unknown_objects']) ) {
+			foreach ($this->data['unknown_objects'] as $entry) {
+				if ($entry['type'] == $type && $entry['id'] == $id) {
+					return $entry['token'];
+				}
 			}
 		}
 
@@ -332,7 +339,7 @@ class Tiki_Profile_Writer
 	 */
 	function save()
 	{
-		file_put_contents($this->filePath, Horde_Yaml::dump($this->quoteArray($this->data)));
+		file_put_contents($this->filePath, Yaml::dump($this->quoteArray($this->data), 20, 2, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK));
 		$this->externalWriter->apply();
 	}
 
@@ -383,6 +390,6 @@ class Tiki_Profile_Writer
 		$clone = clone $this;
 		$clone->clean();
 
-		return Horde_Yaml::dump($clone->data);
+		return Yaml::dump($clone->data, 20, 2, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK);
 	}
 }

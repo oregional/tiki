@@ -4,7 +4,7 @@
 {/remarksbox}
 
 <form class="form-horizontal" action="tiki-admin.php?page=module" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 	<input type="hidden" name="modulesetup" />
 
 	<div class="row">
@@ -12,9 +12,7 @@
 			<a role="button" class="btn btn-link" href="tiki-admin_modules.php" title="{tr}List{/tr}">
 				{icon name="list"} {tr}Modules{/tr}
 			</a>
-			<div class="pull-right">
-				<input type="submit" class="btn btn-primary btn-sm" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-			</div>
+			{include file='admin/include_apply_top.tpl'}
 		</div>
 	</div>
 
@@ -54,13 +52,5 @@
 			{tr}If you lose your login module, use tiki-login_scr.php to be able to login!{/tr}
 		{/remarksbox}
 	</fieldset>
-	<br>{* I cheated. *}
-
-	<div class="row">
-		<div class="form-group col-lg-12 clearfix">
-			<div class="text-center">
-				<input type="submit" class="btn btn-primary btn-sm" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-			</div>
-		</div>
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

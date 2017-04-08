@@ -30,7 +30,9 @@ class TikiImporter_Blog_Wordpress_Test extends TikiImporter_TestCase
 
 	public function testImport()
 	{
-        $obj = $this->getMock('TikiImporter_Blog_Wordpress', array('validateInput', 'extractBlogInfo', 'parseData', 'insertData', 'setupTiki', 'extractPermalinks'));
+        $obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('validateInput', 'extractBlogInfo', 'parseData', 'insertData', 'setupTiki', 'extractPermalinks'))
+			->getMock();
         $obj->expects($this->once())->method('validateInput');
         $obj->expects($this->once())->method('extractBlogInfo')->will($this->returnValue(array()));
         $obj->expects($this->once())->method('parseData');
@@ -49,7 +51,9 @@ class TikiImporter_Blog_Wordpress_Test extends TikiImporter_TestCase
 
 	public function testImportShouldHandleAttachments()
 	{
-        $obj = $this->getMock('TikiImporter_Blog_Wordpress', array('validateInput', 'extractBlogInfo', 'parseData', 'insertData', 'downloadAttachments', 'setupTiki', 'extractPermalinks'));
+        $obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('validateInput', 'extractBlogInfo', 'parseData', 'insertData', 'downloadAttachments', 'setupTiki', 'extractPermalinks'))
+			->getMock();
         $obj->expects($this->once())->method('validateInput');
         $obj->expects($this->once())->method('extractBlogInfo')->will($this->returnValue(array()));
         $obj->expects($this->once())->method('parseData');
@@ -66,7 +70,9 @@ class TikiImporter_Blog_Wordpress_Test extends TikiImporter_TestCase
 
 	public function testParseData()
 	{
-        $obj = $this->getMock('TikiImporter_Blog_Wordpress', array('extractItems', 'extractTags', 'extractCategories'));
+        $obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('extractItems', 'extractTags', 'extractCategories'))
+			->getMock();
         $obj->expects($this->once())->method('extractItems')->will($this->returnValue(array('posts' => array(), 'pages' => array())));
 		$this->expectOutputString("\nExtracting data from XML file:\n");
 		$obj->parseData();
@@ -143,7 +149,9 @@ class TikiImporter_Blog_Wordpress_Test extends TikiImporter_TestCase
 
 	public function testExtractItems()
 	{
-        $obj = $this->getMock('TikiImporter_Blog_Wordpress', array('extractInfo'));
+        $obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('extractInfo'))
+			->getMock();
         $obj->dom = new DOMDocument;
         $obj->dom->load(dirname(__FILE__) . '/fixtures/wordpress_sample.xml');
         $obj->expects($this->exactly(4))->method('extractInfo')->will($this->returnValue(array()));
@@ -201,7 +209,9 @@ class TikiImporter_Blog_Wordpress_Test extends TikiImporter_TestCase
 
 	public function testExtractInfoPost()
 	{
-		$obj = $this->getMock('TikiImporter_Blog_Wordpress', array('extractComment', 'parseContent', 'identifyInternalLinks'));
+		$obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('extractComment', 'parseContent', 'identifyInternalLinks'))
+			->getMock();
 		$obj->expects($this->exactly(3))->method('extractComment')->will($this->returnValue(true));
 		$obj->expects($this->any())->method('parseContent')->will($this->returnValue('Test'));
 		$obj->expects($this->once())->method('identifyInternalLinks')->will($this->returnValue(true));
@@ -243,7 +253,9 @@ class TikiImporter_Blog_Wordpress_Test extends TikiImporter_TestCase
 
 	public function testExtractInfoPage()
 	{
-		$obj = $this->getMock('TikiImporter_Blog_Wordpress', array('extractComments', 'parseContent', 'identifyInternalLinks'));
+		$obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('extractComment', 'parseContent', 'identifyInternalLinks'))
+			->getMock();
 		$obj->expects($this->exactly(0))->method('extractComment')->will($this->returnValue(true));
 		$obj->expects($this->any())->method('parseContent')->will($this->returnValue('Test'));
 		$obj->expects($this->once())->method('identifyInternalLinks')->will($this->returnValue(true));
@@ -307,7 +319,6 @@ class TikiImporter_Blog_Wordpress_Test extends TikiImporter_TestCase
 
 	public function testExtractCommentShouldReturnCommentArray()
 	{
-        $this->markTestSkipped("As of 2013-09-30, this test is broken. Skipping it for now.");
         $expectedResult = array(
 			'author' => 'rodrigo',
 			'author_email' => 'test@test.com',
@@ -433,7 +444,9 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 	{
 		$filegallib = TikiLib::lib('filegal');
 
-		$filegallib = $this->getMock('FileGalLib', array('insert_file',));
+		$filegallib = $this->getMockBuilder('FileGalLib')
+			->setMethods( array('insert_file',))
+			->getMock();
 		$filegallib->expects($this->exactly(0))->method('insert_file')->will($this->returnValue(1));
 
 		$this->obj->dom = new DOMDocument;
@@ -443,23 +456,17 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 
 	function testCreateFileGallery()
 	{
-		$filegallib = TikiLib::lib('filegal');
-
-		$filegallib = $this->getMock('FileGalLib', array('replace_file_gallery'));
-		$filegallib->expects($this->once())->method('replace_file_gallery')->will($this->returnValue(3));
+		$last_id = TikiDb::get()->getOne('SELECT max(galleryId) FROM tiki_file_galleries');
 
 		$this->obj->blogInfo['title'] = 'Test';
+		$filegalId = $this->obj->createFileGallery();
 
-		$this->assertEquals(3, $this->obj->createFileGallery());
+		$this->assertEquals($last_id + 1, $filegalId);
 	}
 
 	public function testDownloadAttachment()
 	{
-		$filegallib = TikiLib::lib('filegal');
-
-		$filegallib = $this->getMock('FileGalLib', array('insert_file'));
-		$filegallib->expects($this->exactly(3))->method('insert_file')->will($this->returnValue(1));
-
+		$last_id = TikiDb::get()->getOne('SELECT max(fileId) FROM tiki_files');
 		$adapter = new Zend\Http\Client\Adapter\Test();
 
 		$adapter->setResponse(
@@ -473,7 +480,9 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 		$client = new Zend\Http\Client();
 		$client->setAdapter($adapter);
 
-		$obj = $this->getMock('TikiImporter_Blog_Wordpress', array('getHttpClient', 'createFileGallery'));
+		$obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('getHttpClient', 'createFileGallery'))
+			->getMock();
 		$obj->expects($this->once())->method('getHttpClient')->will($this->returnValue($client));
 		$obj->expects($this->once())->method('createFileGallery')->will($this->returnValue(1));
         $obj->dom = new DOMDocument;
@@ -485,7 +494,7 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 
         $expectedResult = array(
         	array(
-        		'fileId' => 1,
+        		'fileId' => $last_id + 1,
         		'oldUrl' => 'http://example.com/files/tadv2.jpg',
         		'sizes' => array(
 					'thumbnail' => array(
@@ -501,7 +510,7 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 				),
         	),
         	array(
-        		'fileId' => 1,
+        		'fileId' => $last_id + 2,
         		'oldUrl' => 'http://example.com/files/1881232-hostelaria-las-torres-0.jpg',
         		'sizes' => array(
 					'thumbnail' => array(
@@ -517,7 +526,7 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 				),
         	),
         	array(
-        		'fileId' => 1,
+        		'fileId' => $last_id + 3,
         		'oldUrl' => 'http://example.com/files/1881259-caminhando-no-gelo-no-vale-do-sil-ncio-0.jpg',
         		'sizes' => array(
 					'thumbnail' => array(
@@ -541,7 +550,9 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 	{
 		$filegallib = TikiLib::lib('filegal');
 
-		$filegallib = $this->getMock('FileGalLib', array('insert_file'));
+		$filegallib = $this->getMockBuilder('FileGalLib')
+			->setMethods( array('insert_file'))
+			->getMock();
 		$filegallib->expects($this->exactly(0))->method('insert_file');
 
 		$adapter = new Zend\Http\Client\Adapter\Test();
@@ -550,7 +561,9 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 		$client = new Zend\Http\Client();
 		$client->setAdapter($adapter);
 
-		$obj = $this->getMock('TikiImporter_Blog_Wordpress', array('getHttpClient', 'createFileGallery'));
+		$obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('getHttpClient', 'createFileGallery'))
+			->getMock();
 		$obj->expects($this->once())->method('createFileGallery')->will($this->returnValue(1));
 		$obj->expects($this->once())->method('getHttpClient')->will($this->returnValue($client));
         $obj->dom = new DOMDocument;
@@ -565,7 +578,9 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 	{
 		$filegallib = TikiLib::lib('filegal');
 
-		$filegallib = $this->getMock('FileGalLib', array('insert_file'));
+		$filegallib = $this->getMockBuilder('FileGalLib')
+			->setMethods( array('insert_file'))
+			->getMock();
 		$filegallib->expects($this->exactly(0))->method('insert_file');
 		$adapter = new Zend\Http\Client\Adapter\Test();
 
@@ -580,7 +595,9 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 		$client = new Zend\Http\Client();
 		$client->setAdapter($adapter);
 
-		$obj = $this->getMock('TikiImporter_Blog_Wordpress', array('getHttpClient', 'createFileGallery'));
+		$obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('getHttpClient', 'createFileGallery'))
+			->getMock();
 		$obj->expects($this->once())->method('createFileGallery')->will($this->returnValue(1));
 		$obj->expects($this->once())->method('getHttpClient')->will($this->returnValue($client));
         $obj->dom = new DOMDocument;
@@ -699,7 +716,9 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 
 	public function testInsertItem_shouldCallStoreNewLink()
 	{
-		$obj = $this->getMock('TikiImporter_Blog_Wordpress', array('storeNewLink', 'insertPost'));
+		$obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('storeNewLink', 'insertPost'))
+			->getMock();
 		$obj->expects($this->once())->method('storeNewLink');
 		$obj->expects($this->once())->method('insertPost')->will($this->onConsecutiveCalls(false));
 
@@ -774,7 +793,9 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 	{
 		$_POST['replaceInternalLinks'] = 'on';
 
-        $obj = $this->getMock('TikiImporter_Blog_Wordpress', array('insertItem', 'createBlog', 'replaceInternalLinks'));
+        $obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('insertItem', 'createBlog', 'replaceInternalLinks'))
+			->getMock();
         $obj->expects($this->once())->method('createBlog');
         $obj->expects($this->exactly(2))->method('insertItem')->will($this->onConsecutiveCalls(2, 'Page name'));
 
@@ -805,7 +826,9 @@ Estou a disposição para te ajudar com mais informações. Abraços, Rodrigo.',
 
 	public function testInsertData_shouldNotCallReplaceInternalLinks()
 	{
-		$obj = $this->getMock('TikiImporter_Blog_Wordpress', array('insertItem', 'createBlog', 'replaceInternalLinks'));
+		$obj = $this->getMockBuilder('TikiImporter_Blog_Wordpress')
+			->setMethods( array('insertItem', 'createBlog', 'replaceInternalLinks'))
+			->getMock();
         $obj->expects($this->once())->method('createBlog');
         $obj->expects($this->exactly(2))->method('insertItem')->will($this->onConsecutiveCalls(2, 'Page name'));
         $obj->expects($this->exactly(0))->method('replaceInternalLinks');

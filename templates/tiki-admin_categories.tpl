@@ -6,10 +6,6 @@
 	{button href="tiki-edit_categories.php" _type="link" _text="{tr}Organize Objects{/tr}" _icon_name="structure" _title="{tr}Organize Objects{/tr}"}
 </div>
 
-{if !empty($errors)}
-	<div class="alert alert-warning">{section name=ix loop=$errors}{$errors[ix]}{/section}</div>
-{/if}
-
 <div class="tree breadcrumb" id="top">
 	<div class="treetitle">
 		<a href="tiki-admin_categories.php?parentId=0" class="categpath">{tr}Top{/tr}</a>
@@ -55,7 +51,7 @@
 			<div class="form-group">
 				<label class="col-sm-3 control-label" for="description">{tr}Description{/tr}</label>
 				<div class="col-sm-9">
-					<textarea rows="2" class="form-control" name="description" id="description">{$description|escape}</textarea>
+					<textarea rows="2" class="form-control" name="description" id="description" maxlength=500>{$description|escape}</textarea>
 				</div>
 			</div>
 			{if $tiki_p_admin_categories == 'y'}
@@ -499,7 +495,7 @@ $("#add_object_type").change(function () {
 										{/section}
 									</select>
 									<span class="input-group-btn">
-										<input type="submit"  class="btn btn-default" name="addtracker" value="{tr}Add{/tr}">
+										<input type="submit" class="btn btn-default" name="addtracker" value="{tr}Add{/tr}">
 									</span>
 								</div>
 							</div>

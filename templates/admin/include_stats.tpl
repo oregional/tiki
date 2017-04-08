@@ -3,18 +3,16 @@
 {/remarksbox}
 
 <form class="admin form-horizontal" action="tiki-admin.php?page=stats" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 	<div class="row">
 		<div class="form-group col-lg-12 clearfix">
-			<div class="pull-right">
-				<input type="submit" class="btn btn-primary btn-sm" name="statistics" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}"/>
-			</div>
+			{include file='admin/include_apply_top.tpl'}
 		</div>
 	</div>
 
 	{tabset}
 		{tab name="{tr}Tiki Statistics{/tr}"}
-			<h2>{tr}Tiki Statistics{/tr}</h2>
+			<br>
 			<fieldset>
 				{preference name=feature_stats}
 				{preference name=feature_referer_stats}
@@ -23,7 +21,7 @@
 		{/tab}
 
 		{tab name="{tr}Google Analytics{/tr}"}
-			<h2>{tr}Google Analytics{/tr}</h2>
+			<br>
 			<fieldset>
 				{preference name=site_google_analytics_account}
 				{preference name=site_google_credentials}
@@ -31,19 +29,13 @@
 		{/tab}
 
 		{tab name="{tr}Piwik Analytics{/tr}"}
-			<h2>{tr}Piwik Analytics{/tr}</h2>
+			<br>
 			<fieldset>
 				{preference name=site_piwik_analytics_server_url}
 				{preference name=site_piwik_site_id}
+				{preference name=site_piwik_code syntax="javascript"}
 			</fieldset>
 		{/tab}
 	{/tabset}
-
-	<div class="row">
-		<div class="form-group col-lg-12 clearfix">
-			<div class="text-center">
-				<input type="submit" class="btn btn-primary btn-sm" name="statistics" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}"/>
-			</div>
-		</div>
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

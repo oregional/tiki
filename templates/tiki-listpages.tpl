@@ -4,7 +4,7 @@
 {tabset name='tabs_wikipages'}
 	{tab name="{tr}List Wiki Pages{/tr}"}
 		<h2>{tr}List Wiki Pages{/tr}</h2>
-		{if !$tsOn}
+		{if !$ts.enabled}
 			<div class="clearfix">
 				{include autocomplete='pagename' file='find.tpl' find_show_languages='y' find_show_languages_excluded='y' find_show_categories_multi='y' find_show_num_rows='y' find_in="<ul><li>{tr}Page name{/tr}</li></ul>" }
 			</div>
@@ -17,16 +17,9 @@
 			<input type="hidden" name="find" value="{$find|escape}">
 			<input type="hidden" name="maxRecords" value="{$maxRecords|escape}">
 		</form>
-		{if isset($error) and $error}
-			<div class="alert alert-warning">
-				{$error}
-			</div>
-		{/if}
-
 		{if isset($mapview) and $mapview}
 			{wikiplugin _name="map" scope=".listpagesmap .geolocated" width="400" height="400"}{/wikiplugin}
 		{/if}
-
 		<div id="tiki-listpages-content">
 			{if $aliases}
 				<div class="aliases">
@@ -65,7 +58,7 @@
 							<input class="btn btn-primary" type="submit" name="quickedit" value="{tr}Create Page{/tr}">
 						</div>
 					</div>
-					
+
 				</form>
 			</div>
 		{/tab}

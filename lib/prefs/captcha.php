@@ -7,27 +7,29 @@
 
 function prefs_captcha_list()
 {
-    return array (
+	return array (
 		'captcha_wordLen' => array(
 			'name' => tra('Word length of the CAPTCHA image'),
-            'description' => tra('Word length of the CAPTCHA image.').' '.tra('Default:'). '6',
+			'description' => tra('Word length of the CAPTCHA image.').' '.tra('Default:'). '6',
 			'type' => 'text',
+			'units' => tra('words'),
 			'default' => 6,
 		),
 		'captcha_width' => array(
-			'name' => tra('Width of the CAPTCHA image in pixels'),
-            'description' => tra('Width of the CAPTCHA image in pixels.').' '.tra('Default:'). '180',
+			'name' => tra('Width of the CAPTCHA image'),
+			'description' => tra('Width of the CAPTCHA image in pixels.').' '.tra('Default:'). '180',
 			'type' => 'text',
+			'units' => tra('pixels'),
 			'default' => 180,
 		),
 		'captcha_noise' => array(
 			'name' => tra('Level of noise of the CAPTCHA image'),
-            'description' => tra('Level of noise of the CAPTCHA image.').' '.tra('Choose a smaller number for less noise and easier reading.').' '.tra('Default:'). '100',
-            'type' => 'text',
-            'default' => 100,
+			'description' => tra('Level of noise of the CAPTCHA image.').' '.tra('Choose a smaller number for less noise and easier reading.').' '.tra('Default:'). '100',
+			'type' => 'text',
+			'default' => 100,
 		),
 		'captcha_questions_active' => array(
-			'name' => tra('CAPTCHA Questions'),
+			'name' => tra('CAPTCHA questions'),
 			'description' => tra('Requires anonymous visitors to enter the answer to a question .'),
 			'type' => 'flag',
 			'dependencies' => array(
@@ -36,7 +38,7 @@ function prefs_captcha_list()
 			'default' => 'n',
 		),
 		'captcha_questions' => array(
-			'name' => tra('CAPTCHA Questions and answers'),
+			'name' => tra('CAPTCHA questions and answers'),
 			'description' => tra('Add some simple questions that only humans should be able to answer, in the format: "Question?: Answer" with one per line'),
 			'hint' => tra('One question per line with a colon separating the question and answer'),
 			'type' => 'textarea',

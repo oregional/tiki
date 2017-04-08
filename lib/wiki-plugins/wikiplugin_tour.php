@@ -114,10 +114,22 @@ function wikiplugin_tour_info()
 			'show_once' => array(
 				'name' => tra('Only Show Once'),
 				'required' => false,
-				'description' => tra('Set to y to only show once. tour_id should also be set if there are multiple tours.'),
+				'description' => tra('Show automatically only once. tour_id should also be set if there are multiple tours.'),	
 				'since' => '15.0',
 				'filter' => 'alpha',
 				'default' => 'n',
+				'options' => array(
+					array('text' => '', 'value' => ''),
+					array('text' => tra('Yes'), 'value' => 'y'),
+					array('text' => tra('No'), 'value' => 'n'),
+				),
+			),
+			'show_until_dismiss' => array(
+				'name' => tra('Show Until Dismissed'),
+				'description' => tra('Show automatically only until dismissed. tour_id should also be set if there are multiple tours.'),
+				'since' => '16.0',
+				'filter' => 'alpha',
+				'default' => 'y',
 				'options' => array(
 					array('text' => '', 'value' => ''),
 					array('text' => tra('Yes'), 'value' => 'y'),
@@ -154,13 +166,14 @@ function wikiplugin_tour($data, $params)
 	$params = array_merge($defaults, $params);
 
 	$cookie_id = 'tour'.md5($params['tour_id']);
+	$cookie_expiry = time() + 31536000;
 	if (getCookie($cookie_id, 'tours') == 'y') {
 		$dontStart = true;
 	} else {
 		$dontStart = false;
 
 		if ($params['show_once'] === 'y') {
-			setCookieSection($cookie_id, 'y', 'tours');
+			setCookieSection($cookie_id, 'y', 'tours', $cookie_expiry);
 		}
 	}
 
@@ -173,12 +186,20 @@ function wikiplugin_tour($data, $params)
 	}
 
 	$headerlib = TikiLib::lib('header');
-	$headerlib->add_jsfile('vendor/sorich87/bootstrap-tour/build/js/bootstrap-tour.js')
-			->add_cssfile('vendor/sorich87/bootstrap-tour/build/css/bootstrap-tour.css');
+	$headerlib->add_jsfile('vendor_bundled/vendor/sorich87/bootstrap-tour/build/js/bootstrap-tour.js')
+			->add_cssfile('vendor_bundled/vendor/sorich87/bootstrap-tour/build/css/bootstrap-tour.css');
 
 	// non changing init js in ransk 11 and 13 (the tour definition goes in 12)
 	$headerlib->add_jq_onready('var tour;
 ', 11);
+
+	if ($params['show_until_dismiss'] != 'n') {
+		$headerlib->add_jq_onready('
+$(".tour-tour button[data-role=\'end\']").on("click",function() {
+	setCookieBrowser("'.$cookie_id.'", "y", "tours", new Date('.$cookie_expiry.'000));
+});
+		', 12);
+	}
 
 	if ($wp_tour['start'] === 'y' && ! $dontStart) {
 		$headerlib->add_jq_onready('
@@ -219,6 +240,8 @@ if (tour) {
 	$params['content'] = TikiLib::lib('parser')->parse_data($data);
 
 	$wp_tour['steps'][] = array_filter($params);
+
+	$wp_tour['template'] = TikiLib::lib('smarty')->fetch('wiki-plugins/wikiplugin_tour_template.tpl');
 
 	if ($params['next'] == -1 || $params['path']) {
 		$js = '// Instance the tour

@@ -784,13 +784,13 @@ class EditLib
 
 	function parseToWysiwyg( $inData, $fromWiki = false, $isHtml = false, $options = array() )
 	{
-		global $tikilib, $tikiroot, $prefs;
+		global $tikiroot;
 		// Parsing page data for wysiwyg editor
 		$inData = $this->partialParseWysiwygToWiki($inData);	// remove any wysiwyg plugins so they don't get double parsed
 		$parsed = preg_replace('/(!!*)[\+\-]/m', '$1', $inData);		// remove show/hide headings
 		$parsed = preg_replace('/&#039;/', '\'', $parsed);			// catch single quotes at html entities
 
-		$parsed = $tikilib->parse_data(
+		$parsed = TikiLib::lib('parser')->parse_data(
 			$parsed,
 			array_merge( array(
 				'absolute_links'=>true,
@@ -1200,7 +1200,7 @@ class EditLib
 		include ('lib/htmlparser/htmlparser.inc');
 
 		// Read compiled (serialized) grammar
-		$grammarfile = 'lib/htmlparser/htmlgrammar.cmp';
+		$grammarfile = TIKI_PATH . '/lib/htmlparser/htmlgrammar.cmp';
 		if (!$fp = @fopen($grammarfile, 'r')) {
 			$smarty->assign('msg', tra("Can't parse HTML data - no grammar file"));
 			$smarty->display("error.tpl");

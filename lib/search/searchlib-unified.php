@@ -60,7 +60,6 @@ class UnifiedSearchLib
 
 		$queuelib = TikiLib::lib('queue');
 		$toProcess = $queuelib->pull(self::INCREMENT_QUEUE, $count);
-		$errlib = TikiLib::lib('errorreport');
 		$access = TikiLib::lib('access');
 		$access->preventRedirect(true);
 
@@ -98,9 +97,9 @@ class UnifiedSearchLib
 					$queuelib->push(self::INCREMENT_QUEUE, $message);
 				}
 
-				$errlib->report(
+				Feedback::error(
 					tr('The search index could not be updated. The site is misconfigured. Contact an administrator.') .
-					'<br />' . $e->getMessage()
+					'<br />' . $e->getMessage(), 'session'
 				);
 			}
 
@@ -159,8 +158,6 @@ class UnifiedSearchLib
     function rebuild($loggit = 0)
 	{
 		global $prefs;
-		$errlib = TikiLib::lib('errorreport');
-
 		switch ($prefs['unified_engine']) {
 		case 'lucene':
 			$index_location = $this->getIndexLocation('data');
@@ -168,7 +165,7 @@ class UnifiedSearchLib
 			$swapName = $this->getIndexLocation('data-old');
 
 			if ($this->rebuildInProgress()) {
-				$errlib->report(tr('Rebuild in progress.'));
+				Feedback::error(tr('Rebuild in progress.'), 'session');
 				return false;
 			}
 
@@ -242,10 +239,7 @@ class UnifiedSearchLib
 
 			$tikilib->set_preference('unified_identifier_fields', $index->getIdentifierFields());
 		} catch (Exception $e) {
-			$errlib->report(
-				tr('The search index could not be rebuilt.') .
-				'<br />' . $e->getMessage()
-			);
+			Feedback::error(tr('The search index could not be rebuilt.') . '<br />' . $e->getMessage(), 'session');
 		}
 
 		// Force destruction to clear locks
@@ -262,12 +256,14 @@ class UnifiedSearchLib
 			// Current to -old
 			if (file_exists($index_location)) {
 				if (! rename($index_location, $swapName)) {
-					$errlib->report(tr('The active index could not be removed, probably due to a file permission issue.'));
+					Feedback::error(tr('The active index could not be removed, probably due to a file permission issue.'), 
+						'session');
 				}
 			}
 			// -new to current
 			if (! rename($tempName, $index_location)) {
-				$errlib->report(tr('The new index could not be made active, probably due to a file permission issue.'));
+				Feedback::error(tr('The new index could not be made active, probably due to a file permission issue.'), 
+					'session');
 			}
 
 			// Destroy old
@@ -290,7 +286,7 @@ class UnifiedSearchLib
 
 		if ($oldIndex) {
 			if (! $oldIndex->destroy()) {
-				$errlib->report(tr('Failed to delete the old index.'));
+				Feedback::error(tr('Failed to delete the old index.'), 'session');
 			}
 		}
 
@@ -388,14 +384,18 @@ class UnifiedSearchLib
 
 		if ($prefs['feature_file_galleries'] == 'y') {
 			$types['file'] = tra('file');
+			$types['file gallery'] = tra('file gallery');
 		}
 
 		if ($prefs['feature_forums'] == 'y') {
 			$types['forum post'] = tra('forum post');
+			$types['forum'] = tra('forum');
 		}
 
 		if ($prefs['feature_trackers'] == 'y') {
 			$types['trackeritem'] = tra('tracker item');
+			$types['tracker'] = tra('tracker');
+			$types['trackerfield'] = tra('tracker field');
 		}
 
 		if ($prefs['feature_sheet'] == 'y') {
@@ -409,6 +409,18 @@ class UnifiedSearchLib
 			|| $prefs['feature_trackers'] == 'y'
 		) {
 			$types['comment'] = tra('comment');
+		}
+
+		if ($prefs['feature_categories'] === 'y') {
+			$types['category'] = tra('category');
+		}
+
+		if ($prefs['feature_webservices'] === 'y') {
+			$types['webservice'] = tra('webservice');
+		}
+
+		if ($prefs['activity_basic_events'] === 'y' || $prefs['activity_custom_events'] === 'y') {
+			$types['activity'] = tra('activity');
 		}
 
 		$types['user'] = tra('user');
@@ -498,8 +510,14 @@ class UnifiedSearchLib
 		return $indexer->getDocuments($type, $object);
 	}
 
+	public function getAvailableFields()
+	{
+		$indexer = $this->buildIndexer($this->getIndex());
+		return $indexer->getAvailableFields();
+	}
+
     /**
-     * @param $aggregator
+     * @param Search_Indexer $aggregator
      * @param string $mode
      */
     private function addSources($aggregator, $mode = 'indexing')
@@ -583,6 +601,10 @@ class UnifiedSearchLib
 			$aggregator->addContentSource('goalevent', new Search_ContentSource_GoalEventSource);
 		}
 
+		if ($prefs['feature_webservices'] === 'y') {
+			$aggregator->addContentSource('webservice', new Search_ContentSource_WebserviceSource());
+		}
+
 		// Global Sources
 		if ($prefs['feature_categories'] == 'y') {
 			$aggregator->addGlobalSource(new Search_GlobalSource_CategorySource);
@@ -661,11 +683,11 @@ class UnifiedSearchLib
 		}
 
 		// Do nothing, provide a fake index.
-		$errlib = TikiLib::lib('errorreport');
 		if($tiki_p_admin != 'y') {
-			$errlib->report(tr('Contact the site administrator. The index needs rebuilding.'));
+			Feedback::error(tr('Contact the site administrator. The index needs rebuilding.'), 'session');
 		} else {
-			$errlib->report('<a title="' . tr("Rebuild search index") .'" href="tiki-admin.php?page=search&rebuild=now">'. tr("Click here to rebuild index") . '</a>');
+			Feedback::error('<a title="' . tr("Rebuild search index") .'" href="tiki-admin.php?page=search&rebuild=now">'
+				. tr("Click here to rebuild index") . '</a>', 'session');
 		}
 
 
@@ -860,7 +882,7 @@ class UnifiedSearchLib
 		$query->setIdentifierFields($prefs['unified_identifier_fields']);
 
 		$categlib = TikiLib::lib('categ');
-		if ($applyJail && $jail = $categlib->get_jail()) {
+		if ($applyJail && $jail = $categlib->get_jail(false)) {
 			$query->filterCategory(implode(' or ', $jail), true);
 		}
 	}
@@ -888,6 +910,10 @@ class UnifiedSearchLib
 		if (! $query) {
 			$query = new Search_Query;
 			$this->initQuery($query);
+		}
+
+		if (!is_array($filter)) {
+			throw new Exception('Invalid filter type provided in query. It must be an array.');
 		}
 
 		if (isset($filter['type']) && $filter['type']) {
@@ -949,6 +975,14 @@ class UnifiedSearchLib
 			unset($filter['not_prefix']);
 		}
 
+		if (isset($filter['distance']) && is_array($filter['distance']) &&
+					isset($filter['distance']['distance'], $filter['distance']['lat'], $filter['distance']['lon'])) {
+
+			$query->filterDistance($filter['distance']['distance'], $filter['distance']['lat'], $filter['distance']['lon']);
+
+			unset($filter['distance']);
+		}
+
 		unset($filter['type']);
 		unset($filter['categories']);
 		unset($filter['deep']);
@@ -1005,6 +1039,134 @@ class UnifiedSearchLib
 				return $entry;
 			}
 		}, $document);
+	}
+
+	function isOutdated()
+	{
+
+		global $prefs;
+
+		// If incremental update is enabled we cannot rely on the unified_last_rebuild date.
+		if ($prefs['feature_search'] == 'n' || $prefs['unified_incremental_update'] == 'y') {
+			return false;
+		}
+
+		$tikilib = TikiLib::lib('tiki');
+
+		$last_rebuild = $tikilib->get_preference('unified_last_rebuild');
+		$threshold = strtotime('+ '. $prefs['search_index_outdated'] .' days', $last_rebuild);
+
+		$types = $this->getSupportedTypes();
+
+		// Content Sources
+		if (isset ($types['wiki page'])) {
+
+			$last_page = $tikilib->list_pages(0, 1, 'lastModif_desc', '', '', true, false, false, false);
+			if (!empty($last_page['data'][0]['lastModif']) && $last_page['data'][0]['lastModif'] > $threshold) {
+				return true;
+			}
+		}
+
+		if (isset ($types['forum post'])) {
+			$commentslib = TikiLib::lib('comments');
+
+			$last_forum_post = $commentslib->get_all_comments('forum', 0, -1, 'commentDate_desc');
+			if (!empty($last_forum_post['data'][0]['commentDate']) && $last_forum_post['data'][0]['commentDate'] > $threshold) {
+				return true;
+			}
+
+			$last_forum = $commentslib->list_forums(0, 1, 'created_desc');
+			if (!empty($last_forum['data'][0]['created']) && $last_forum['data'][0]['created'] > $threshold) {
+				return true;
+			}
+		}
+
+		if (isset ($types['blog post'])) {
+
+			$last_blog_post = Tikilib::lib('blog')->list_blog_posts(0, false, 0, 1, 'lastModif_desc');
+			if (!empty($last_blog_post['data'][0]['lastModif']) && $last_blog_post['data'][0]['lastModif'] > $threshold) {
+				return true;
+			}
+		}
+
+		if (isset ($types['article'])) {
+
+			$last_article = Tikilib::lib('art')->list_articles(0, 1, 'lastModif_desc');
+			if (!empty($last_article['data'][0]['lastModif']) && $last_article['data'][0]['lastModif'] > $threshold) {
+				return true;
+			}
+		}
+
+		if (isset ($types['file'])) {
+			// todo: files are indexed automatically, probably nothing to do here.
+		}
+
+		if (isset ($types['trackeritem'])) {
+			$trackerlib = TikiLib::lib('trk');
+
+			$last_tracker_item = $trackerlib->list_tracker_items(-1, 0, 1, 'lastModif_desc', null);
+			if (!empty($last_tracker_item['data'][0]['lastModif']) && $last_tracker_item['data'][0]['lastModif'] > $threshold) {
+				return true;
+			}
+
+			$last_tracker = $trackerlib->list_trackers(0, 1, 'lastModif_desc');
+			if (!empty($last_tracker['data'][0]['lastModif']) && $last_tracker['data'][0]['lastModif'] > $threshold) {
+				return true;
+			}
+
+			// todo: Missing tracker_fields
+		}
+
+		if (isset ($types['sheet'])) {
+			$sheetlib = TikiLib::lib('sheet');
+
+			$last_sheet = $sheetlib->list_sheets(0, 1, 'begin_desc');
+			if (!empty($last_sheet['data'][0]['begin']) && $last_sheet['data'][0]['begin'] > $threshold) {
+				return true;
+			}
+		}
+
+		if (isset($types['comment'])) {
+
+			$commentTypes = array();
+			if ($prefs['feature_wiki_comments'] == 'y') {
+				$commentTypes[] = 'wiki page';
+			}
+			if ($prefs['feature_article_comments'] == 'y') {
+				$commentTypes[] = 'article';
+			}
+			if ($prefs['feature_poll_comments'] == 'y') {
+				$commentTypes[] = 'poll';
+			}
+			if ($prefs['feature_file_galleries_comments'] == 'y') {
+				$commentTypes[] = 'file gallery';
+			}
+			if ($prefs['feature_trackers'] == 'y') {
+				$commentTypes[] = 'trackeritem';
+			}
+
+			$commentslib = TikiLib::lib('comments');
+
+			$last_comment = $commentslib->get_all_comments($commentTypes, 0, 1, 'commentDate_desc');
+			if (!empty($last_comment['data'][0]['commentDate']) && $last_comment['data'][0]['commentDate'] > $threshold) {
+				return true;
+			}
+
+		}
+
+		if (isset($types['user'])) {
+			$userlib = TikiLib::lib('user');
+
+			$last_user = $userlib->get_users(0, 1, 'created_desc');
+			if (!empty($last_user['data'][0]['created']) && $last_user['data'][0]['created'] > $threshold) {
+				return true;
+			}
+		}
+
+		if (isset($types['group'])) {
+			// todo: unable to track groups by dates
+		}
+
 	}
 }
 

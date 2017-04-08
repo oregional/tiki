@@ -23,9 +23,6 @@ $inputConfiguration = array(
 		'returnto' => 'pagename',
 		'watch' => 'digits',
 	) ),
-	array( 'staticKeyUnset' => array(
-        ($prefs['feature_wikilingo'] == 'n' ? 'edit' : ''),
-	) ),
 );
 
 $section = "wiki page";
@@ -182,9 +179,6 @@ $smarty->assign('page', $page);
 $info = $tikilib->get_page_info($page);
 $smarty->assign('quickedit', isset($_GET['quickedit']));
 
-// String use to lock the page currently edit.
-$editLockPageId = 'edit_lock_' . (isset($info['page_id']) ? (int) $info['page_id'] : 0);
-
 // 2010-01-26: Keep in active until translation refactoring is done.
  if ($editlib->isNewTranslationMode() || $editlib->isUpdateTranslationMode()) {
  	$editlib->prepareTranslationData();
@@ -274,8 +268,9 @@ function compare_import_versions($a1, $a2)
 	return $a1["version"] - $a2["version"];
 }
 
+$serviceLib = TikiLib::lib('service');
 if (isset($_REQUEST['cancel_edit'])) {
-	$tikilib->semaphore_unset($page, $_SESSION[$editLockPageId]);
+	$serviceLib->internal('semaphore', 'unset', ['object_id' => $page]);
 	if (!empty($_REQUEST['returnto'])) {
 		if (isURL($_REQUEST['returnto'])) {
 			$url = $_REQUEST['returnto'];
@@ -346,17 +341,18 @@ if ($prefs['feature_warn_on_edit'] === 'y') {
 	$u = $user? $user: 'anonymous';
 	if (!empty($page) && ($page !== 'sandbox' || $page === 'sandbox' && $tiki_p_admin === 'y')) {
 		if (!isset($_REQUEST['save'])) {
-			if ($tikilib->semaphore_is_set($page, $prefs['warn_on_edit_time'] * 60) && $tikilib->get_semaphore_user($page) !== $u) {
+			if ($serviceLib->internal('semaphore', 'is_set', ['object_id' => $page]) &&
+				$serviceLib->internal('semaphore', 'get_user', ['object_id' => $page]) !== $u
+			) {
+
 				$editpageconflict = 'y';
 			} elseif ($tiki_p_edit === 'y') {
-				$_SESSION[$editLockPageId] = $tikilib->semaphore_set($page);
+				$serviceLib->internal('semaphore', 'set', ['object_id' => $page]);
 			}
-			$semUser = $tikilib->get_semaphore_user($page);
+			$semUser = $serviceLib->internal('semaphore', 'get_user', ['object_id' => $page]);
 			$beingedited = 'y';
 		} else {
-			if (!empty($_SESSION[$editLockPageId])) {
-				$tikilib->semaphore_unset($page, $_SESSION[$editLockPageId]);
-			}
+			$serviceLib->internal('semaphore', 'unset', ['object_id' => $page]);
 		}
 	}
 	if ($editpageconflict === 'y' && !isset($_REQUEST["conflictoverride"]) ) {
@@ -634,6 +630,7 @@ $smarty->assign('comments_show', 'n');
 $smarty->assign_by_ref('data', $info);
 $smarty->assign('footnote', '');
 $smarty->assign('has_footnote', 'n');
+$parserlib = TikiLib::lib('parser');
 if ($prefs['feature_wiki_footnotes'] === 'y') {
 	if ($user) {
 		$x = $wikilib->get_footnote($user, $page);
@@ -641,10 +638,10 @@ if ($prefs['feature_wiki_footnotes'] === 'y') {
 		$smarty->assign('footnote', $footnote);
 		if ($footnote)
 			$smarty->assign('has_footnote', 'y');
-		$smarty->assign('parsed_footnote', $tikilib->parse_data($footnote));
+		$smarty->assign('parsed_footnote', $parserlib->parse_data($footnote));
 		if (isset($_REQUEST['footnote'])) {
 			check_ticket('edit-page');
-			$smarty->assign('parsed_footnote', $tikilib->parse_data($_REQUEST['footnote']));
+			$smarty->assign('parsed_footnote', $parserlib->parse_data($_REQUEST['footnote']));
 			$smarty->assign('footnote', $_REQUEST['footnote']);
 			$smarty->assign('has_footnote', 'y');
 			if (empty($_REQUEST['footnote'])) {
@@ -893,13 +890,9 @@ if ( isset( $_REQUEST['translation_critical'] ) ) {
 	$smarty->assign('translation_critical', 0);
 }
 
-//override the feature if info tells us not to use it
-$useWikiLingo = ($prefs['feature_wikilingo'] === 'y' && isset($info['outputType']) && $info['outputType'] === 'wikiLingo');
-$smarty->assign('useWikiLingo', $useWikiLingo);
-
 // Parse (or not) $edit_data into $parsed
 // Handles switching editor modes
-if ( !isset($_REQUEST['preview']) && !isset($_REQUEST['save']) && !$useWikiLingo) {
+if ( !isset($_REQUEST['preview']) && !isset($_REQUEST['save'])) {
 	if (isset($_REQUEST['mode_normal']) && $_REQUEST['mode_normal'] ==='y') {
 		// Parsing page data as first time seeing html page in normal editor
 		$smarty->assign('msg', "Parsing html to wiki");
@@ -938,7 +931,7 @@ if ( !isset($_REQUEST['preview']) && !isset($_REQUEST['save']) && !$useWikiLingo
 				unset($_REQUEST['save']);	// don't save an ajax error
 			}
 		} else {
-		 	$parsed = $tikilib->parse_data(
+		 	$parsed = $parserlib->parse_data(
 				$edit_data,
 				array(
 					'absolute_links'=>true,
@@ -960,14 +953,13 @@ $smarty->assign('pagedata', $parsed);
 
 // apply the optional post edit filters before preview
 if (isset($_REQUEST["preview"])) {
-	$parserlib = TikiLib::lib('parser');
 	$parsed = $parserlib->apply_postedit_handlers($parsed);
 
 	if ($_SESSION['wysiwyg'] === 'y' && $prefs['wysiwyg_wiki_parsed'] === 'y') {
 		$parsed = $editlib->partialParseWysiwygToWiki($parsed);
-		$parsed = $tikilib->parse_data($parsed, array('absolute_links'=>true, 'noheaderinc'=>true, 'suppress_icons' => true, 'preview_mode'=>true, 'is_html' => $is_html));
+		$parsed = $parserlib->parse_data($parsed, array('absolute_links'=>true, 'noheaderinc'=>true, 'suppress_icons' => true, 'preview_mode'=>true, 'is_html' => $is_html));
 	} else {
-		$parsed = $tikilib->parse_data($parsed, array('is_html' => $is_html, 'preview_mode'=>true));
+		$parsed = $parserlib->parse_data($parsed, array('is_html' => $is_html, 'preview_mode'=>true));
 	}
 	// If we are in preview mode then preview it!
 	$smarty->assign('preview', 1);
@@ -1093,7 +1085,7 @@ if (
 	// Parse $edit and eliminate image references to external URIs (make them internal)
 	$edit = $imagegallib->capture_images($edit);
 	// apply the optional page edit filters before data storage
-	$parserlib = TikiLib::lib('parser');
+	$parserlib = $parserlib;
 	$edit = $parserlib->apply_postedit_handlers($edit);
 
 	// add permisions here otherwise return error!
@@ -1358,11 +1350,10 @@ if (
 			$url .= (strpos($url, '?') === false ? '?' : '&') . 'latest=1';
 		}
 	}
-
-	$_SESSION['saved_msg'] = $_REQUEST["page"];
+	Feedback::success(sprintf(tra('Page %s saved (version %d).'), $_REQUEST["page"], $info['version']), 'session');
 
 	if (!empty($_REQUEST['hdr'])) {
-		$tmp = $tikilib->parse_data($edit);			// fills $anch[] so page refreshes at the section being edited
+		$tmp = $parserlib->parse_data($edit);			// fills $anch[] so page refreshes at the section being edited
 		$url .= "#".$anch[$_REQUEST['hdr']-1]['id'];
 	}
 
@@ -1421,7 +1412,12 @@ if ($prefs['feature_multilingual'] === 'y') {
 
 	if ( $editlib->isTranslationMode() ) {
 		$histlib = TikiLib::lib('hist');
-		histlib_helper_setup_diff($editlib->sourcePageName, $editlib->oldSourceVersion, $editlib->newSourceVersion);
+		histlib_helper_setup_diff(
+			$editlib->sourcePageName,
+			$editlib->oldSourceVersion,
+			$editlib->newSourceVersion,
+			$_REQUEST['diff_style']
+		);
 		$smarty->assign('diff_oldver', (int) $editlib->oldSourceVersion);
 		$smarty->assign('diff_newver', (int) $editlib->newSourceVersion);
 		$smarty->assign('update_translation', 'y');

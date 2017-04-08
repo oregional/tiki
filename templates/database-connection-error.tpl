@@ -3,8 +3,8 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>{tr}System error.{/tr}</title>
-	<link rel="stylesheet" href="vendor/twitter/bootstrap/dist/css/bootstrap.css" type="text/css" />
-	<link rel="stylesheet" href="vendor/fortawesome/font-awesome/css/font-awesome.min.css" type="text/css" />
+	<link rel="stylesheet" href="vendor_bundled/vendor/twitter/bootstrap/dist/css/bootstrap.css" type="text/css" />
+	<link rel="stylesheet" href="vendor_bundled/vendor/fortawesome/font-awesome/css/font-awesome.min.css" type="text/css" />
 
 	<style type="text/css" media="screen">
 		html {ldelim}
@@ -73,7 +73,7 @@
 						<ol class="fancylist">
 							<li><p>Is your database up and running?</p></li>
 							<li><p>Is your database corrupt? Please see <a target="_blank" href="http://doc.tiki.org/Repair+Database">how to repair your database</a></p></li>
-							<li><p>Are your database credentials accurate? (username, database name, etc in db/local.php)</p></li>
+							<li><p>Are your database settings accurate? (username, schema name, etc in db/local.php)</p></li>
 							{if $where neq 'connection'}
 								<li><p>Did you complete the <a href="tiki-install.php">Tiki Installer?</a></p></li>
 							{/if}
@@ -85,7 +85,7 @@
 						<p>Things to check:</p>
 						<ol class="fancylist">
 							<li><p>Is your database up and running?</p></li>
-							<li><p>Are your database credentials accurate? (username, database name, etc in db/local.php)</p></li>
+							<li><p>Are your database settings accurate? (username, schema name, etc in db/local.php)</p></li>
 						</ol>
 					</div>
 				{else}
@@ -95,7 +95,7 @@
 						<ol class="fancylist">
 							<li><p>Did you complete the <a href="tiki-install.php">Tiki Installer?</a></p></li>
 							<li><p>Is your database corrupt? Please see <a target="_blank" href="http://doc.tiki.org/Repair+Database">how to repair your database</a></p></li>
-							<li><p>Are your database credentials accurate? (username, database name, etc in db/local.php)</p></li>
+							<li><p>Are your database settings accurate? (username, schema name, etc in db/local.php)</p></li>
 						</ol>
 					</div>
 				{/if}

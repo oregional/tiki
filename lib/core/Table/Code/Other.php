@@ -115,6 +115,33 @@ class Table_Code_Other extends Table_Code_Manager
 					$htmlbefore[] = $this->iterate($divr, '<div style="float:right">', '</div>', '', '', '');
 				}
 			}
+			// add custom dropdown parser
+			$jq[] = $this->nt . '$.tablesorter.addParser({'
+				. $this->nt2 . 'id: \'dropdown\','
+				. $this->nt2 . 'is: function() {'
+					. $this->nt3 . 'return false;'
+				. $this->nt2 . '},'
+				. $this->nt2 . 'format: function(str, table, cell) {'
+					. $this->nt3 . 'var c = table.config,'
+						. $this->nt4 . 'html = ( cell.innerHTML !== undefined ? cell.innerHTML : str );'
+					. $this->nt3 . 'if (html) {'
+						. $this->nt4 . '// remove inline editor'
+						. $this->nt4 . 'try { html = ( $(html).hasClass(\'editable-inline\') || $(html).hasClass(\'editable-dialog\') ) ? $(html).html() : html }'
+						. $this->nt4 . 'catch(e) {}'
+						. $this->nt4 . '// remove nbsp'
+						. $this->nt4 . 'html = html.replace(\'&nbsp;\', \'\')'
+						. $this->nt4 . '// convert to html entities'
+						. $this->nt4 . 'html = $(\'<div />\').html(html).html()'
+						. $this->nt4 . '// replace <br> and new lines with a comma'
+						. $this->nt4 . 'html = html.replace(/\s*<br\s*\/?>\s*|[\r\n]/g, \',\')'
+						. $this->nt4 . 'html = html.replace(/,{2,}/g, \',\')'
+						. $this->nt4 . 'html = $.trim(c.ignoreCase ? html.toLocaleLowerCase() : html);'
+						. $this->nt4 . 'html = c.sortLocaleCompare ? $.tablesorter.replaceAccents(html) : html;'
+					. $this->nt3 . '}'
+					. $this->nt3 . 'return html;'
+				. $this->nt2 . '},'
+				. $this->nt2 . 'type: \'text\''
+			. $this->nt . '});';
 		} else {
 			if (isset($buttons) && count($buttons) > 0) {
 				$htmlbefore[] = $this->iterate($buttons, '<div style="float:left">', '</div>', '', '', '');
@@ -133,18 +160,18 @@ class Table_Code_Other extends Table_Code_Manager
 					'</div>',
 				'</div>',
 				'<div class="btn-group middle">',
-				'	<span class="first tips" title=":' . tr('First page') . '">',
+				'	<span class="first">',
 				'		' . smarty_function_icon(['name' => 'backward_step'], $smarty),
 				'	</span>',
-				'	<span class="prev tips" title=":' . tr('Previous page') . '">',
+				'	<span class="prev">',
 				'		' . smarty_function_icon(['name' => 'backward'], $smarty),
 				'	</span>',
 				'	<span class="pagedisplay">',
 				'	</span>',
-				'	<span class="next tips" title=":' . tr('Next page') . '">',
+				'	<span class="next">',
 				'		' . smarty_function_icon(['name' => 'forward'], $smarty),
 				'	</span>',
-				'	<span class="last tips" title=":' . tr('Last page') . '">',
+				'	<span class="last">',
 				'		' . smarty_function_icon(['name' => 'forward_step'], $smarty),
 				'	</span>',
 				'</div>',
@@ -191,7 +218,7 @@ class Table_Code_Other extends Table_Code_Manager
 				$jq[] = $this->nt . '$(\'' . parent::$tid . '\').find(\'thead tr\').append(\'<th' . $class . '>'
 					. $total['label'] . '</th>\');'
 					. $this->nt . '$(\'' . parent::$tid . '\').find(\'tbody tr\').append(\'<td data-tsmath="row-'
-					. $total['formula'] . '"></td>\')'
+					. $total['formula'] . '" data-tsmath-filter="*"></td>\')'
 					. $this->nt . '$(\'' . parent::$tid . '\').find(\'tfoot tr:not(.ts-foot-row)\').append(\'<th></th>\');';
 			}
 		}

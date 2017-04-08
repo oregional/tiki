@@ -67,8 +67,31 @@ class Language_WriteFile
 		copy($this->filePath, $this->filePath . '.old');
 		
 		$this->translations = $this->parseFile->getTranslations();
-		$entries = $this->mergeStringsWithTranslations($strings, $this->translations);
-		
+
+		$punctuations = array(':', '!', ';', '.', ',', '?'); // Should stay synchronized with tra_impl() (in lib/init/tra.php)
+		$entries = array();
+		foreach ($strings as $string) {
+			if (isset($this->translations[$string['name']])) {
+				$string['translation'] = $this->translations[$string['name']];
+			} else {
+				// Handle punctuations at the end of the string (cf. comments in lib/init/tra.php)
+				// For example, if the string is 'Login:', we put 'Login' for translation instead
+				// (except if we already have an explicit translation for 'Login:', in which case we don't reach this else)
+				$stringLength = strlen($string['name']);
+				$stringLastChar = $string['name'][$stringLength - 1];
+
+				if (in_array($stringLastChar, $punctuations) ) {
+					$trimmedString = substr($string['name'], 0, $stringLength - 1);
+					$string['name'] = $trimmedString;
+					if (isset($this->translations[$trimmedString])) {
+						$string['translation'] = $this->translations[$trimmedString];
+					}
+				}
+			}
+			$entries[$string['name']] = $string;
+		}
+
+
 		$handle = fopen($this->tmpFilePath, 'w');
 		
 		if ($handle) {
@@ -99,69 +122,31 @@ class Language_WriteFile
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
 
-// Note for translators about translation of text ending with punctuation
-// 
-// The current list of concerned punctuation can be found in 'lib/init/tra.php'
-// On 2009-03-02, it is: (':', '!', ';', '.', ',', '?')
-// For clarity, we explain here only for colons: ':' but it is the same for the rest
-// 
-// Short version: it is not a problem that string "Login:" has no translation. Only "Login" needs to be translated.
-// 
-// Technical justification:
-// If a string ending with colon needs translating (like "{tr}Login:{/tr}")
-// then Tiki tries to translate 'Login' and ':' separately.
-// This allows to have only one translation for "{tr}Login{/tr}" and "{tr}Login:{/tr}"
-// and it still allows to translate ":" as " :" for languages that
-// need it (like French)
-// Note: the difference is invisible but " :" has an UTF-8 non-breaking-space, not a regular space, but the UTF-8 equivalent of the HTML &nbsp;.
-// This allows correctly displaying emails and JavaScript messages, not only web pages as would happen with &nbsp;.
+// The original strings (English) are case-sensitive.
 
+/* Note for translators about translation of text ending with punctuation
+ *
+ * The current list of concerned punctuation can be found in 'lib/init/tra.php'
+ * On 2009-03-02, it is: (':', '!', ';', '.', ',', '?')
+ * For clarity, we explain here only for colons: ':' but it is the same for the rest
+ *
+ * Short version: it is not a problem that string "Login:" has no translation. Only "Login" needs to be translated.
+ *
+ * Technical justification:
+ * If a string ending with colon needs translating (like "{tr}Login:{/tr}")
+ * then Tiki tries to translate 'Login' and ':' separately.
+ * This allows to have only one translation for "{tr}Login{/tr}" and "{tr}Login:{/tr}"
+ * and it still allows to translate ":" as " :" for languages that
+ * need it (like French)
+ * Note: the difference is invisible but " :" has an UTF-8 non-breaking-space, not a regular space, but the UTF-8 equivalent of the HTML &nbsp;.
+ * This allows correctly displaying emails and JavaScript messages, not only web pages as would happen with &nbsp;.
+ */
 
 TXT;
 		
 		return $header;
 	}
-	
-	/**
-	 * Merge collected strings from source files with translations from
-	 * language.php ignoring translations for strings that are not present
-	 * anymore in the source files.
-	 * 
-	 * @param array $strings English strings collected from source files 
-	 * @param array $translations Translations from language.php file
-	 * @return array
-	 */
-	protected function mergeStringsWithTranslations(array $strings, array $translations)
-	{
-		$punctuations = array(':', '!', ';', '.', ',', '?'); // Modify lib/init/tra.php accordingly
-		
-		$entries = array();
-		
-		foreach ($strings as $string) {
-			if (isset($translations[$string['name']])) {
-				$string['translation'] = $translations[$string['name']];
-			} else {
-				// Handle punctuations at the end of the string (cf. comments in lib/init/tra.php)
-				// For example, if the string is 'Login:', we put 'Login' for translation instead
-				// (except if we already have an explicit translation for 'Login:', in which case we don't reach this else)
-				$stringLength = strlen($string['name']);
-				$stringLastChar = $string['name'][$stringLength - 1];
-				
-				if (in_array($stringLastChar, $punctuations) ) {
-					$trimmedString = substr($string['name'], 0, $stringLength - 1);
-					$string['name'] = $trimmedString;
-					if (isset($translations[$trimmedString])) {
-						$string['translation'] = $translations[$trimmedString]; 
-					}
-				}
-			}
-			
-			$entries[$string['name']] = $string;
-		}
-		
-		return $entries;
-	}
-	
+
 	/**
 	 * Format a pair source and translation as
 	 * a string to be written to a language.php file

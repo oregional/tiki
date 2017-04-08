@@ -1,5 +1,5 @@
 <?php
-// (c) Copyright 2002-2016 by authors of the Tiki Wiki CMS Groupware Project
+// (c) Copyright 2002-2017 by authors of the Tiki Wiki CMS Groupware Project
 //
 // All Rights Reserved. See copyright.txt for details and a complete list of authors.
 // Licensed under the GNU LESSER GENERAL PUBLIC LICENSE. See license.txt for details.
@@ -642,7 +642,7 @@ function wikiplugin_img( $data, $params )
 		foreach ($id_list as $i => $value) {
 			$params[$id] = trim($value);
 			$params['fgalId'] = '';
-			$params['type'] = 'fileId';
+			$params['type'] = $id;
 			$repl .= wikiplugin_img($data, $params);
 		}
 		if (strpos($repl, $notice) !== false) {
@@ -681,6 +681,8 @@ function wikiplugin_img( $data, $params )
 			if ($absolute_links) {
 				$src = TikiLib::tikiUrl($src);
 			}
+		} elseif ($prefs['feature_use_fgal_for_wiki_attachments'] === 'y' && ! empty($imgdata['attId'])) {
+			$src = $filegalpath . $imgdata['attId'];
 		} else {					//only attachments left
 			$src = $attachpath . $imgdata['attId'];
 		}
@@ -732,6 +734,10 @@ function wikiplugin_img( $data, $params )
 			} elseif (!isset($dbinfo) && !empty($imgdata['fileId'])) {
 				$filegallib = TikiLib::lib('filegal');
 				$dbinfo = $filegallib->get_file($imgdata['fileId']);
+				$basepath = $prefs['fgal_use_dir'];
+			} elseif ($prefs['feature_use_fgal_for_wiki_attachments'] === 'y' && !isset($dbinfo) && !empty($imgdata['attId'])) {
+				$filegallib = TikiLib::lib('filegal');
+				$dbinfo = $filegallib->get_file($imgdata['attId']);
 				$basepath = $prefs['fgal_use_dir'];
 			} else {					//only attachments left
 				global $atts;
@@ -1031,7 +1037,7 @@ function wikiplugin_img( $data, $params )
 			$repldata = preg_replace('/width="'.$fwidth.'" height="'.$fheight.'"/', $svgAttributes, $repldata);
 			if ($repldata === null) {
 				// if preg_replace fails restore original SVG data
-				TikiLib::lib('errorreport')->report(tr('SVG Image replace error "%0"', preg_last_error()));
+				Feedback::error(tr('SVG Image replace error "%0"', preg_last_error()));
 				$repldata = $dbinfo['data'];
 			}
 		}
@@ -1341,7 +1347,12 @@ function wikiplugin_img( $data, $params )
 	if (!empty($imgdata['button']) || !empty($imgdata['desc']) || !empty($imgdata['styledesc']) || !empty($imgdata['metadata'])) {
 		//To set room for enlarge button under image if there is no description
 		$descheightdef = 'height:17px;clear:left;';
-		$repl .= "\r\t" . '<div class="mini" style="width:' . $width . 'px;';
+		if (!empty($imgdata["width"])) {
+			$descwidth = 'max-width: 100%; width:' . $width . 'px;';
+		} else {
+			$descwidth = '';
+		}
+		$repl .= "\r\t" . '<div class="mini" style="' . $descwidth;
 		if ( !empty($imgdata['styledesc']) ) {
 			if (($imgdata['styledesc'] == 'left') || ($imgdata['styledesc'] == 'right')) {
 				$repl .= 'text-align:' . $imgdata['styledesc'] . '">';
@@ -1456,23 +1467,23 @@ function wikiplugin_img( $data, $params )
 					$styleboxinit = $imgdata['stylebox'] . ';';
 				}
 			}
-			if (empty($imgdata['button']) && empty($imgdata['desc']) && empty($styleboxinit)) {
-				$styleboxplus = $alignbox . ' width:' . $boxwidth . 'px; height:' . $boxheight . 'px';
+			if (empty($imgdata['button']) && empty($imgdata['desc']) && empty($styleboxinit) && $boxwidth !== 2) {
+				$styleboxplus = $alignbox . ' max-width: 100%; width:' . $boxwidth . 'px; height:' . $boxheight . 'px';
 			} elseif (!empty($styleboxinit)) {
 				if ((strpos(trim($imgdata['stylebox'], ' '), 'height:') === false)
 					&& (strpos(trim($imgdata['stylebox'], ' '), 'width:') === false)
 				) {
-					$styleboxplus = $styleboxinit . ' width:' . $boxwidth . 'px;';
+					$styleboxplus = $styleboxinit . ' max-width: 100%; width:' . $boxwidth . 'px;';
 				} else {
 					$styleboxplus = $styleboxinit;
 				}
 			} elseif ($boxwidth === 2) {
 				$styleboxplus = $alignbox . ' width: auto;';
 			} else {
-				$styleboxplus = $alignbox . ' width:' . $boxwidth . 'px;';
+				$styleboxplus = $alignbox . ' max-width: 100%; width:' . $boxwidth . 'px;';
 			}
 		} elseif (!empty($imgdata['button']) || !empty($imgdata['desc']) || !empty($imgdata['metadata'])) {
-			$styleboxplus = ' width:' . $boxwidth . 'px;';
+			$styleboxplus = ' max-width: 100%; width:' . $boxwidth . 'px;';
 		} elseif ($boxwidth === 2) {
 			$styleboxplus = ' width: auto;';
 		}
@@ -1506,7 +1517,7 @@ function wikiplugin_img( $data, $params )
 		$perms = TikiLib::lib('tiki')->get_perm_object( $imgdata['fileId'], 'file', $dbinfo );
 		if ($imgdata['fromItemId']) {
 			if ($imgdata['checkItemPerms'] !== 'n') {
-				$perms_Accessor = Perms::get(array('type' => 'tracker item', 'object' => $imgdata['fromItemId']));
+				$perms_Accessor = Perms::get(array('type' => 'trackeritem', 'object' => $imgdata['fromItemId']));
 				$trackerItemPerms = $perms_Accessor->modify_tracker_items;
 			} else {
 				$trackerItemPerms = true;

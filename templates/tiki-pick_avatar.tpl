@@ -45,7 +45,7 @@
 		<h2>{if $user eq $userwatch}{tr}Pick user profile picture from the library{/tr}{else}{tr}Pick user profile picture{/tr}{/if} <a href="tiki-pick_avatar.php?showall=n">{tr}Hide all{/tr}</a> {$numav} {tr}icons{/tr}</h2>
 		<div class="table normal">
 			{section name=im loop=$avatars}
-				<a href="tiki-pick_avatar.php?showall=n&amp;avatar={$avatars[im]|escape:"url"}&amp;uselib=use"><img src="{$avatars[im]}" alt=''></a>
+				<a href="tiki-pick_avatar.php?showall=n&amp;avatar={$avatars[im]|escape:"url"}&amp;uselib=use"><img src="{$avatars[im]}"></a>
 			{/section}
 		</div>
 	{else}
@@ -118,13 +118,13 @@
 				<div class="help-block">
 					{if $prefs.user_store_file_gallery_picture neq 'y'}{tr}File (only .gif, .jpg and .png images approximately 45px × 45px){/tr}{else}{tr}File (only .gif, .jpg and .png images){/tr}{/if}:
 				</div>
-		    </div>
-	    </div>
-	    <div class="form-group">
+			</div>
+		</div>
+		<div class="form-group">
 			<label class="col-sm-3 control-label"></label>
 			<div class="col-sm-7">
 				<input type="submit" class="btn btn-primary btn-sm" name="upload" value="{tr}Upload{/tr}">
-		    </div>
-	    </div>
+			</div>
+		</div>
 	</form>
 </div>

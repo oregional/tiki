@@ -1,3 +1,4 @@
+{$filters}
 <div id="{$trackercalendar.id|escape}"></div>
 {jq}
 	var data = {{$trackercalendar|json_encode}};
@@ -31,32 +32,32 @@
 			editable: true,
 			timezone: '{{$prefs.server_timezone}}',
 			//theme: true, TODO: add support of jQuery UI theme to the plugin's PHP
-			events: $.service('tracker_calendar', 'list', {
+			events: $.service('tracker_calendar', 'list', $.extend(data.filterValues, {
 				trackerId: data.trackerId,
 				beginField: data.begin,
 				endField: data.end,
 				resourceField: data.resource,
 				coloringField: data.coloring,
 				filters: data.body
-			}),
+			})),
 			resources: data.resourceList,
 			year: data.viewyear,
 			month: data.viewmonth-1,
 			day: data.viewday,
 			minTime: data.minHourOfDay,
 			maxTime: data.maxHourOfDay,
-			monthNames: [ "{tr}January{/tr}", "{tr}February{/tr}", "{tr}March{/tr}", "{tr}April{/tr}", "{tr}May{/tr}", "{tr}June{/tr}", "{tr}July{/tr}", "{tr}August{/tr}", "{tr}September{/tr}", "{tr}October{/tr}", "{tr}November{/tr}", "{tr}December{/tr}"], 
-			monthNamesShort: [ "{tr}Jan.{/tr}", "{tr}Feb.{/tr}", "{tr}Mar.{/tr}", "{tr}Apr.{/tr}", "{tr}May{/tr}", "{tr}June{/tr}", "{tr}July{/tr}", "{tr}Aug.{/tr}", "{tr}Sep.{/tr}", "{tr}Oct.{/tr}", "{tr}Nov.{/tr}", "{tr}Dec.{/tr}"], 
+			monthNames: [ "{tr}January{/tr}", "{tr}February{/tr}", "{tr}March{/tr}", "{tr}April{/tr}", "{tr}May{/tr}", "{tr}June{/tr}", "{tr}July{/tr}", "{tr}August{/tr}", "{tr}September{/tr}", "{tr}October{/tr}", "{tr}November{/tr}", "{tr}December{/tr}"],
+			monthNamesShort: [ "{tr}Jan.{/tr}", "{tr}Feb.{/tr}", "{tr}Mar.{/tr}", "{tr}Apr.{/tr}", "{tr}May{/tr}", "{tr}June{/tr}", "{tr}July{/tr}", "{tr}Aug.{/tr}", "{tr}Sep.{/tr}", "{tr}Oct.{/tr}", "{tr}Nov.{/tr}", "{tr}Dec.{/tr}"],
 			dayNames: ["{tr}Sunday{/tr}", "{tr}Monday{/tr}", "{tr}Tuesday{/tr}", "{tr}Wednesday{/tr}", "{tr}Thursday{/tr}", "{tr}Friday{/tr}", "{tr}Saturday{/tr}"],
 			dayNamesShort: ["{tr}Sun{/tr}", "{tr}Mon{/tr}", "{tr}Tue{/tr}", "{tr}Wed{/tr}", "{tr}Thu{/tr}", "{tr}Fri{/tr}", "{tr}Sat{/tr}"],
 			buttonText: {
-				resourceDay:    "{tr}resource day{/tr}",
-				resourceMonth:    "{tr}resource month{/tr}",
-				resourceWeek:    "{tr}resource week{/tr}",
-				today:    "{tr}today{/tr}",
-				month:    "{tr}month{/tr}",
-				week:     "{tr}week{/tr}",
-				day:      "{tr}day{/tr}"
+				resourceDay: "{tr}resource day{/tr}",
+				resourceMonth: "{tr}resource month{/tr}",
+				resourceWeek: "{tr}resource week{/tr}",
+				today: "{tr}today{/tr}",
+				month: "{tr}month{/tr}",
+				week: "{tr}week{/tr}",
+				day: "{tr}day{/tr}"
 			},
 			allDayText: "{tr}all-day{/tr}",
 			firstDay: data.firstDayofWeek,
@@ -72,7 +73,7 @@
 					actualURL += actualURL.indexOf("?") === -1 ? "?" : "&";
 
 					if (data.trkitemid === "y" && data.addAllFields === "n") {	// "simple" mode
-						actualURL +=  "itemId=" + event.id;
+						actualURL += "itemId=" + event.id;
 					} else {
 						var lOp='';
 						var html = $.parseHTML( event.description ) || [];

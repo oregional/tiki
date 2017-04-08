@@ -38,6 +38,10 @@ function prefs_category_list()
 			'unserialize' => 'prefs_category_unserialize_defaults',
 			'profile_reference' => 'category',
 			'default' => false,
+			'tags' => array(
+				'experimental', // Assignment fails quietly, cryptic description. Chealer 2017-03-23
+				'advanced'
+			)
 		),
 		'category_i18n_sync' => array(
 			'name' => tra('Synchronize multilingual categories'),
@@ -60,14 +64,13 @@ function prefs_category_list()
 			'default' => array(''), //empty string needed to keep preference from setting unexpectedly
 		),
 		'category_sort_ascii' => array(
-			'name' => tra('Sort categories by legacy ASCII sequence'),
-			'description' => tra('If turned on, will sort categories taking into account all characters as upper case, in ASCII sequence, will only consider limited set of accented characters. Might be needed to be able to override the normal sort by prepending punctuation characters to category names, such as "-" to sort at the beginning and "[" to sort at the end.'), 
+			'name' => tra('Sort categories case insensitively'),
+			'description' => tra('Ignore case and accents when listing categories. Disable to use the "locale" sort settings.'),
 			'type' => 'flag',
-			'tags' => array('advanced'),
 			'default' => 'n',
 		),
 		'category_autogeocode_within' => array(
-			'name' => tra('Automatically geocode items when categorized in'),
+			'name' => tra('Automatically geocode items with this category'),
 			'description' => tra('Automatically geocode items based on category name when categorized in the sub-categories of this category ID'),
 			'type' => 'text',
 			'filter' => 'digits',
@@ -75,7 +78,7 @@ function prefs_category_list()
 			'default' => '',
 		),
 		'category_autogeocode_replace' => array(
-			'name' => tra('Replace existing geocode, if any'),
+			'name' => tra('Replace any existing geocode'),
 			'description' => tra('When automatically geocoding items based on category name, replace existing geocode, if any'),
 			'type' => 'flag',		
 			'default' => 'n',
@@ -88,7 +91,7 @@ function prefs_category_list()
 		),
 		'category_morelikethis_algorithm' => array(
 			'name' => tra('"More Like This" algorithm for categories'),
-            'description' => tra(''),
+			'description' => tra(''),
 			'type' => 'list',
 			'options' => array(
 							   '' => '',
@@ -99,7 +102,7 @@ function prefs_category_list()
 		),
 		'category_morelikethis_mincommon' => array(
 			'name' => tra('Minimum number of categories in common'),
-            'description' => tra(''),
+			'description' => tra(''),
 			'type' => 'list',
 			'options' => array(
 				'1' => tra('1'),
@@ -116,14 +119,14 @@ function prefs_category_list()
 			'default' => 2, 
 		),
 		'category_morelikethis_mincommon_orless' => array(
-			'name' => tra('Or look for the maximum less categories in common if no objects with the above number of common categories'),
-            'description' => tra(''),
+			'name' => tra('List objects with most categories in common'),
+			'description' => tra('No minimum is applied.'),
 			'type' => 'flag',
 			'default' => 'y',
 		),
 		'category_morelikethis_mincommon_max' => array(
-			'name' => tra('Maximum number of "more like this" objects; otherwise, use the default maximum records'),
-            'description' => tra(''),
+			'name' => tra('Maximum number of "more like this" objects'),
+			'description' => tra('The default maximum records setting for the site is used of this is set to 0.'),
 			'type' => 'text',
 			'size' => 3,
 			'filter' => 'int',
@@ -140,7 +143,7 @@ function prefs_category_list()
 		),
 		'category_browse_count_objects' => array(
 			'name' => tra('Show category object count'),
-            'description' => tra('Show object count when browsing categories, complying with search and type filters'),
+			'description' => tra('Show object count when browsing categories, complying with search and type filters'),
 			'hint' => tra('Can slow the loading of the categories page on large sites.'),
 			'type' => 'flag',
 			'default' => 'y',

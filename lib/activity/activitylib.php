@@ -112,6 +112,44 @@ class ActivityLib
 		TikiLib::lib('unifiedsearch')->invalidateObject('activity', $id);
 	}
 
+	/**
+	 * Logs an event to the web server log via final tiki.eventlog.commit event.
+	 * Needs to be activated via setting TIKI_HEADER_REPORT_EVENTS as a
+	 * server environment variable
+	 *
+	 * @param $event
+	 * @param $arguments
+	 */
+	function logEvent($event, $arguments, $includes = array(), $excludes = array())
+	{
+		if (!$event) {
+			return; // prevent false recording of test runs
+		}
+
+		if ($includes) {
+			// if includes is provided, then everything is excluded by default
+			$clean_args = array();
+			foreach ($arguments as $k => $v) {
+				if (in_array($k, $includes)) {
+					$clean_args[$k] = $v;
+				}
+			}
+		} else if ($excludes) {
+			$clean_args = array();
+			foreach ($arguments as $k => $v) {
+				if (!in_array($k, $excludes)) {
+					$clean_args[$k] = $v;
+				}
+			}
+		} else {
+			$clean_args = $arguments;
+		}
+
+		$events = TikiLib::events();
+		$events->logEvent($event, $clean_args);
+		$events->trigger('tiki.eventlog.commit');
+	}
+
 	function bindBasicEvents(Tiki_Event_Manager $manager)
 	{
 		global $prefs;
@@ -172,6 +210,8 @@ class ActivityLib
 						return new Tiki_Event_Function_EventNotify($self);
 					case 'event-sample':
 						return new Tiki_Event_Function_EventSample($self);
+					case 'event-log':
+						return new Tiki_Event_Function_EventLog($self);
 					}
 				},
 				'Math_Formula_Function_' => '',

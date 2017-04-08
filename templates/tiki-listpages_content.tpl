@@ -11,7 +11,7 @@
 	{$liend = ''}
 {/if}
 
-{if !$tsOn && ($cant_pages > 1 or $initial or $find)}
+{if !$ts.enabled && ($cant_pages > 1 or $initial or $find)}
 	{initials_filter_links}
 {/if}
 
@@ -29,14 +29,14 @@
 	<p>{tr}Found{/tr} &quot;{$find|escape}&quot; {tr}in{/tr} {$listpages|@count} {tr}pages{/tr}.</p>
 {/if}
 
-
+	{* Action attribute has to be set explicitly so that plugins could get use of it *}
 {if isset($checkboxes_on) and $checkboxes_on eq 'y'}
-	<form name="checkboxes_on" method="post">
+	<form name="checkboxes_on" id="checkboxes_on" method="post" action="tiki-listpages.php">
 {/if}
 
 {assign var='pagefound' value='n'}
-<div id="{$ts_tableid}-div" class="{if $js === 'y'}table-responsive{/if} ts-wrapperdiv" {if $tsOn}style="visibility:hidden;"{/if}> {*the table-responsive class cuts off dropdown menus *}
-	<table id="{$ts_tableid}" class="table normal table-striped table-hover" data-count="{$cant|escape}">
+<div id="{$ts.tableid}-div" class="{if $js === 'y'}table-responsive{/if} ts-wrapperdiv" {if $ts.enabled}style="visibility:hidden;"{/if}> {*the table-responsive class cuts off dropdown menus *}
+	<table id="{$ts.tableid}" class="table normal table-striped table-hover" data-count="{$cant|escape}">
 		<thead>
 			<tr>
 				{if isset($checkboxes_on) and $checkboxes_on eq 'y'}
@@ -190,7 +190,7 @@
 				{/if}
 
 				<tr>
-				
+
 					{if $checkboxes_on eq 'y'}
 						<td class="checkbox-cell">
 							<input type="checkbox" name="checked[]" value="{$listpages[changes].pageName|escape}">
@@ -207,14 +207,14 @@
 
 					{if $prefs.wiki_list_name eq 'y'}
 						<td class="text">
-							{* 
+							{*
 								The variant of the object link below adds the baseurl as received by the request to the href attribute generated.
 								I.e. "http://192.168.1.10/tiki-listpages.php?page=MyPage" instead of "tiki-listpages.php?page=MyPage"
 								This leads to trouble when using a reverse proxy that takes an external fqdn and maps it to a local address.
 								Other templates do not use this object_link but an simple <a href></a>. See i.e tiki_lastchanges.tpl so we use it here as well.
 								Same for the link generated for the page id (wiki_list_id) above.
 							*}
-							{* 
+							{*
 								{object_link type=wiki id=$listpages[changes].pageName url=$listpages[changes].pageName|sefurl:'wiki':'':$all_langs title=$listpages[changes].pageName|truncate:$prefs.wiki_list_name_len:"...":true}
 							*}
 							<a href="{$listpages[changes].pageName|sefurl}" class="link tips" title="{$listpages[changes].pageName|escape}:{tr}View page{/tr}">
@@ -352,7 +352,7 @@
 
 					{if $prefs.wiki_list_rating eq 'y'}
 						<td class="integer">
-							{$listpages[changes].rating}
+							{if isset($listpages[changes].rating)}$listpages[changes].rating{/if}
 						</td>
 					{/if}
 
@@ -379,7 +379,7 @@
 									{/if}
 
 									{if $listpages[changes].perms.tiki_p_remove eq 'y'}
-										{$libeg}<a href="tiki-removepage.php?page={$listpages[changes].pageName|escape:"url"}&amp;version=last">
+										{$libeg}<a href="{bootstrap_modal controller=wiki action=remove_pages checked=$listpages[changes].pageName version=last}">
 											{icon name='remove' _menu_text='y' _menu_icon='y' alt="{tr}Remove{/tr}"}
 										</a>{$liend}
 									{/if}
@@ -402,14 +402,15 @@
 					{/if}
 				</tr>
 			{sectionelse}
-				{capture assign='find_htmlescaped'}{$find|escape}{/capture}
-				{capture assign="intro"}{if $exact_match ne 'n'}{tr}No page:{/tr}{else}{tr}No pages found with:{/tr}{/if}{/capture}
+				{$find_htmlescaped = $find|escape}
+				{$initial_htmlescaped = $initial|escape}
+				{if $exact_match ne 'n'}{$intro = '{tr}No page:{/tr}'}{else}{$intro = '{tr}No pages found with:{/tr}'}{/if}
 				{if $find ne '' && $aliases_were_found == 'y'}
 					{norecords _colspan=$cntcol _text="$intro &quot;$find_htmlescaped&quot;. <br/>However, some page aliases fitting the query were found (see Aliases section above)."}
 				{elseif $find ne '' && $initial ne '' && $aliases_were_found == 'y'}
-					{norecords _colspan=$cntcol _text="$intro &quot;$find_htmlescaped&quot;and starting with &quot; $initial &quote;. <br/>However, some page aliases fitting the query were found (see Aliases section above)."}
+					{norecords _colspan=$cntcol _text="$intro &quot;$find_htmlescaped&quot;and starting with &quot; $initial_htmlescaped &quote;. <br/>However, some page aliases fitting the query were found (see Aliases section above)."}
 				{elseif $find ne '' && $initial ne ''}
-					{norecords _colspan=$cntcol _text="$intro &quot;$find_htmlescaped&quot; and starting with &quot; $initial &quot;."}
+					{norecords _colspan=$cntcol _text="$intro &quot;$find_htmlescaped&quot; and starting with &quot; $initial_htmlescaped &quot;."}
 				{elseif $find ne ''}
 					{norecords _colspan=$cntcol _text="$intro &quot;$find_htmlescaped&quot;."}
 				{else}
@@ -420,12 +421,24 @@
 		</tbody>
 	</table>
 </div>
-{if !$tsAjax}
+{if isset($ts.enabled) }
+	<script>
+		// Otherwise, All pages are displayed, whatever was searched for
+		var myfilter='{$find|escape:javascript}';
+	</script>
+	{jq}
+		(function(window,undefined){
+			window.setTimeout( function(){ $('input[data-column=2]').val(myfilter).trigger('change'); } , 1000 );
+		})(window)
+	{/jq}
+{/if}
+{if !$ts.ajax}
 	{if $checkboxes_on eq 'y' && count($listpages) > 0} {* what happens to the checked items? *}
-		<p align="left"> {*on the left to have it close to the checkboxes*}
-			<label for="submit_mult">{tr}Perform action with checked:{/tr}</label>
-			<select name="submit_mult" class="form-control" id="submit_mult" onchange="this.form.submit();">
-				<option value="" selected="selected">...</option>
+		<div class="input-group col-sm-6">
+			<select name="action" class="form-control" id="submit_mult">
+				<option value="no_action" selected="selected">
+					{tr}Select action to perform with checked{/tr}...
+				</option>
 				{if $tiki_p_remove eq 'y'}
 					<option value="remove_pages" >{tr}Remove{/tr}</option>
 				{/if}
@@ -434,7 +447,7 @@
 					<option value="print_pages" >{tr}Print{/tr}</option>
 
 						{if $prefs.print_pdf_from_url neq 'none'}
-						<option value="export_pdf" >{tr}PDF{/tr}</option>
+						<option value="export_pdf" >{tr}Download PDF{/tr}</option>
 					{/if}
 				{/if}
 
@@ -443,23 +456,25 @@
 					<option value="unlock_pages" >{tr}Unlock{/tr}</option>
 				{/if}
 				{if $tiki_p_admin eq 'y'}
-					<option value="zip">{tr}Xml Zip{/tr}</option>
+					<option value="zip">{tr}Download zipped file{/tr}</option>
 				{/if}
 				{if $tiki_p_admin eq 'y'}
-					<option value="title">{tr}Add page name as an h1-size header at the beginning of the page content{/tr}</option>
+					<option value="title">{tr}Add page name as page header{/tr}</option>
 				{/if}
 
 				{* add here e.g. <option value="categorize" >{tr}categorize{/tr}</option> *}
 			</select>
-		</p>
-		<script type='text/javascript'>
-			<!--
-			// Fake js to allow the use of the <noscript> tag (so non-js-users can still submit)
-			//-->
-		</script>
-		<noscript>
-			<input type="submit" class="btn btn-default btn-sm" value="{tr}OK{/tr}">
-		</noscript>
+			<span class="input-group-btn">
+				<button
+					type="submit"
+					form="checkboxes_on"
+					formaction="{bootstrap_modal controller=wiki version=all}"
+					class="btn btn-primary confirm-submit"
+				>
+					{tr}OK{/tr}
+				</button>
+			</span>
+		</div>
 	{/if}
 
 	{if $find and $tiki_p_edit eq 'y' and $pagefound eq 'n' and $alias_found eq 'n'}
@@ -474,7 +489,12 @@
 		</form>
 	{/if}
 
-	{if !isset($tsOn) or !$tsOn}
-		{pagination_links cant=$cant step=$maxRecords offset=$offset clean=$clean}{/pagination_links}
+	{if !isset($ts.enabled) or !$ts.enabled}
+		{if $pluginlistpages eq 'y' and $pagination eq 'y'}
+			{pagination_links cant=$cant step=$maxRecords offset=$offset offset_arg=$offset_arg clean=$clean}{/pagination_links}
+		{elseif $pluginlistpages eq 'y' and $pagination neq 'y'}
+		{else}
+			{pagination_links cant=$cant step=$maxRecords offset=$offset clean=$clean}{/pagination_links}
+		{/if}
 	{/if}
 {/if}

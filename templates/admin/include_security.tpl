@@ -17,19 +17,17 @@
 {/remarksbox}
 
 <form class="admin form-horizontal" id="security" name="security" action="tiki-admin.php?page=security" method="post">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 	<div class="row">
 		<div class="form-group col-lg-12 clearfix">
-			<div class="pull-right">
-				<input type="submit" class="btn btn-primary btn-sm" name="security" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
+			{include file='admin/include_apply_top.tpl'}
 		</div>
 	</div>
 
 	{tabset}
 
 		{tab name="{tr}General Security{/tr}"}
-			<h2>{tr}General Security{/tr}</h2>
+			<br>
 			<div class="adminoptionboxchild" id="smarty_security_childcontainer">
 			{if $haveMySQLSSL}
 				{if $mysqlSSL === true}
@@ -74,6 +72,7 @@
 			{preference name=tiki_allow_trust_input}
 			{preference name=feature_quick_object_perms}
 			{preference name=feature_user_encryption}
+			{preference name=zend_http_sslverifypeer}
 			<div class="adminoptionboxchild" id="feature_user_encryption_childcontainer">
 				{if isset($no_mcrypt)}
 					{remarksbox type="warning" title="{tr}Mcrypt is not loaded{/tr}"}
@@ -90,7 +89,7 @@
 				{preference name=feature_password_domains}
 			</div>
 			<fieldset>
-				<legend>{tr}CSRF Security{/tr}{help url="Security"}</legend>
+				<legend>{tr}CSRF security{/tr}{help url="Security"}</legend>
 				<div class="adminoptionbox">
 					{tr}Use these options to protect against cross-site request forgeries (CSRF){/tr}.
 				</div>
@@ -99,8 +98,8 @@
 			</fieldset>
 		{/tab}
 
-		{tab name="{tr}Spam protection{/tr}"}
-			<h2>{tr}Spam protection{/tr}</h2>
+		{tab name="{tr}Spam Protection{/tr}"}
+			<br>
 			{remarksbox type="tip" title="{tr}Tip{/tr}"}
 				{tr}You can additionally protect from spam enabling the "<a href="http://doc.tiki.org/Forum+Admin#Forum_moderation" target="_blank">moderation queue on forums</a>", or through <strong>banning</strong> multiple ip's from the "<a href="tiki-admin_actionlog.php" target="_blank">Action log</a>", from "<a href="tiki-adminusers.php" target="_blank">Users registration</a>", or from the "<a href="tiki-list_comments.php" target="_blank">Comments moderation queue</a>" itself{/tr}.
 			{/remarksbox}
@@ -145,13 +144,13 @@
 		{/tab}
 
 		{tab name="{tr}Search results{/tr}"}
-			<h2>{tr}Search results{/tr}</h2>
+			<br>
 			{preference name=feature_search_show_forbidden_cat}
 			{preference name=feature_search_show_forbidden_obj}
 		{/tab}
 
 		{tab name="{tr}Site Access{/tr}"}
-			<h2>{tr}Site Access{/tr}</h2>
+			<br>
 			{preference name=site_closed}
 			<div class="adminoptionboxchild" id="site_closed_childcontainer">
 				{preference name=site_closed_msg}
@@ -162,10 +161,44 @@
 				{preference name=load_threshold}
 				{preference name=site_busy_msg}
 			</div>
+
+			{preference name=ids_enabled}
+			<div class="adminoptionboxchild" id="ids_enabled_childcontainer">
+				{preference name=ids_log_to_file}
+				{*{preference name=ids_log_to_database}*}
+			</div>
+
+			{preference name=http_header_frame_options}
+			<div class="adminoptionboxchild" id="http_header_frame_options_childcontainer">
+				{preference name=http_header_frame_options_value}
+			</div>
+
+			{preference name=http_header_xss_protection}
+			<div class="adminoptionboxchild" id="http_header_xss_protection_childcontainer">
+				{preference name=http_header_xss_protection_value}
+			</div>
+
+			{preference name=http_header_content_type_options}
+
+			{preference name=http_header_content_security_policy}
+			<div class="adminoptionboxchild" id="http_header_content_security_policy_childcontainer">
+				{preference name=http_header_content_security_policy_value}
+			</div>
+
+			{preference name=http_header_strict_transport_security}
+			<div class="adminoptionboxchild" id="http_header_strict_transport_security_childcontainer">
+				{preference name=http_header_strict_transport_security_value}
+			</div>
+
+			{preference name=http_header_public_key_pins}
+			<div class="adminoptionboxchild" id="http_header_public_key_pins_childcontainer">
+				{preference name=http_header_public_key_pins_value}
+			</div>
+
 		{/tab}
 
 		{tab name="{tr}Tokens{/tr}"}
-			<h2>{tr}Tokens{/tr}</h2>
+			<br>
 			{remarksbox type="tip" title="{tr}Tip{/tr}"}
 				{tr}To manage tokens go to <a href="tiki-admin_tokens.php">Admin Tokens</a> page. Tokens are also used for the Temporary Users feature (see <a href="tiki-adminusers.php">Admin Users</a>).{/tr}
 			{/remarksbox}
@@ -178,9 +211,9 @@
 		{/tab}
 
 		{tab name="{tr}OpenPGP{/tr}"}
-			<h2>{tr}OpenPGP{/tr}</h2>
+			<br>
 			<fieldset>
-				<legend>{tr}OpenPGP fuctionality for PGP/MIME encrypted email messaging{/tr}</legend>
+				<legend>{tr}OpenPGP functionality for PGP/MIME encrypted email messaging{/tr}</legend>
 				{remarksbox type="tip" title="{tr}Note{/tr}"}
 					{tr}Experimental OpenPGP fuctionality for PGP/MIME encrypted email messaging.{/tr}<br><br>
 					{tr}All email-messaging/notifications/newsletters are sent as PGP/MIME-encrypted messages, signed with the signer-key, and are completely 100% opaque to outsiders. All user accounts need to be properly configured into gnupg keyring with public-keys related to their tiki-account-related email-addresses.{/tr}
@@ -206,12 +239,5 @@
 		{/tab}
 
 	{/tabset}
-
-	<div class="row">
-		<div class="form-group col-lg-12 clearfix">
-			<div class="text-center">
-				<input type="submit" class="btn btn-primary btn-sm" name="security" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}">
-			</div>
-		</div>
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

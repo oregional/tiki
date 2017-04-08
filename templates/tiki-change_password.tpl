@@ -5,6 +5,7 @@
 {else}
 	{assign var='new_user_validation' value='n'}
 {/if}
+<div class="row">
 <div class="col-md-10 col-md-push-1 clearfix">
 	<form role="form" class="form-horizontal" method="post" action="tiki-change_password.php">
 		<div class="panel panel-default">
@@ -45,14 +46,16 @@
 					<div class="form-group">
 						<label class="col-md-4 control-label" for="oldpass">{tr}Old Password{/tr}</label>
 						<div class="col-md-8">
-							<input type="password" class="form-control" name="oldpass" id="oldpass" placeholder="Old Password">
+							<input style="display:none">{* This seems to be required for the Chromium browser to prevent replacing the admin password in a new install from console.php with some password stored in the user's browser *}
+							<input type="password" style="display:none" name="oldpass_autocomplete_off">{* This seems to be required for the Chromium browser to prevent replacing the admin password in a new install from console.php with some password stored in the user's browser *}
+							<input type="password" class="form-control" name="oldpass" id="oldpass" placeholder="{tr}Old Password{/tr}">
 						</div>
 					</div>
 				{/if}
 				<div class="form-group">
 					<label class="col-md-4 control-label" for="pass1">{tr}New Password{/tr}</label>
 					<div class="col-md-8">
-						<input type="password" class="form-control" placeholder="New Password" name="pass" id="pass1">
+						<input type="password" class="form-control" placeholder="{tr}New Password{/tr}" name="pass" id="pass1">
 						<div style="margin-left:5px;">
 							<div id="mypassword_text">{icon name='ok' istyle='display:none'}{icon name='error' istyle='display:none' } <span id="mypassword_text_inner"></span></div>
 							<div id="mypassword_bar" style="font-size: 5px; height: 2px; width: 0px;"></div>
@@ -65,7 +68,7 @@
 				<div class="form-group">
 					<label class="col-md-4 control-label" for="pass2">{tr}Repeat Password{/tr}</label>
 					<div class="col-md-8">
-						<input type="password" class="form-control" name="passAgain" id="pass2" placeholder="Repeat Password">
+						<input type="password" class="form-control" name="passAgain" id="pass2" placeholder="{tr}Repeat Password{/tr}">
 						<div id="mypassword2_text">
 							<div id="match" style="display:none">
 								{icon name='ok' istyle='color:#0ca908'} {tr}Passwords match{/tr}
@@ -90,7 +93,7 @@
 					<div class="form-group">
 						<label class="col-md-4 control-label" for="email">{tr}Email{/tr}</label>
 						<div class="col-md-8">
-							<input type="email" class="form-control" name="email" id="email" placeholder="Email" value="{if not empty($email)}{$email|escape}{/if}">
+							<input type="email" class="form-control" name="email" id="email" placeholder="{tr}Email{/tr}" value="{if not empty($email)}{$email|escape}{/if}">
 						</div>
 					</div>
 				{/if}
@@ -100,4 +103,5 @@
 			</div>
 		</div>
 	</form>
+</div>
 </div>

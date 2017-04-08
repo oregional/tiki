@@ -1,5 +1,5 @@
 <form class="form-horizontal" method="post" action="tiki-admin.php?page=polls">
-	<input type="hidden" name="ticket" value="{$ticket|escape}">
+	{include file='access/include_ticket.tpl'}
 	<div class="row">
 		<div class="form-group col-lg-12 clearfix">
 			{if $prefs.feature_polls eq "y" and $tiki_p_admin_polls eq "y"}
@@ -12,17 +12,14 @@
 					{icon name="list"} {tr}Surveys{/tr}
 				</a>
 			{/if}
-			<div class="pull-right">
-				<input type="submit" class="btn btn-primary btn-sm" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
+			{include file='admin/include_apply_top.tpl'}
 		</div>
 	</div>
 
 	{tabset name="admin_polls_and_surveys"}
 
-		{if $prefs.feature_polls eq "y"}
 			{tab name="{tr}Polls{/tr}"}
-				<h2>{tr}Polls{/tr}</h2>
+				<br>
 				<fieldset>
 					<legend>{tr}Activate the feature{/tr}</legend>
 					{preference name=feature_polls visible="always"}
@@ -49,11 +46,10 @@
 					{preference name=poll_percent_decimals}
 				</fieldset>
 			{/tab}
-		{/if}
 
 		{if $prefs.feature_surveys eq "y"}
 			{tab name="{tr}Surveys{/tr}"}
-				<h2>{tr}Surveys{/tr}</h2>
+				<br>
 				<fieldset class="table">
 					<legend>{tr}Activate the feature{/tr}</legend>
 					{preference name=feature_surveys visible="always"}
@@ -65,12 +61,5 @@
 		{/if}
 
 	{/tabset}
-
-	<div class="row">
-		<div class="form-group col-lg-12 clearfix">
-			<div class="text-center">
-				<input type="submit" class="btn btn-primary btn-sm" title="{tr}Apply Changes{/tr}" value="{tr}Apply{/tr}" />
-			</div>
-		</div>
-	</div>
+	{include file='admin/include_apply_bottom.tpl'}
 </form>

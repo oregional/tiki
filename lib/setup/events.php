@@ -66,6 +66,10 @@ function tiki_setup_events()
 			$events->bind('tiki.trackeritem.save', $defer('trk', 'sync_user_geo'));
 		}
 
+		if (! empty($prefs['user_trackersync_groups'])) {
+			$events->bind('tiki.trackeritem.save', $defer('trk', 'sync_user_groups'));
+		}
+
 		if ($prefs['groupTracker'] == 'y') {
 			$events->bind('tiki.trackeritem.create', $defer('trk', 'group_tracker_create'));
 		}
@@ -149,14 +153,15 @@ function tiki_setup_events()
 		$events->bind('tiki.file.update', $defer('scorm', 'handle_file_update'));
 	}
 
+	if ($prefs['h5p_enabled'] == 'y') {
+		$events->bind('tiki.file.create', $defer('h5p', 'handle_fileCreation'));
+		$events->bind('tiki.file.update', $defer('h5p', 'handle_fileUpdate'));
+		$events->bind('tiki.file.delete', $defer('h5p', 'handle_fileDelete'));
+	}
+
 	if ($prefs['feature_futurelinkprotocol'] == 'y') {
-		if ($prefs['feature_wikilingo'] == 'y') {
-			$events->bind("tiki.wiki.view", $defer('wlte', 'wikilingo_flp_view'));
-			$events->bind("tiki.wiki.save", $defer('wlte', 'wikilingo_flp_save'));
-		} else {
-			$events->bind("tiki.wiki.view", $defer('wlte', 'tiki_wiki_view_pastlink'));
-			$events->bind("tiki.wiki.save", $defer('wlte', 'tiki_wiki_save_pastlink'));
-		}
+		$events->bind("tiki.wiki.view", $defer('wlte', 'tiki_wiki_view_pastlink'));
+		$events->bind("tiki.wiki.save", $defer('wlte', 'tiki_wiki_save_pastlink'));
 	}
 
 	if ($prefs['goal_enabled'] == 'y') {
@@ -173,7 +178,7 @@ function tiki_setup_events()
 		try {
 			TikiLib::lib('activity')->bindCustomEvents($events);
 		} catch (Exception $e) {
-			TikiLib::lib('errorreport')->report($e->getMessage());
+			Feedback::error($e->getMessage(), 'session');
 		}
 	}
 
@@ -194,23 +199,29 @@ function tiki_setup_events()
 		TikiLib::lib('score')->bindEvents($events);
 	}
 
+	// If the parameter is supplied by the web server, Tiki will expose a Tiki identifier as a response header
+	if (! empty($_SERVER['TIKI_HEADER_REPORT_ID'])) {
+		header('X-Tiki-Id: ' . $_SERVER['TIKI_HEADER_REPORT_ID']);
+	}
+
 	// If the parameter is supplied by the web server, Tiki will expose the username as a response header
-	if (! empty($_SERVER['TIKI_HEADER_REPORT_USER'])) {
-		$events->bind('tiki.process.render', function () {
-			global $user;
-			if ($user) {
-				header('X-Remote-User: ' . $user);
-			}
-		});
+	if (! empty($_SERVER['TIKI_HEADER_REPORT_USER']) && strtolower($_SERVER['TIKI_HEADER_REPORT_USER']) != 'off') {
+		global $user;
+		if ($user) {
+			header('X-Remote-User: ' . $user);
+		}
 	}
 
 	// If the parameter is supplied by the web server, Tiki will expose the object type and id as a response header
-	if (! empty($_SERVER['TIKI_HEADER_REPORT_OBJECT'])) {
-		$events->bind('tiki.process.render', function () {
-			if (function_exists('current_object') && $object = current_object()) {
-				header("X-Current-Object: {$object['type']}:{$object['object']}");
-			}
-		});
+	if (! empty($_SERVER['TIKI_HEADER_REPORT_OBJECT']) && strtolower($_SERVER['TIKI_HEADER_REPORT_OBJECT']) != 'off') {
+		if (function_exists('current_object') && $object = current_object()) {
+			header("X-Current-Object: {$object['type']}:{$object['object']}");
+		}
+	}
+
+	// If the parameter is supplied by the web server, Tiki will expose events as a response header
+	if (! empty($_SERVER['TIKI_HEADER_REPORT_EVENTS']) && strtolower($_SERVER['TIKI_HEADER_REPORT_EVENTS']) != 'off') {
+		$events->bindPriority(999, 'tiki.eventlog.commit', 'tiki_header_report_event');
 	}
 
 	// Chain events
@@ -308,6 +319,7 @@ function tiki_setup_events()
 	$events->bind('tiki.user.groupleave', 'tiki.user.update');
 	$events->bind('tiki.user.update', 'tiki.user.save');
 	$events->bind('tiki.user.create', 'tiki.user.save');
+	$events->bind('tiki.user.delete', 'tiki.save');
 
 	$events->bind('tiki.user.follow.add', 'tiki.user.network');
 	$events->bind('tiki.user.follow.incoming', 'tiki.user.network');
@@ -334,6 +346,9 @@ function tiki_setup_events()
 	$events->bind('tiki.mustread.completed', 'tiki.save');
 	$events->bind('tiki.mustread.required', 'tiki.save');
 
+	// As PHP's register_shutdown_function might change the working directory, change it back to avoid bugs.
+	$events->bindPriority(-20, 'tiki.process.shutdown', 'tiki_shutdown_cwd');
+
 	if (function_exists('fastcgi_finish_request')) {
 		// If available, try to send everything to the user at this point
 		$events->bindPriority(-10, 'tiki.process.shutdown', 'fastcgi_finish_request');
@@ -350,11 +365,34 @@ function tiki_setup_events()
 	$api->bindEvents($events);
 }
 
+function tiki_shutdown_cwd()
+{
+	global $tikipath;
+	if ($currentdir = getcwd()) {
+		if ($currentdir != $tikipath) {
+			chdir($tikipath);
+		}
+	}
+}
+
 function tiki_save_refresh_index($args)
 {
 	if (! isset($args['index_handled'])) {
 		require_once('lib/search/refresh-functions.php');
 		$isBulk = isset($args['bulk_import']) && $args['bulk_import'];
 		refresh_index($args['type'], $args['object'], ! $isBulk);
+	}
+}
+
+function tiki_header_report_event()
+{
+	$events = TikiLib::events();
+	$encoded = json_encode($events->getEventLog());
+	header('X-Tiki-Events: ' . $encoded);
+	if (! empty($_SERVER['TIKI_HEADER_REPORT_USER']) && strtolower($_SERVER['TIKI_HEADER_REPORT_USER']) != 'off') {
+		global $user;
+		if ($user) {
+			header('X-Remote-User: ' . $user);
+		}
 	}
 }

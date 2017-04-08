@@ -160,8 +160,10 @@ usage: $0 [<switches>] ${POSSIBLE_COMMANDS}
 -u user      owner of files (default: $AUSER)
 -g group     group of files (default: $AGROUP)
 -v virtuals  list of virtuals (for multitiki, example: "www1 www2")
+-p php       alternate PHP command (default: php)
 -n           not prompt for user and group, assume current
 -d off|on    disable|enable debugging mode (override script default)
+-q           quiet (workaround to silence composer, e.g. in cron scripts)
 
 There are some other commands recommended for advanced users only.
 More documentation about this: https://doc.tiki.org/Permission+Check
@@ -182,18 +184,30 @@ set_debug() {
 OPT_AUSER=
 OPT_AGROUP=
 OPT_VIRTUALS=
+OPT_PHPCLI=
 OPT_USE_CURRENT_USER_GROUP=
+OPT_QUIET=
 
-while getopts "hu:g:v:nd:" OPTION; do
+while getopts "hu:g:v:p:nd:q" OPTION; do
 	case $OPTION in
 		h) usage ; exit 0 ;;
 		u) OPT_AUSER=$OPTARG ;;
 		g) OPT_AGROUP=$OPTARG ;;
 		v) OPT_VIRTUALS=$OPTARG ;;
+		p) OPT_PHPCLI=$OPTARG ;;
 		n) OPT_USE_CURRENT_USER_GROUP=1 ;;
 		d) set_debug ;;
+		q) OPT_QUIET="-q" ;;
 		?) usage ; exit 1 ;;
 	esac
+	if [ -n "$OPT_PHPCLI" ]; then
+		PHPCLI=`which "${OPT_PHPCLI}"`
+		if [ ! -n "$PHPCLI" ]; then
+			echo "PHP command: ${OPT_PHPCLI} not found. Please provide an existing command."
+			exit 1
+		fi
+		#echo "PHP command: ${PHPCLI}"
+	fi
 	if [ ${DEBUG} = '1' ] ; then
 		if [ ${ECHOFLAG} = '1' ] ; then
 			ECHOFLAG=0
@@ -269,8 +283,8 @@ check_distribution
 # part 3 - default and writable subdirs
 # -------------------------------------
 
-DIR_LIST_DEFAULT="addons admin db doc dump files img installer lang lib modules permissioncheck temp templates templates_c tests themes tiki_tests vendor vendor_extra whelp"
-DIR_LIST_WRITABLE="db dump img/wiki img/wiki_up img/trackers modules/cache temp temp/cache temp/public templates_c templates themes whelp mods files tiki_tests/tests temp/unified-index"
+DIR_LIST_DEFAULT="addons admin db doc dump files img installer lang lib modules permissioncheck storage temp templates tests themes tiki_tests vendor vendor_extra whelp"
+DIR_LIST_WRITABLE="db dump img/wiki img/wiki_up img/trackers modules/cache storage storage/public temp temp/cache temp/public temp/templates_c templates themes whelp mods files tiki_tests/tests temp/unified-index"
 DIRS=${DIR_LIST_WRITABLE}
 
 # part 4 - several functions
@@ -511,10 +525,10 @@ composer_core()
 	else
 		# todo : if exists php;
 		if [ ${LOGCOMPOSERFLAG} = "0" ] ; then
-			${PHPCLI} temp/composer.phar self-update
+			"${PHPCLI}" temp/composer.phar self-update --working-dir vendor_bundled "$OPT_QUIET"
 		fi
 		if [ ${LOGCOMPOSERFLAG} = "1" ] ; then
-			${PHPCLI} temp/composer.phar self-update > ${TIKI_COMPOSER_SELF_UPDATE_LOG}
+			"${PHPCLI}" temp/composer.phar self-update --working-dir vendor_bundled "$OPT_QUIET" > ${TIKI_COMPOSER_SELF_UPDATE_LOG}
 		fi
 	fi
 
@@ -533,8 +547,8 @@ composer_core()
 	if exists php;
 	then
 		if [ ${LOGCOMPOSERFLAG} = "0" ] ; then
-			#until php -dmemory_limit=-1 temp/composer.phar install --prefer-dist --no-dev
-			until ${PHPCLI} -dmemory_limit=-1 temp/composer.phar install --prefer-dist --no-dev 2>&1 | sed '/Warning: Ambiguous class resolution/d'
+			#until php -dmemory_limit=-1 temp/composer.phar install --working-dir vendor_bundled --prefer-dist --no-dev
+			until "${PHPCLI}" -dmemory_limit=-1 temp/composer.phar install --working-dir vendor_bundled --prefer-dist --no-dev 2>&1 | sed '/Warning: Ambiguous class resolution/d'
 			# setting memory_limit here prevents suhosin ALERT - script tried to increase memory_limit to 536870912 bytes
 			do
 				if [ $N -eq 7 ];
@@ -549,7 +563,7 @@ composer_core()
 			done
 		fi
 		if [ ${LOGCOMPOSERFLAG} = "1" ] ; then
-			until ${PHPCLI} -dmemory_limit=-1 temp/composer.phar install --prefer-dist --no-dev > ${TIKI_COMPOSER_INSTALL_LOG}
+			until "${PHPCLI}" -dmemory_limit=-1 temp/composer.phar install --working-dir vendor_bundled --prefer-dist --no-dev > ${TIKI_COMPOSER_INSTALL_LOG}
 			# setting memory_limit here prevents suhosin ALERT - script tried to increase memory_limit to 536870912 bytes
 			do
 				if [ $N -eq 7 ];
@@ -565,8 +579,8 @@ composer_core()
 		fi
 		if [ ${LOGCOMPOSERFLAG} = "2" ] ; then
 			echo "Suppress output lines with 'Warning: Ambiguous class resolution'\n..."
-			#until php -dmemory_limit=-1 temp/composer.phar install --prefer-dist --no-dev | sed '/Warning: Ambiguous class resolution/d'
-			until ${PHPCLI} -dmemory_limit=-1 temp/composer.phar install --prefer-dist --no-dev
+			#until php -dmemory_limit=-1 temp/composer.phar install --working-dir vendor_bundled --prefer-dist --no-dev | sed '/Warning: Ambiguous class resolution/d'
+			until "${PHPCLI}" -dmemory_limit=-1 temp/composer.phar install --working-dir vendor_bundled --prefer-dist --no-dev
 			# setting memory_limit here prevents suhosin ALERT - script tried to increase memory_limit to 536870912 bytes
 			do
 				if [ $N -eq 7 ];
@@ -591,16 +605,34 @@ composer()
 	# insert php cli version check here
 	# http://dev.tiki.org/item4721
 	PHP_OPTION="--version"
-	REQUIRED_PHP_VERSION=55 # minimal version PHP 5.5 but no decimal seperator, no floating point data
+	REQUIRED_PHP_VERSION=56 # minimal version PHP 5.6 but no decimal seperator, no floating point data
 	#${PHPCLI} ${PHP_OPTION}
-	LOCAL_PHP_VERSION=`${PHPCLI} ${PHP_OPTION} | ${GREP} ^PHP | ${CUT} -c5,7`
+	LOCAL_PHP_VERSION=`"${PHPCLI}" ${PHP_OPTION} | ${GREP} ^PHP | ${CUT} -c5,7`
 	#echo ${LOCAL_PHP_VERSION}
-	if [ "${LOCAL_PHP_VERSION}" -ge "${REQUIRED_PHP_VERSION}" ] ; then
-		echo "local PHP version ${LOCAL_PHP_VERSION} >= required PHP version ${REQUIRED_PHP_VERSION} - good"
-		composer_core
+	LIKELY_ALTERNATE_PHP_CLI="php56 php5.6 php5.6-cli" # These have been known to exist on some hosting platforms
+	if [ "${LOCAL_PHP_VERSION}" -lt "${REQUIRED_PHP_VERSION}" ] ; then
+		echo "Wrong PHP version: php${LOCAL_PHP_VERSION} < required PHP version.  A version >= php${REQUIRED_PHP_VERSION} is necessary."
+		echo "Searching for typically named alternative PHP version ..."
+		for phptry in $LIKELY_ALTERNATE_PHP_CLI; do
+			PHPTRY=`which $phptry`
+			#echo "debug: $PHPTRY"
+			if [ -n "${PHPTRY}" ]; then
+				echo "... correct PHP version ${phptry} detected and used"
+				PHPCLI="${PHPTRY}"
+				PHPCLIFOUND="y"
+				break
+			fi
+		done
+		if [ ! -n "${PHPCLIFOUND}" ]; then
+			echo "... no alternative php version found." 
+			echo "Please provide an alternative PHP version with the -p option."
+			echo "Example: sh `basename $0` -p php${REQUIRED_PHP_VERSION}."
+			echo "You can use the command-line command 'php[TAB][TAB]' to find out available versions."
+			exit 1
+		fi
 	else
-		echo "wrong PHP version ${LOCAL_PHP_VERSION} but >= ${REQUIRED_PHP_VERSION} necessary"
-		exit 1
+		echo "Local PHP version >= required PHP version ${REQUIRED_PHP_VERSION} - good"
+		composer_core
 	fi
 }
 

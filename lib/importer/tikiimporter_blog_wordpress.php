@@ -409,8 +409,8 @@ class TikiImporter_Blog_Wordpress extends TikiImporter_Blog
 					'',
 					$attachment['fileName'],
 					$data,
-					$size,
-					$mimeType,
+					$size->getFieldValue(),
+					$mimeType->getFieldValue(),
 					$attachment['author'],
 					'',
 					'',
@@ -773,7 +773,7 @@ class TikiImporter_Blog_Wordpress extends TikiImporter_Blog
 		}
 
 		foreach ($commentNode->childNodes as $node) {
-			if ($node instanceof DOMElement) {
+			if (isset($node->{'tagName'}) && isset($node->{'textContent'})) {
 				switch ($node->tagName) {
 					case 'wp:comment_author':
 						$comment['author'] = $node->textContent;
@@ -794,7 +794,7 @@ class TikiImporter_Blog_Wordpress extends TikiImporter_Blog
 						$comment['data'] = $node->textContent;
 						break;
 					case 'wp:comment_approved':
-						$comment['approved'] = $node->textContent;
+						$comment['approved'] = (int) $node->textContent;
 						break;
 					case 'wp:comment_type':
 						$comment['type'] = $node->textContent;
